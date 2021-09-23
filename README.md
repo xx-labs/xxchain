@@ -39,10 +39,16 @@ xx-team-custody
 
 ### Benchmarking
 
-Included is a script that automatically runs the benchmarking code and calculates extrinsic weights for relevent pallets. 
+Included is a script that automatically runs the benchmarking code and calculates extrinsic weights for relevant pallets.
 
 This can be executed with:
 
 ```sh
 sh ./scripts/benchmark.sh
 ```
+
+### Code Review
+
+A code review was performed by ChainSafe. It focused mostly on the modification to the Staking pallet
+and the custom made xx network pallets for cmix, economics and team custody.
+The report can be found [here](./doc/ChainSafe%20xxchain%20Code%20Review.pdf).

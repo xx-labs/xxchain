@@ -7,7 +7,7 @@ build = "build.rs"
 edition = "2018"
 default-run = "xxnetwork-chain"
 homepage = "https://xx.network"
-repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+repository = "https://github.com/xx-labs/xxchain/"
 
 [package.metadata.wasm-pack.profile.release]
 # `wasm-opt` has some problems on linux, see

@@ -4,7 +4,7 @@ version = "3.0.0"
 authors = ["xxlabs <admin@xx.network>"]
 edition = "2018"
 homepage = "https://xx.network"
-repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+repository = "https://github.com/xx-labs/xxchain/"
 readme = "README.md"
 
 [package.metadata.docs.rs]
