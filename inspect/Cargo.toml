@@ -1,0 +1,22 @@
+[package]
+name = "node-inspect"
+version = "0.1.0"
+authors = ["xxlabs <admin@xx.network>"]
+edition = "2018"
+homepage = "https://xx.network"
+repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+derive_more = "0.99"
+log = "0.4.8"
+sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+structopt = "0.3.8"

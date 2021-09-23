@@ -1,0 +1,216 @@
+[package]
+name = "phoenixx-runtime"
+version = "0.1.0"
+authors = ["xxlabs <admin@xx.network>"]
+edition = "2018"
+build = "build.rs"
+homepage = "https://xx.network"
+repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+
+# third-party dependencies
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+static_assertions = "1.1.0"
+hex-literal = { version = "0.3.1", optional = true }
+log = { version = "0.4.14", default-features = false }
+smallvec = "1.6.1"
+
+# primitives
+sp-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+node-primitives = { version = "0.1.0", default-features = false, path = "../../primitives" }
+sp-offchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-staking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+sp-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-version = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-npos-elections = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+# frame dependencies
+frame-executive = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
+frame-system-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-try-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
+
+# pallets
+pallet-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-authorship = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-bounties = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-collective = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-democracy = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-election-provider-multi-phase = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-elections-phragmen = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-identity = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-membership = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-offences = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-offences-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
+pallet-proxy = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-randomness-collective-flip = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", features = ["historical"], default-features = false }
+pallet-session-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
+pallet-staking = { version = "3.0.0", default-features = false, path = "../../staking" }
+pallet-staking-reward-curve = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-scheduler = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-tips = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-treasury = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-utility = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+# chainbridge
+chainbridge = { path = "../../chainbridge", default-features = false }
+# swap
+swap = { path = "../../swap", default-features = false }
+
+# token claims
+claims = { path = "../../claims", default-features = false }
+
+# xx network pallets
+xx-cmix = {path = "../../xx-cmix", default-features = false }
+xx-economics = {path = "../../xx-economics", default-features = false }
+xx-team-custody = {path = "../../xx-team-custody", default-features = false }
+
+[build-dependencies]
+substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+[features]
+default = ["std"]
+with-tracing = [ "frame-executive/with-tracing" ]
+std = [
+	"sp-authority-discovery/std",
+	"pallet-authority-discovery/std",
+	"pallet-authorship/std",
+	"sp-consensus-babe/std",
+	"pallet-babe/std",
+	"pallet-balances/std",
+	"pallet-bounties/std",
+	"sp-block-builder/std",
+	"codec/std",
+	"pallet-collective/std",
+	"pallet-democracy/std",
+	"pallet-elections-phragmen/std",
+	"frame-executive/std",
+	"pallet-grandpa/std",
+	"pallet-im-online/std",
+	"sp-inherents/std",
+	"pallet-membership/std",
+	"pallet-identity/std",
+	"pallet-scheduler/std",
+	"node-primitives/std",
+	"sp-offchain/std",
+	"pallet-offences/std",
+	"pallet-proxy/std",
+	"sp-core/std",
+	"pallet-randomness-collective-flip/std",
+	"sp-std/std",
+	"pallet-session/std",
+	"sp-api/std",
+	"sp-runtime/std",
+	"sp-staking/std",
+	"pallet-staking/std",
+	"sp-keyring",
+	"sp-session/std",
+	"frame-support/std",
+	"frame-benchmarking/std",
+	"frame-system-rpc-runtime-api/std",
+	"frame-system/std",
+	"pallet-election-provider-multi-phase/std",
+	"pallet-timestamp/std",
+	"pallet-tips/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-transaction-payment/std",
+	"pallet-treasury/std",
+	"sp-transaction-pool/std",
+	"pallet-utility/std",
+	"sp-version/std",
+	"pallet-vesting/std",
+	"log/std",
+	"frame-try-runtime/std",
+	"sp-npos-elections/std",
+	"claims/std",
+	"chainbridge/std",
+	"swap/std",
+]
+runtime-benchmarks = [
+	"frame-benchmarking",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-election-provider-multi-phase/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"pallet-babe/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-bounties/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
+	"pallet-democracy/runtime-benchmarks",
+	"pallet-elections-phragmen/runtime-benchmarks",
+	"pallet-grandpa/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
+	"pallet-im-online/runtime-benchmarks",
+	"pallet-membership/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
+	"pallet-scheduler/runtime-benchmarks",
+	"pallet-staking/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-tips/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks",
+	"pallet-vesting/runtime-benchmarks",
+	"pallet-offences-benchmarking",
+	"pallet-session-benchmarking",
+	"frame-system-benchmarking",
+	"hex-literal",
+]
+try-runtime = [
+	"frame-executive/try-runtime",
+	"frame-try-runtime",
+	"frame-system/try-runtime",
+	"pallet-authority-discovery/try-runtime",
+	"pallet-authorship/try-runtime",
+	"pallet-babe/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-bounties/try-runtime",
+	"pallet-collective/try-runtime",
+	"pallet-democracy/try-runtime",
+	"pallet-elections-phragmen/try-runtime",
+	"pallet-grandpa/try-runtime",
+	"pallet-im-online/try-runtime",
+	"pallet-membership/try-runtime",
+	"pallet-identity/try-runtime",
+	"pallet-scheduler/try-runtime",
+	"pallet-offences/try-runtime",
+	"pallet-proxy/try-runtime",
+	"pallet-randomness-collective-flip/try-runtime",
+	"pallet-session/try-runtime",
+	"pallet-staking/try-runtime",
+	"pallet-election-provider-multi-phase/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-tips/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+	"pallet-treasury/try-runtime",
+	"pallet-utility/try-runtime",
+	"pallet-vesting/try-runtime",
+]

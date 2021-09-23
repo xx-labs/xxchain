@@ -1,0 +1,207 @@
+// Added as part the code review and testing
+// by ChainSafe Systems Aug 2021
+
+use crate::cmix::{Scheduling, SoftwareHashes};
+
+use super::*;
+use mock::*;
+
+use frame_support::{assert_noop, assert_ok};
+
+type SoftwareHash = <mock::Test as frame_system::Config>::Hash;
+
+///////////////////////////////
+//      set_cmix_hashes      //
+///////////////////////////////
+
+#[test]
+fn set_cmix_hashes_can_call_with_admin_during_permission_period() {
+    ExtBuilder::default()
+        .with_admin_permission(10)
+        .build_and_execute(|| {
+            run_to_block(10); // admin period is inclusive
+            let new_hashes = SoftwareHashes {
+                server: SoftwareHash::repeat_byte(0x55),
+                ..Default::default()
+            };
+            assert_ok!(XXCmix::set_cmix_hashes(
+                Origin::root(),
+                new_hashes.clone()
+            ));
+
+            assert_eq!(XXCmix::cmix_hashes(), new_hashes,);
+            assert_eq!(
+                *xx_cmix_events().last().unwrap(),
+                RawEvent::CmixHashesUpdated
+            );
+        });
+}
+
+#[test]
+fn set_cmix_hashes_fails_outside_permission_period() {
+    ExtBuilder::default()
+        .with_admin_permission(10)
+        .build_and_execute(|| {
+            run_to_block(11);
+            assert_noop!(
+                XXCmix::set_cmix_hashes(Origin::root(), Default::default()),
+                Error::<Test>::AdminPermissionExpired,
+            );
+        });
+}
+
+////////////////////////////////////
+//    set_scheduling_account      //
+////////////////////////////////////
+
+#[test]
+fn set_scheduling_account_can_call_with_admin_during_permission_period() {
+    let new_scheduling_account = 1;
+    ExtBuilder::default()
+        .with_admin_permission(10)
+        .build_and_execute(|| {
+            run_to_block(10);
+            assert_ok!(XXCmix::set_scheduling_account(
+                Origin::root(),
+                new_scheduling_account
+            ));
+            assert_eq!(XXCmix::scheduling_account(), new_scheduling_account,);
+            assert_eq!(
+                *xx_cmix_events().last().unwrap(),
+                RawEvent::SchedulingAccountUpdated
+            );
+        });
+}
+
+////////////////////////////////////
+//    set_next_cmix_variables      //
+////////////////////////////////////
+
+#[test]
+fn set_next_cmix_variables_can_call_with_cmix_vars_origin() {
+    let new_variables = cmix::Variables {
+        scheduling: Scheduling {
+            team_size: 4,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    ExtBuilder::default().build_and_execute(|| {
+        start_active_era(1);
+
+        let init_cmix_vars = XXCmix::cmix_variables();
+        assert_ok!(XXCmix::set_next_cmix_variables(
+            Origin::root(),
+            new_variables.clone()
+        ));
+        assert_eq!(
+            XXCmix::next_cmix_variables(),
+            Some(new_variables.clone()),
+        );
+        // actual variables have not been set yet
+        // Not set until next era
+        assert_eq!(XXCmix::cmix_variables(), init_cmix_vars);
+
+        // In the next era they are set
+        start_active_era(2);
+
+        assert_eq!(XXCmix::cmix_variables(), new_variables);
+        assert_eq!(
+            *xx_cmix_events().last().unwrap(),
+            RawEvent::CmixVariablesUpdated
+        );
+    });
+}
+
+////////////////////////////////////////////////////////
+//    submit_cmix_points / submit_cmix_deductions     //
+////////////////////////////////////////////////////////
+
+#[test]
+fn cmix_points_fails_if_not_scheduling() {
+    ExtBuilder::default().build_and_execute(|| {
+        assert_noop!(
+            XXCmix::submit_cmix_points(Origin::signed(1), Vec::new()),
+            Error::<Test>::MustBeScheduling,
+        );
+        assert_noop!(
+            XXCmix::submit_cmix_deductions(Origin::signed(1), Vec::new()),
+            Error::<Test>::MustBeScheduling,
+        );
+    });
+}
+
+#[test]
+fn cmix_points_adds_remove_points_in_staking_pallet() {
+    let scheduling = 1;
+    let a = 2;
+    let first_addition = 10;
+    let second_addition = 33;
+
+    ExtBuilder::default()
+        .with_scheduling_acccount(scheduling)
+        .build_and_execute(|| {
+            start_active_era(1);
+
+            assert_ok!(XXCmix::submit_cmix_points(
+                Origin::signed(scheduling),
+                vec![(a, first_addition)]
+            ),);
+            assert_ok!(XXCmix::submit_cmix_points(
+                Origin::signed(scheduling),
+                vec![(a, second_addition)]
+            ),);
+            assert_eq!(
+                Staking::eras_reward_points(active_era()).individual.get(&a),
+                Some(&(first_addition + second_addition + 1))
+            );
+
+            // now deduct. Should not go below 1
+            assert_ok!(XXCmix::submit_cmix_deductions(
+                Origin::signed(scheduling),
+                vec![(a, 99)]
+            ),);
+            assert_eq!(
+                Staking::eras_reward_points(active_era()).individual.get(&a),
+                Some(&1)
+            );
+
+            assert_eq!(
+                xx_cmix_events(),
+                vec![
+                    RawEvent::CmixPointsAdded,
+                    RawEvent::CmixPointsAdded,
+                    RawEvent::CmixPointsDeducted
+                ]
+            );
+        });
+}
+
+///////////////////////////////////
+//    set_cmix_address_space     //
+///////////////////////////////////
+
+#[test]
+fn set_cmix_address_space_fails_if_not_scheduling() {
+    ExtBuilder::default().build_and_execute(|| {
+        assert_noop!(
+            XXCmix::set_cmix_address_space(Origin::signed(1), 0x77),
+            Error::<Test>::MustBeScheduling,
+        );
+    });
+}
+
+#[test]
+fn set_cmix_address_space_sets_storage() {
+    let scheduling = 1;
+    let new_address_space = 0x77;
+    ExtBuilder::default()
+        .with_scheduling_acccount(scheduling)
+        .build_and_execute(|| {
+            assert_ok!(XXCmix::set_cmix_address_space(
+                Origin::signed(1),
+                new_address_space
+            ));
+            assert_eq!(XXCmix::cmix_address_space(), new_address_space);
+        });
+}

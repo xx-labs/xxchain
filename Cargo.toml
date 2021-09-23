@@ -1,0 +1,22 @@
+[profile.release]
+panic = 'unwind'
+
+[workspace]
+resolver = "2"
+members = [
+    'chainbridge',
+    'claims',
+    'cli',
+    'executor',
+    'primitives',
+    'rpc',
+    'rpc-client',
+    'runtime/phoenixx',
+    'runtime/protonet',
+    'runtime/xxnetwork',
+    'staking',
+    'swap',
+    'xx-cmix',
+    'xx-economics',
+    'xx-team-custody'
+]

@@ -1,0 +1,35 @@
+[package]
+name = "node-rpc"
+version = "0.1.0"
+authors = ["xxlabs <admin@xx.network>"]
+edition = "2018"
+homepage = "https://xx.network"
+repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+jsonrpc-core = "15.1.0"
+node-primitives = { version = "0.1.0", path = "../primitives" }
+pallet-transaction-payment-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-babe-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-epochs = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-chain-spec = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-finality-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-finality-grandpa-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-rpc-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-sync-state-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-transaction-pool-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+substrate-frame-rpc-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }

@@ -1,0 +1,43 @@
+[package]
+name = 'chainbridge'
+version = '0.0.2'
+authors = ['david@chainsafe.io']
+edition = '2018'
+
+[dependencies]
+# third-party dependencies
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.126", optional = true }
+
+# primitives
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+# frame dependencies
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+[build-dependencies]
+substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"serde",
+	"sp-std/std",
+	"sp-runtime/std",
+    "sp-io/std",
+    "sp-core/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-balances/std",
+]
+runtime-benchmarks = [
+	"frame-system/runtime-benchmarks",
+	"frame-support/runtime-benchmarks"
+]

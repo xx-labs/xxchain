@@ -1,0 +1,167 @@
+[package]
+name = "xxnetwork-cli"
+version = "0.1.1"
+authors = ["xxlabs <admin@xx.network>"]
+description = "Substrate based, xxnetwork blockchain node implementation in Rust."
+build = "build.rs"
+edition = "2018"
+default-run = "xxnetwork-chain"
+homepage = "https://xx.network"
+repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+
+[package.metadata.wasm-pack.profile.release]
+# `wasm-opt` has some problems on linux, see
+# https://github.com/rustwasm/wasm-pack/issues/781 etc.
+wasm-opt = false
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[[bin]]
+name = "xxnetwork-chain"
+path = "bin/main.rs"
+required-features = ["cli"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# third-party dependencies
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+serde = { version = "1.0.126", features = ["derive"] }
+futures = { version = "0.3.9", features = ["compat"] }
+hex-literal = "0.3.1"
+log = "0.4.8"
+rand = "0.7.2"
+structopt = { version = "0.3.8", optional = true }
+parking_lot = "0.11.1"
+
+# primitives
+sp-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+grandpa-primitives = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", package = "sp-finality-grandpa" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-authorship = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+# client dependencies
+sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-chain-spec = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-transaction-pool-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-network = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-slots = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-uncles = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", package = "sc-finality-grandpa" }
+sc-client-db = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sc-offchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-basic-authorship = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sc-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-telemetry = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-sync-state-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+# frame dependencies
+pallet-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-staking = { version = "3.0.0", path = "../staking" }
+pallet-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+# node-specific dependencies
+xxnetwork-runtime = { version = "0.1.0", path = "../runtime/xxnetwork" }
+protonet-runtime = { version = "0.1.0", path = "../runtime/protonet" }
+phoenixx-runtime = { version = "0.1.0", path = "../runtime/phoenixx" }
+node-rpc = { version = "0.1.0", path = "../rpc" }
+node-primitives = { version = "0.1.0", path = "../primitives" }
+node-executor = { version = "0.1.0", path = "../executor" }
+
+# CLI-specific dependencies
+sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+node-inspect = { version = "0.1.0", optional = true, path = "../inspect" }
+try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+
+# WASM-specific dependencies
+wasm-bindgen = { version = "0.2.73", optional = true }
+wasm-bindgen-futures = { version = "0.4.18", optional = true }
+libp2p-wasm-ext = { version = "0.28", features = ["websocket"], optional = true }
+
+[target.'cfg(target_arch="x86_64")'.dependencies]
+node-executor = { version = "0.1.0", path = "../executor", features = [ "wasmtime" ] }
+sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true, features = [ "wasmtime" ] }
+sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, features = [ "wasmtime" ] }
+sp-trie = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, features = ["memory-tracker"] }
+
+[dev-dependencies]
+sc-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-consensus-epochs = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-service-test = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+futures = "0.3.9"
+tempfile = "3.1.0"
+assert_cmd = "1.0"
+nix = "0.19"
+serde_json = "1.0"
+regex = "1"
+platforms = "1.1"
+async-std = { version = "1.6.5", features = ["attributes"] }
+soketto = "0.4.2"
+
+[build-dependencies]
+structopt = { version = "0.3.8", optional = true }
+node-inspect = { version = "0.1.0", optional = true, path = "../inspect" }
+frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+substrate-build-script-utils = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+substrate-frame-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", optional = true }
+
+[build-dependencies.sc-cli]
+package = "sc-cli"
+git = "https://github.com/xx-labs/substrate"
+branch = "xx-protonet"
+optional = true
+
+[features]
+default = [ "cli" ]
+cli = [
+	"node-executor/wasmi-errno",
+	"node-inspect",
+	"sc-cli",
+	"frame-benchmarking-cli",
+	"substrate-frame-cli",
+	"sc-service/db",
+	"structopt",
+	"substrate-build-script-utils",
+	"try-runtime-cli",
+]
+runtime-benchmarks = [
+	"xxnetwork-runtime/runtime-benchmarks",
+	# "protonet-runtime/runtime-benchmarks",
+	# "phoenixx-runtime/runtime-benchmarks",
+	"frame-benchmarking-cli",
+]
+# Enable features that allow the runtime to be tried and debugged. Name might be subject to change
+# in the near future.
+try-runtime = [
+	"xxnetwork-runtime/try-runtime",
+	"protonet-runtime/try-runtime",
+	"phoenixx-runtime/try-runtime",
+	"try-runtime-cli",
+]

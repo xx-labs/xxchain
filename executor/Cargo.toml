@@ -1,0 +1,58 @@
+[package]
+name = "node-executor"
+version = "0.1.0"
+authors = ["xxlabs <admin@xx.network>"]
+edition = "2018"
+homepage = "https://xx.network"
+repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+node-primitives = { version = "0.1.0", path = "../primitives" }
+xxnetwork-runtime = { version = "0.1.0", path = "../runtime/xxnetwork" }
+protonet-runtime = { version = "0.1.0", path = "../runtime/protonet" }
+phoenixx-runtime = { version = "0.1.0", path = "../runtime/phoenixx" }
+sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-state-machine = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-trie = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+trie-root = "0.16.0"
+frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+[dev-dependencies]
+criterion = "0.3.0"
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+node-testing = { version = "0.1.0", path = "../testing" }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pallet-treasury = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-application-crypto = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-externalities = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+substrate-test-client = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+wat = "1.0"
+futures = "0.3.9"
+
+[features]
+wasmtime = [
+	"sc-executor/wasmtime",
+]
+wasmi-errno = [
+	"sc-executor/wasmi-errno",
+]
+stress-test = []
+
+[[bench]]
+name = "bench"
+harness = false

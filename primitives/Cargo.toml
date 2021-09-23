@@ -1,0 +1,31 @@
+[package]
+name = "node-primitives"
+version = "0.1.0"
+authors = ["xxlabs <admin@xx.network>"]
+edition = "2018"
+homepage = "https://xx.network"
+repository = "https://gitlab.com/xxnetwork/xx-substrate/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-application-crypto = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+[dev-dependencies]
+sp-serializer = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+pretty_assertions = "0.6.1"
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"frame-system/std",
+	"sp-application-crypto/std",
+	"sp-core/std",
+	"sp-runtime/std",
+]

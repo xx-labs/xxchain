@@ -1,0 +1,51 @@
+[package]
+name = "xx-economics"
+version = "0.1.0"
+authors = ["Bernardo Cardoso <bernardo@xx.network>"]
+edition = "2018"
+
+[dependencies]
+# third-party dependencies
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.126", optional = true }
+
+# primitives
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+sp-arithmetic = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+# frame dependencies
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+pallet-staking = { version = "3.0.0", default-features = false, path = "../staking" }
+
+pallet-staking-reward-fn = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+pallet-proxy = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
+
+xx-team-custody = { version = "0.1.0", default-features = false, path = "../xx-team-custody" }
+
+frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
+
+[dev-dependencies]
+
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+
+
+[features]
+default = ["std"]
+std = [
+	"codec/std",
+	"serde",
+	"sp-std/std",
+	"sp-runtime/std",
+	"sp-arithmetic/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-staking/std",
+	"pallet-staking-reward-fn/std",
+	"pallet-proxy/std",
+]
+runtime-benchmarks = ["frame-benchmarking", "frame-system/runtime-benchmarks"]
