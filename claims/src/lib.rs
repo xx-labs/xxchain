@@ -756,7 +756,7 @@ mod tests {
         pallet_balances::GenesisConfig::<Test>::default().assimilate_storage(&mut t).unwrap();
         claims::GenesisConfig::<Test>{
             claims: vec![
-                (eth(&alice()), 100, None, None, None),
+                (eth(&alice()), 100, Some(50), None, None),
                 (eth(&dave()), 200, None, None, Some(StatementKind::Regular)),
                 (eth(&eve()), 300, None, Some(42), Some(StatementKind::Saft)),
                 (eth(&frank()), 400, None, Some(43), None),
@@ -775,6 +775,7 @@ mod tests {
         new_test_ext().execute_with(|| {
             assert_eq!(Claims::total(), total_claims());
             assert_eq!(Claims::claims(&eth(&alice())), Some(100));
+            assert_eq!(Claims::rewards(&eth(&alice())), Some(50));
             assert_eq!(Claims::claims(&eth(&dave())), Some(200));
             assert_eq!(Claims::claims(&eth(&eve())), Some(300));
             assert_eq!(Claims::claims(&eth(&frank())), Some(400));
@@ -800,6 +801,7 @@ mod tests {
             assert_eq!(Balances::free_balance(&42), 100);
             assert_eq!(Vesting::vesting_balance(&42), Some(50));
             assert_eq!(Claims::total(), total_claims() - 100);
+            assert_eq!(Claims::rewards(&eth(&alice())), None);
         });
     }
 
