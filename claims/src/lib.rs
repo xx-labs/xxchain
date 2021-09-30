@@ -718,11 +718,17 @@ mod tests {
 		pub const Six: u64 = 6;
 	}
 
+    pub struct RewardHandlerMock;
+    impl RewardHandler<u64, u64> for RewardHandlerMock {
+        fn add_claimed(_: u64, _: bool, _: u64, _: u64) {}
+    }
+
     impl Config for Test {
         type Event = Event;
         type VestingSchedule = Vesting;
         type Prefix = Prefix;
         type MoveClaimOrigin = frame_system::EnsureSignedBy<Six, u64>;
+        type RewardHandler = RewardHandlerMock;
         type WeightInfo = weights::TestWeightInfo;
     }
 
@@ -750,10 +756,10 @@ mod tests {
         pallet_balances::GenesisConfig::<Test>::default().assimilate_storage(&mut t).unwrap();
         claims::GenesisConfig::<Test>{
             claims: vec![
-                (eth(&alice()), 100, None, None),
-                (eth(&dave()), 200, None, Some(StatementKind::Regular)),
-                (eth(&eve()), 300, Some(42), Some(StatementKind::Saft)),
-                (eth(&frank()), 400, Some(43), None),
+                (eth(&alice()), 100, None, None, None),
+                (eth(&dave()), 200, None, None, Some(StatementKind::Regular)),
+                (eth(&eve()), 300, None, Some(42), Some(StatementKind::Saft)),
+                (eth(&frank()), 400, None, Some(43), None),
             ],
             vesting: vec![(eth(&alice()), (50, 10, 1))],
         }.assimilate_storage(&mut t).unwrap();
