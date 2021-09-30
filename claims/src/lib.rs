@@ -44,8 +44,14 @@ use sp_runtime::{
 
 pub use weights::WeightInfo;
 
-type CurrencyOf<T> = <<T as Config>::VestingSchedule as VestingSchedule<<T as frame_system::Config>::AccountId>>::Currency;
-type BalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+pub type CurrencyOf<T> = <<T as Config>::VestingSchedule as VestingSchedule<<T as frame_system::Config>::AccountId>>::Currency;
+pub type BalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+/// Handler for betanet rewards
+pub trait RewardHandler<AccountId, Balance> {
+    /// Add claimed account
+    fn add_claimed(dest: AccountId, vesting: bool, claim: Balance, reward: Balance);
+}
 
 /// Configuration trait.
 pub trait Config: frame_system::Config {
@@ -54,6 +60,8 @@ pub trait Config: frame_system::Config {
     type VestingSchedule: VestingSchedule<Self::AccountId, Moment=Self::BlockNumber>;
     type Prefix: Get<&'static [u8]>;
     type MoveClaimOrigin: EnsureOrigin<Self::Origin>;
+    /// Betanet rewards handler
+    type RewardHandler: RewardHandler<Self::AccountId, BalanceOf<Self>>;
     type WeightInfo: WeightInfo;
 }
 
@@ -154,8 +162,8 @@ decl_event!(
 		Balance = BalanceOf<T>,
 		AccountId = <T as frame_system::Config>::AccountId
 	{
-		/// Someone claimed some DOTs. [who, ethereum_address, amount]
-		Claimed(AccountId, EthereumAddress, Balance),
+		/// Someone claimed some DOTs. [who, ethereum_address, amount, reward]
+		Claimed(AccountId, EthereumAddress, Balance, Balance),
 	}
 );
 
@@ -182,36 +190,43 @@ decl_storage! {
 	// This allows for type-safe usage of the Substrate storage database, so you can
 	// keep things around between blocks.
 	trait Store for Module<T: Config> as Claims {
-		Claims get(fn claims) build(|config: &GenesisConfig<T>| {
-			config.claims.iter().map(|(a, b, _, _)| (a.clone(), b.clone())).collect::<Vec<_>>()
+		pub Claims get(fn claims) build(|config: &GenesisConfig<T>| {
+			config.claims.iter().map(|(a, b, _, _, _)| (a.clone(), b.clone())).collect::<Vec<_>>()
 		}): map hasher(identity) EthereumAddress => Option<BalanceOf<T>>;
-		Total get(fn total) build(|config: &GenesisConfig<T>| {
-			config.claims.iter().fold(Zero::zero(), |acc: BalanceOf<T>, &(_, b, _, _)| acc + b)
+		pub Total get(fn total) build(|config: &GenesisConfig<T>| {
+			config.claims.iter().fold(Zero::zero(), |acc: BalanceOf<T>, &(_, b, _, _, _)| acc + b)
 		}): BalanceOf<T>;
 		/// Vesting schedule for a claim.
 		/// First balance is the total amount that should be held for vesting.
 		/// Second balance is how much should be unlocked per block.
 		/// The block number is when the vesting should start.
-		Vesting get(fn vesting) config():
+		pub Vesting get(fn vesting) config():
 			map hasher(identity) EthereumAddress
 			=> Option<(BalanceOf<T>, BalanceOf<T>, T::BlockNumber)>;
 
 		/// The statement kind that must be signed, if any.
 		Signing build(|config: &GenesisConfig<T>| {
 			config.claims.iter()
-				.filter_map(|(a, _, _, s)| Some((a.clone(), s.clone()?)))
+				.filter_map(|(a, _, _, _, s)| Some((a.clone(), s.clone()?)))
 				.collect::<Vec<_>>()
 		}): map hasher(identity) EthereumAddress => Option<StatementKind>;
 
 		/// Pre-claimed Ethereum accounts, by the Account ID that they are claimed to.
 		Preclaims build(|config: &GenesisConfig<T>| {
 			config.claims.iter()
-				.filter_map(|(a, _, i, _)| Some((i.clone()?, a.clone())))
+				.filter_map(|(a, _, _, i, _)| Some((i.clone()?, a.clone())))
 				.collect::<Vec<_>>()
 		}): map hasher(identity) T::AccountId => Option<EthereumAddress>;
+
+        /// Proposed amount of BetaNet staking rewards
+        pub Rewards get(fn rewards) build(|config: &GenesisConfig<T>| {
+            config.claims.iter()
+                .filter_map(|(a, _, c, _, _)| Some((a.clone(), c.clone()?)))
+                .collect::<Vec<_>>()
+        }): map hasher(identity) EthereumAddress => Option<BalanceOf<T>>;
 	}
 	add_extra_genesis {
-		config(claims): Vec<(EthereumAddress, BalanceOf<T>, Option<T::AccountId>, Option<StatementKind>)>;
+		config(claims): Vec<(EthereumAddress, BalanceOf<T>, Option<BalanceOf<T>>, Option<T::AccountId>, Option<StatementKind>)>;
 	}
 }
 
@@ -449,13 +464,19 @@ impl<T: Config> Module<T> {
                 .expect("No other vesting schedule exists, as checked above; qed");
         }
 
+        // Check if this claim has rewards and call handler if so
+        let reward = <Rewards<T>>::take(&signer);
+        if let Some(rw) = reward {
+            T::RewardHandler::add_claimed(dest.clone(), vesting.is_some(), balance_due.clone(), rw.clone())
+        }
+
         <Total<T>>::put(new_total);
         <Claims<T>>::remove(&signer);
         <Vesting<T>>::remove(&signer);
         Signing::remove(&signer);
 
         // Let's deposit an event to let the outside world know this happened.
-        Self::deposit_event(RawEvent::Claimed(dest, signer, balance_due));
+        Self::deposit_event(RawEvent::Claimed(dest, signer, balance_due, reward.unwrap_or_default()));
 
         Ok(())
     }

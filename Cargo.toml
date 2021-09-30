@@ -16,6 +16,7 @@ members = [
     'runtime/xxnetwork',
     'staking',
     'swap',
+    'xx-betanet-rewards',
     'xx-cmix',
     'xx-economics',
     'xx-team-custody'

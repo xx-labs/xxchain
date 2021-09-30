@@ -875,7 +875,7 @@ dependencies = [
 
 [[package]]
 name = "claims"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5255,6 +5255,7 @@ dependencies = [
  "static_assertions",
  "substrate-wasm-builder",
  "swap",
+ "xx-betanet-rewards",
  "xx-cmix",
  "xx-economics",
  "xx-team-custody",
@@ -5670,6 +5671,7 @@ dependencies = [
  "static_assertions",
  "substrate-wasm-builder",
  "swap",
+ "xx-betanet-rewards",
  "xx-cmix",
  "xx-economics",
  "xx-team-custody",
@@ -10086,6 +10088,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "xx-betanet-rewards"
+version = "0.1.0"
+dependencies = [
+ "claims",
+ "frame-support",
+ "frame-system",
+ "pallet-vesting",
+ "parity-scale-codec",
+ "serde",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "xx-cmix"
 version = "0.1.0"
 dependencies = [
@@ -10307,6 +10324,7 @@ dependencies = [
  "static_assertions",
  "substrate-wasm-builder",
  "swap",
+ "xx-betanet-rewards",
  "xx-cmix",
  "xx-economics",
  "xx-team-custody",

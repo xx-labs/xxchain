@@ -313,7 +313,8 @@ pub fn phoenixx_testnet_genesis(
 		xx_custody: phoenixx::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
-		}
+		},
+		xx_betanet_rewards: Default::default()
 	}
 }
 
@@ -495,7 +496,8 @@ pub fn protonet_testnet_genesis(
 		xx_custody: protonet::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
-		}
+		},
+		xx_betanet_rewards: Default::default()
 	}
 }
 
@@ -683,7 +685,8 @@ pub fn xxnetwork_testnet_genesis(
 			custodians: vec![
 				(get_account_id_from_seed::<sr25519::Public>("Charlie"), ())
 			],
-		}
+		},
+		xx_betanet_rewards: Default::default()
 	}
 }
 

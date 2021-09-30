@@ -90,6 +90,7 @@ claims = { path = "../../claims", default-features = false }
 xx-cmix = {path = "../../xx-cmix", default-features = false }
 xx-economics = {path = "../../xx-economics", default-features = false }
 xx-team-custody = {path = "../../xx-team-custody", default-features = false }
+xx-betanet-rewards = {path = "../../xx-betanet-rewards", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
@@ -154,6 +155,10 @@ std = [
 	"claims/std",
 	"chainbridge/std",
 	"swap/std",
+	"xx-cmix/std",
+	"xx-economics/std",
+	"xx-team-custody/std",
+	"xx-betanet-rewards/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",

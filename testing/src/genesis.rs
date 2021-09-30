@@ -121,5 +121,6 @@ pub fn config_endowed(
 		xx_cmix: Default::default(),
 		xx_economics: Default::default(),
 		xx_custody: Default::default(),
+		xx_betanet_rewards: Default::default(),
 	}
 }
