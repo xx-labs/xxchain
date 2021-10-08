@@ -1,6 +1,6 @@
 [package]
 name = "xxnetwork"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Bernardo Cardoso <bernardo@xx.network>"]
 edition = "2018"
 
@@ -18,7 +18,7 @@ sp-arithmetic = { git = "https://github.com/xx-labs/substrate", branch = "xx-pro
 frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 
-pallet-staking = { version = "3.0.0", default-features = false, path = "../staking" }
+pallet-staking = { version = "3.1.0", default-features = false, path = "../staking" }
 pallet-staking-reward-fn = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 pallet-proxy = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 

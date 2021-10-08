@@ -67,7 +67,7 @@ pallet-proxy = { git = "https://github.com/xx-labs/substrate", branch = "xx-prot
 pallet-randomness-collective-flip = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", features = ["historical"], default-features = false }
 pallet-session-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
-pallet-staking = { version = "3.0.0", default-features = false, path = "../../staking" }
+pallet-staking = { version = "3.1.0", default-features = false, path = "../../staking" }
 pallet-staking-reward-curve = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 pallet-scheduler = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 pallet-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }

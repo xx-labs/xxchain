@@ -26,7 +26,7 @@ sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
 frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
 pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-staking = { version = "3.0.0", path = "../staking" }
+pallet-staking = { version = "3.1.0", path = "../staking" }
 sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", features = ["wasmtime"] }
 sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }

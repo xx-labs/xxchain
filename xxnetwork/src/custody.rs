@@ -43,17 +43,12 @@ impl<AccountId, Balance> CustodyInfo<AccountId, Balance> where
 {
     /// Return true if self is fully vested
     fn is_vested(&self) -> bool {
-        self.allocation == self.vested
+        self.allocation <= self.vested
     }
 
     /// Increase vested amount in self
     fn increase_vested(&mut self, amount: Balance) {
         self.vested += amount;
-    }
-
-    /// Get the remaining payout
-    fn remaining_payout(&self) -> Balance {
-        self.allocation - self.vested
     }
 }
 
@@ -234,7 +229,7 @@ impl<T: Config> Module<T> {
             // 3.2. Remove any proxies on the custody account
             Self::refund_team_custody_proxy(who.clone(), info.clone())?;
             // 3.3. Payout remaining amount
-            Self::do_payout(who.clone(), info.remaining_payout(), info, false)?;
+            Self::do_payout(who.clone(), Zero::zero(), info, false)?;
             // 3.4. Emmit custody done event
             Self::deposit_event(RawEvent::CustodyDone(who));
             return Ok(())
@@ -299,7 +294,7 @@ impl<T: Config> Module<T> {
         // limit transfers down to existential deposit until end of the custody period
         let reserve = info.reserve.clone();
         let reserve_transferable_balance =
-            T::Inspect::reducible_balance(&reserve, keep_alive);
+            T::Inspect::reducible_balance(&reserve, keep_alive.clone());
         // T::Currency and T::Inspect are both implemented by Balances pallet, so the
         // balance type is the same. However, explicit conversion is needed here.
         let reserve_balance = <BalanceOf<T>>::try_from(
@@ -307,9 +302,15 @@ impl<T: Config> Module<T> {
             ).ok().unwrap_or(Zero::zero());
 
         // 3. Calculate amounts to withdraw from custody and reserve
-        let withdraw_custody = amount.min(custody_balance);
-        let withdraw_reserve = amount - withdraw_custody;
-        let withdraw_reserve = withdraw_reserve.min(reserve_balance);
+        // If custody period is done, transfer full amount from both accounts
+        // in order to not leave any inaccessible funds around
+        let (withdraw_custody, withdraw_reserve) = if keep_alive {
+            let from_custody = amount.min(custody_balance);
+            let from_reserve = amount - from_custody;
+            (from_custody, from_reserve.min(reserve_balance))
+        } else {
+            (custody_balance, reserve_balance)
+        };
         let withdraw = withdraw_custody + withdraw_reserve;
 
         // 4. Make transfer from custody, if possible
@@ -324,7 +325,7 @@ impl<T: Config> Module<T> {
             // Emmit TeamPayoutCustody event
             Self::deposit_event(RawEvent::PayoutFromCustody(who.clone(), withdraw_custody));
             // Update total amount under custody
-            <TotalCustody<T>>::mutate(|n| *n -= withdraw_custody);
+            <TotalCustody<T>>::mutate(|n| *n = n.clone().saturating_sub(withdraw_custody));
         }
 
         // 5. Make transfer from reserve, if possible

@@ -1,6 +1,6 @@
 [package]
 name = "xxnetwork-cli"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["xxlabs <admin@xx.network>"]
 description = "Substrate based, xxnetwork blockchain node implementation in Rust."
 build = "build.rs"
@@ -80,12 +80,12 @@ pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", bra
 frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 pallet-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-staking = { version = "3.0.0", path = "../staking" }
+pallet-staking = { version = "3.1.0", path = "../staking" }
 pallet-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
 
 # node-specific dependencies
 xxnetwork-runtime = { version = "0.1.0", path = "../runtime/xxnetwork" }
-protonet-runtime = { version = "0.1.0", path = "../runtime/protonet" }
+protonet-runtime = { version = "0.1.2", path = "../runtime/protonet" }
 phoenixx-runtime = { version = "0.1.0", path = "../runtime/phoenixx" }
 node-rpc = { version = "0.1.0", path = "../rpc" }
 node-primitives = { version = "0.1.0", path = "../primitives" }

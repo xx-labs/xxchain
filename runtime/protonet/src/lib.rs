@@ -108,7 +108,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 100,
+	spec_version: 102,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -461,7 +461,7 @@ parameter_types! {
 	pub const RewardsPoolId: PalletId = PalletId(*b"xx/rwrds");
 	pub const EraDuration: BlockNumber = ERA_DURATION_IN_SESSIONS * EPOCH_DURATION_IN_BLOCKS;
 	pub const PayoutFrequency: BlockNumber = 3 * DAYS;
-	pub const CustodyDuration: BlockNumber = 45 * DAYS;
+	pub const CustodyDuration: BlockNumber = 3 * YEARS;
 	pub const GovernanceCustodyDuration: BlockNumber = 45 * DAYS;
 	pub const GovernanceProxy: ProxyType = ProxyType::Governance;
 }

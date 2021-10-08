@@ -1148,6 +1148,8 @@ decl_error! {
 		ValidatorInsufficientBond,
 		/// CMIX ID already exists
 		ValidatorCmixIdNotUnique,
+		/// The validator has enough bond and thus cannot be chilled forcefully by an external user.
+		CannotChillOther,
 	}
 }
 
@@ -1484,9 +1486,13 @@ decl_module! {
 			ensure!(ledger.active >= <ValidatorMinBond<T>>::get(),
 				Error::<T>::ValidatorInsufficientBond);
 			// Ensure validator cmix id is unique
+			// unless validator exists and cmix id remains the same
+			let existing_prefs = <Validators<T>>::get(stash);
 			let cmix_root = prefs.cmix_root.clone();
-			if <CmixIds<T>>::contains_key(&cmix_root) {
-				Err(Error::<T>::ValidatorCmixIdNotUnique)?
+			if existing_prefs.cmix_root != cmix_root {
+				if <CmixIds<T>>::contains_key(&cmix_root) {
+					Err(Error::<T>::ValidatorCmixIdNotUnique)?
+				}
 			}
 			<Nominators<T>>::remove(stash);
 			// Remove existing prefs to ensure cmix ID is cleared
@@ -1926,6 +1932,42 @@ decl_module! {
 				});
 			}
 
+			Ok(())
+		}
+
+		/// Declare a `controller` to stop participating as a validator.
+		///
+		/// Effects will be felt at the beginning of the next era.
+		///
+		/// The dispatch origin for this call must be _Signed_, but can be called by anyone.
+		///
+		/// If the caller is the same as the controller being targeted, then no further checks are
+		/// enforced, and this function behaves just like `chill`.
+		///
+		/// If the caller is different than the controller being targeted, the stash must be a
+		/// validator, and the active bond must be lower than the minimum validator bond.
+		///
+		/// This can be helpful if the minimum validator bond is increased, and we need to remove
+		/// validators who don't satisfy the new bond.
+		#[weight = T::WeightInfo::chill_other()]
+		pub fn chill_other(origin, controller: T::AccountId) -> DispatchResult {
+			// Anyone can call this function.
+			let caller = ensure_signed(origin)?;
+			let ledger = Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
+			let stash = ledger.stash;
+
+			// In order for one user to chill another user, the stash must be a
+			// validator, and the active bond must be lower than the minimum validator bond.
+			//
+			// Otherwise, if caller is the same as the controller, this is just like `chill`.
+			if caller != controller {
+				if !Validators::<T>::contains_key(&stash) {
+					Err(Error::<T>::CannotChillOther)?
+				}
+				ensure!(ledger.active < <ValidatorMinBond<T>>::get(), Error::<T>::CannotChillOther);
+			}
+
+			Self::chill_stash(&stash);
 			Ok(())
 		}
 	}
