@@ -90,9 +90,13 @@ impl StatementKind {
     fn to_text(self) -> &'static [u8] {
         match self {
             StatementKind::Regular =>
-                &b"TODO: Create REGULAR statement, hash and upload to website"[..],
+                &b"I hereby agree to the terms of the statement whose SHA-256 multihash is \
+				Qmc1XYqT6S39WNp2UeiRUrZichUWUPpGEThDE6dAb3f6Ny. (This may be found at the URL: \
+				https://statement.polkadot.network/regular.html)"[..],
             StatementKind::Saft =>
-                &b"TODO: Create SAFT statement, hash and upload to website"[..],
+                &b"I hereby agree to the terms of the statement whose SHA-256 multihash is \
+				QmXEkMahfhHJPzT3RjkXiZVFi77ZeVeuxtAjhojGRNYckz. (This may be found at the URL: \
+				https://statement.polkadot.network/saft.html)"[..],
         }
     }
 }
@@ -614,7 +618,7 @@ mod tests {
         dispatch::DispatchError::BadOrigin,
     };
     use pallet_balances;
-    use crate as claims;
+    use crate::claims;
     use claims::Call as ClaimsCall;
 
     type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -637,7 +641,7 @@ mod tests {
 		pub const BlockHashCount: u32 = 250;
 	}
     impl frame_system::Config for Test {
-        type BaseCallFilter = frame_support::traits::AllowAll;
+        type BaseCallFilter = ();
         type BlockWeights = ();
         type BlockLength = ();
         type DbWeight = ();
@@ -674,8 +678,6 @@ mod tests {
         type AccountStore = System;
         type MaxLocks = ();
         type WeightInfo = ();
-    	type MaxReserves = ();
-    	type ReserveIdentifier = [u8; 8];
     }
 
     parameter_types! {
@@ -1142,7 +1144,7 @@ mod benchmarking {
     use frame_benchmarking::{benchmarks, account};
     use sp_runtime::DispatchResult;
     use sp_runtime::traits::ValidateUnsigned;
-    use crate::Call;
+    use crate::claims::Call;
 
     const SEED: u32 = 0;
 

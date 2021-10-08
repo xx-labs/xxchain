@@ -23,6 +23,7 @@ use frame_support::{
 use sp_core::{NeverNativeValue, traits::Externalities, storage::well_known_keys};
 use sp_runtime::{
 	ApplyExtrinsicResult,
+	traits::Hash as HashT,
 	transaction_validity::InvalidTransaction,
 };
 use frame_system::{self, EventRecord, Phase, AccountInfo};
@@ -33,7 +34,7 @@ use xxnetwork_runtime::{
 	constants::{time::SLOT_DURATION, currency::*},
 };
 use node_primitives::{Balance, Hash};
-
+use wat;
 use node_testing::keyring::*;
 
 pub mod common;
@@ -346,38 +347,28 @@ fn full_native_block_import_works() {
 		let events = vec![
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(0),
-				event: Event::System(frame_system::Event::ExtrinsicSuccess(
+				event: Event::frame_system(frame_system::Event::ExtrinsicSuccess(
 					DispatchInfo { weight: timestamp_weight, class: DispatchClass::Mandatory, ..Default::default() }
 				)),
 				topics: vec![],
 			},
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(1),
-				event: Event::Balances(pallet_balances::Event::Transfer(
+				event: Event::pallet_balances(pallet_balances::Event::Transfer(
 					alice().into(),
 					bob().into(),
 					69 * UNITS,
 				)),
 				topics: vec![],
 			},
-			// 80% of fees to Treasury
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(1),
-				event: Event::Treasury(pallet_treasury::Event::Deposit(fees * 8 / 10)),
-				topics: vec![],
-			},
-			// 20% of fees to Block Author
-			EventRecord {
-				phase: Phase::ApplyExtrinsic(1),
-				event: Event::Balances(pallet_balances::Event::Deposit(
-					Default::default(),
-					fees * 2 / 10 + 1, // Rounding error
-				)),
+				event: Event::pallet_treasury(pallet_treasury::RawEvent::Deposit(fees * 8 / 10)),
 				topics: vec![],
 			},
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(1),
-				event: Event::System(frame_system::Event::ExtrinsicSuccess(
+				event: Event::frame_system(frame_system::Event::ExtrinsicSuccess(
 					DispatchInfo { weight: transfer_weight, ..Default::default() }
 				)),
 				topics: vec![],
@@ -408,14 +399,14 @@ fn full_native_block_import_works() {
 		let events = vec![
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(0),
-				event: Event::System(frame_system::Event::ExtrinsicSuccess(
+				event: Event::frame_system(frame_system::Event::ExtrinsicSuccess(
 					DispatchInfo { weight: timestamp_weight, class: DispatchClass::Mandatory, ..Default::default() }
 				)),
 				topics: vec![],
 			},
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(1),
-				event: Event::Balances(
+				event: Event::pallet_balances(
 					pallet_balances::Event::Transfer(
 						bob().into(),
 						alice().into(),
@@ -424,31 +415,21 @@ fn full_native_block_import_works() {
 				),
 				topics: vec![],
 			},
-			// 80% of fees to Treasury
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(1),
-				event: Event::Treasury(pallet_treasury::Event::Deposit(fees * 8 / 10)),
-				topics: vec![],
-			},
-			// 20% of fees to Block Author
-			EventRecord {
-				phase: Phase::ApplyExtrinsic(1),
-				event: Event::Balances(pallet_balances::Event::Deposit(
-					Default::default(),
-					fees * 2 / 10 + 1, // Rounding error
-				)),
+				event: Event::pallet_treasury(pallet_treasury::RawEvent::Deposit(fees * 8 / 10)),
 				topics: vec![],
 			},
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(1),
-				event: Event::System(frame_system::Event::ExtrinsicSuccess(
+				event: Event::frame_system(frame_system::Event::ExtrinsicSuccess(
 					DispatchInfo { weight: transfer_weight, ..Default::default() }
 				)),
 				topics: vec![],
 			},
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(2),
-				event: Event::Balances(
+				event: Event::pallet_balances(
 					pallet_balances::Event::Transfer(
 						alice().into(),
 						bob().into(),
@@ -457,24 +438,14 @@ fn full_native_block_import_works() {
 				),
 				topics: vec![],
 			},
-			// 80% of fees to Treasury
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(2),
-				event: Event::Treasury(pallet_treasury::Event::Deposit(fees * 8 / 10)),
-				topics: vec![],
-			},
-			// 20% of fees to Block Author
-			EventRecord {
-				phase: Phase::ApplyExtrinsic(2),
-				event: Event::Balances(pallet_balances::Event::Deposit(
-					Default::default(),
-					fees * 2 / 10 + 1, // Rounding error
-				)),
+				event: Event::pallet_treasury(pallet_treasury::RawEvent::Deposit(fees * 8 / 10)),
 				topics: vec![],
 			},
 			EventRecord {
 				phase: Phase::ApplyExtrinsic(2),
-				event: Event::System(frame_system::Event::ExtrinsicSuccess(
+				event: Event::frame_system(frame_system::Event::ExtrinsicSuccess(
 					DispatchInfo { weight: transfer_weight, ..Default::default() }
 				)),
 				topics: vec![],
@@ -529,6 +500,101 @@ fn full_wasm_block_import_works() {
 	});
 }
 
+const CODE_TRANSFER: &str = r#"
+(module
+;; seal_call(
+;;    callee_ptr: u32,
+;;    callee_len: u32,
+;;    gas: u64,
+;;    value_ptr: u32,
+;;    value_len: u32,
+;;    input_data_ptr: u32,
+;;    input_data_len: u32,
+;;    output_ptr: u32,
+;;    output_len_ptr: u32
+;; ) -> u32
+(import "seal0" "seal_call" (func $seal_call (param i32 i32 i64 i32 i32 i32 i32 i32 i32) (result i32)))
+(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+(import "env" "memory" (memory 1 1))
+(func (export "deploy")
+)
+(func (export "call")
+	(block $fail
+		;; Load input data to contract memory
+		(call $seal_input
+			(i32.const 0)
+			(i32.const 52)
+		)
+
+		;; fail if the input size is not != 4
+		(br_if $fail
+			(i32.ne
+				(i32.const 4)
+				(i32.load (i32.const 52))
+			)
+		)
+
+		(br_if $fail
+			(i32.ne
+				(i32.load8_u (i32.const 0))
+				(i32.const 0)
+			)
+		)
+		(br_if $fail
+			(i32.ne
+				(i32.load8_u (i32.const 1))
+				(i32.const 1)
+			)
+		)
+		(br_if $fail
+			(i32.ne
+				(i32.load8_u (i32.const 2))
+				(i32.const 2)
+			)
+		)
+		(br_if $fail
+			(i32.ne
+				(i32.load8_u (i32.const 3))
+				(i32.const 3)
+			)
+		)
+
+		(drop
+			(call $seal_call
+				(i32.const 4)  ;; Pointer to "callee" address.
+				(i32.const 32)  ;; Length of "callee" address.
+				(i64.const 0)  ;; How much gas to devote for the execution. 0 = all.
+				(i32.const 36)  ;; Pointer to the buffer with value to transfer
+				(i32.const 16)   ;; Length of the buffer with value to transfer.
+				(i32.const 0)   ;; Pointer to input data buffer address
+				(i32.const 0)   ;; Length of input data buffer
+				(i32.const 4294967295) ;; u32 max value is the sentinel value: do not copy output
+				(i32.const 0) ;; Length is ignored in this case
+			)
+		)
+
+		(return)
+	)
+	unreachable
+)
+;; Destination AccountId to transfer the funds.
+;; Represented by H256 (32 bytes long) in little endian.
+(data (i32.const 4)
+	"\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+	"\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+	"\00\00\00\00"
+)
+;; Amount of value to transfer.
+;; Represented by u128 (16 bytes long) in little endian.
+(data (i32.const 36)
+	"\06\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+	"\00\00"
+)
+;; Length of the input buffer
+(data (i32.const 52) "\04")
+)
+"#;
+
 #[test]
 fn wasm_big_block_import_fails() {
 	let mut t = new_test_ext(compact_code_unwrap(), false);
@@ -561,10 +627,6 @@ fn native_big_block_import_succeeds() {
 #[test]
 fn native_big_block_import_fails_on_fallback() {
 	let mut t = new_test_ext(compact_code_unwrap(), false);
-
-	// We set the heap pages to 8 because we know that should give an OOM in WASM with the given
-	// block.
-	set_heap_pages(&mut t.ext(), 8);
 
 	assert!(
 		executor_call::<NeverNativeValue, fn() -> _>(

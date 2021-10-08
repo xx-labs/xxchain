@@ -206,7 +206,7 @@ impl Filter<Call> for BaseFilter {
 			Call::Vesting(_) | Call::Utility(_) | Call::Identity(_) |
 			Call::Proxy(_) | Call::Bounties(_) | Call::Tips(_) |
 			// XX Network
-			Call::XXCmix(_) | Call::XXCustody(_) | Call::XXEconomics(_)
+			Call::XXNetwork(_)
 			=> true,
 			// ChainBridge and Swap disabled at genesis
 			Call::ChainBridge(_) | Call::Swap(_) => false,
@@ -264,7 +264,6 @@ pub enum ProxyType {
 	NonTransfer,
 	Governance,
 	Staking,
-	Voting,
 }
 impl Default for ProxyType { fn default() -> Self { Self::Any } }
 impl InstanceFilter<Call> for ProxyType {
@@ -285,11 +284,6 @@ impl InstanceFilter<Call> for ProxyType {
 				Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
-			ProxyType::Voting => matches!(
-				c,
-				Call::Democracy(pallet_democracy::Call::vote(..) | pallet_democracy::Call::remove_vote(..)) |
-				Call::Elections(pallet_elections_phragmen::Call::vote(..) | pallet_elections_phragmen::Call::remove_voter(..))
-			),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -469,7 +463,7 @@ parameter_types! {
 	pub const PayoutFrequency: BlockNumber = 1 * WEEKS;
 	pub const CustodyDuration: BlockNumber = 3 * YEARS;
 	pub const GovernanceCustodyDuration: BlockNumber = 1 * YEARS;
-	pub const CustodyProxy: ProxyType = ProxyType::Voting;
+	pub const GovernanceProxy: ProxyType = ProxyType::Governance;
 }
 
 type EnsureTechnicalUnanimity = EnsureOneOf<
@@ -484,12 +478,11 @@ type EnsureTwoThirdsCouncil = EnsureOneOf<
 	EnsureRoot<AccountId>,
 >;
 
-impl xx_economics::Config for Runtime {
+impl xxnetwork::Config for Runtime {
 	// General config
 	type Event = Event;
 	type Currency = Balances;
-
-	type CustodianHandler = XXCustody;
+	type Inspect = Balances;
 
 	// Rewards Pool config
 	type RewardsPoolId = RewardsPoolId;
@@ -499,38 +492,18 @@ impl xx_economics::Config for Runtime {
 	// Inflation config
 	type EraDuration = EraDuration;
 
-	// Admin is technical committee unanimity
-	type AdminOrigin = EnsureTechnicalUnanimity;
-
-	type WeightInfo = xx_economics::weights::SubstrateWeight<Runtime>;
-}
-
-impl xx_team_custody::Config for Runtime {
-	// General config
-	type Event = Event;
-	type Currency = Balances;
-
 	// Custody config
 	type PayoutFrequency = PayoutFrequency;
 	type CustodyDuration = CustodyDuration;
 	type GovernanceCustodyDuration = GovernanceCustodyDuration;
-	type CustodyProxy = CustodyProxy;
+	type GovernanceProxy = GovernanceProxy;
 	type BlockNumberToBalance = ConvertInto;
-	// Admin is technical committee unanimity
-	type AdminOrigin = EnsureTechnicalUnanimity;
-    // Weight information for extrinsics in this pallet.
-    type WeightInfo = xx_team_custody::weights::SubstrateWeight<Self>;
-}
 
-impl xx_cmix::Config for Runtime {
-	// General config
-	type Event = Event;
 	// CMIX Variables can be changed by 2/3 Council
 	type CmixVariablesOrigin = EnsureTwoThirdsCouncil;
+
 	// Admin is technical committee unanimity
 	type AdminOrigin = EnsureTechnicalUnanimity;
-    // Weight information for extrinsics in this pallet.
-    type WeightInfo = xx_cmix::weights::SubstrateWeight<Self>;
 }
 
 impl pallet_staking::Config for Runtime {
@@ -538,14 +511,13 @@ impl pallet_staking::Config for Runtime {
 	type UnixTime = Timestamp;
 	type CurrencyToVote = U128CurrencyToVote;
 	type ElectionProvider = ElectionProviderMultiPhase;
-	type CmixHandler = XXCmix;
-	type CustodianHandler = XXCustody;
+	type XXNetworkHandler = XXNetwork;
 	type AdminOrigin = EnsureTechnicalUnanimity;
 	const MAX_NOMINATIONS: u32 = MAX_NOMINATIONS;
-	type RewardRemainder = xx_economics::rewards::RewardRemainderAdapter<Runtime>;
+	type RewardRemainder = xxnetwork::rewards::RewardRemainderAdapter<Runtime>;
 	type Event = Event;
 	type Slash = Treasury; // send the slashed funds to the treasury.
-	type Reward = XXEconomics; // rewards are taken from the rewards pool (and then minted once pool is empty)
+	type Reward = XXNetwork; // rewards are taken from the rewards pool (and then minted once pool is empty)
 	type SessionsPerEra = SessionsPerEra;
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
@@ -556,7 +528,7 @@ impl pallet_staking::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_3, _4, AccountId, CouncilCollective>
 	>;
 	type SessionInterface = Self;
-	type EraPayout = XXEconomics; // era payout is calculated according to inflation parameters
+	type EraPayout = XXNetwork; // era payout is calculated according to inflation parameters
 	type NextNewSession = Session;
 	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
@@ -627,7 +599,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type SignedDepositByte = SignedDepositByte;
 	type SignedDepositWeight = ();
 	type SlashHandler = ();
-	type RewardHandler = XXEconomics;
+	type RewardHandler = XXNetwork;
 	type MinerMaxLength = MinerMaxLength;
 	type DataProvider = Staking;
 	type CompactSolution = NposCompactSolution16;
@@ -1034,7 +1006,6 @@ impl swap::Config for Runtime {
 	type Currency = Balances;
 	type NativeTokenId = TokenID;
 	type AdminOrigin = EnsureTwoThirdsTechnical;
-	type WeightInfo = swap::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime!(
@@ -1091,10 +1062,8 @@ construct_runtime!(
 		ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>} = 28,
 		// Swap pallet
 		Swap: swap::{Pallet, Call, Storage, Config<T>, Event<T>} = 29,
-		// xx network pallets
-		XXCmix: xx_cmix::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
-		XXEconomics: xx_economics::{Pallet, Call, Storage, Config<T>, Event<T>} = 31,
-		XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,
+		// xx network pallet
+		XXNetwork: xxnetwork::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 	}
 );
 
@@ -1236,6 +1205,7 @@ impl_runtime_apis! {
 			// probability of a slot being empty), is done in accordance to the
 			// slot duration and expected target block time, for safely
 			// resisting network delays of maximum two seconds.
+			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
 			sp_consensus_babe::BabeGenesisConfiguration {
 				slot_duration: Babe::slot_duration(),
 				epoch_length: EpochDuration::get(),
@@ -1328,53 +1298,19 @@ impl_runtime_apis! {
 
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
-
-		fn benchmark_metadata(extra: bool) -> (
-			Vec<frame_benchmarking::BenchmarkList>,
-			Vec<frame_support::traits::StorageInfo>,
-		) {
-			use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
-			use frame_support::traits::StorageInfoTrait;
-
-			use frame_system_benchmarking::Pallet as SystemBench;
-
-			let mut list = Vec::<BenchmarkList>::new();
-
-			list_benchmark!(list, extra, pallet_babe, Babe);
-			list_benchmark!(list, extra, pallet_balances, Balances);
-			list_benchmark!(list, extra, pallet_bounties, Bounties);
-			list_benchmark!(list, extra, pallet_collective, Council);
-			list_benchmark!(list, extra, pallet_democracy, Democracy);
-			list_benchmark!(list, extra, pallet_election_provider_multi_phase, ElectionProviderMultiPhase);
-			list_benchmark!(list, extra, pallet_elections_phragmen, Elections);
-			list_benchmark!(list, extra, pallet_grandpa, Grandpa);
-			list_benchmark!(list, extra, pallet_identity, Identity);
-			list_benchmark!(list, extra, pallet_im_online, ImOnline);
-			list_benchmark!(list, extra, pallet_membership, TechnicalMembership);
-			list_benchmark!(list, extra, pallet_proxy, Proxy);
-			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
-			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, pallet_treasury, Treasury);
-			list_benchmark!(list, extra, pallet_utility, Utility);
-			list_benchmark!(list, extra, pallet_vesting, Vesting);
-
-			list_benchmark!(list, extra, xx_cmix, XXCmix);
-			list_benchmark!(list, extra, xx_team_custody, XXCustody);
-			list_benchmark!(list, extra, xx_economics, XXEconomics);
-			list_benchmark!(list, extra, swap, Swap);
-
-			let storage_info = AllPalletsWithSystem::storage_info();
-
-			return (list, storage_info)
-		}
-
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+			// Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
+			// issues. To get around that, we separated the Session benchmarks into its own crate,
+			// which is why we need these two lines below.
+			use pallet_session_benchmarking::Pallet as SessionBench;
+			use pallet_offences_benchmarking::Pallet as OffencesBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 
+			impl pallet_session_benchmarking::Config for Runtime {}
+			impl pallet_offences_benchmarking::Config for Runtime {}
 			impl frame_system_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -1395,6 +1331,7 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
+			add_benchmark!(params, batches, claims, Claims);
 
 			add_benchmark!(params, batches, pallet_babe, Babe);
 			add_benchmark!(params, batches, pallet_balances, Balances);
@@ -1407,19 +1344,17 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_identity, Identity);
 			add_benchmark!(params, batches, pallet_im_online, ImOnline);
 			add_benchmark!(params, batches, pallet_membership, TechnicalMembership);
+			add_benchmark!(params, batches, pallet_offences, OffencesBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_proxy, Proxy);
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
+			add_benchmark!(params, batches, pallet_session, SessionBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_staking, Staking);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
 			add_benchmark!(params, batches, pallet_tips, Tips);
 			add_benchmark!(params, batches, pallet_treasury, Treasury);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_vesting, Vesting);
-
-			add_benchmark!(params, batches, xx_cmix, XXCmix);
-			add_benchmark!(params, batches, xx_team_custody, XXCustody);
-			add_benchmark!(params, batches, xx_economics, XXEconomics);
-			add_benchmark!(params, batches, swap, Swap);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

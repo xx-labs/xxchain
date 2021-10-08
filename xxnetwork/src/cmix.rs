@@ -7,23 +7,23 @@ use sp_std::prelude::*;
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct SoftwareHashes<Hash> {
     /// Server binary
-    pub(crate) server: Hash,
+    server: Hash,
     /// FatBin library
-    pub(crate) fatbin: Hash,
+    fatbin: Hash,
     /// Libpow library
-    pub(crate) libpow: Hash,
+    libpow: Hash,
     /// Gateway binary
-    pub(crate) gateway: Hash,
+    gateway: Hash,
     /// Scheduling server binary
-    pub(crate) scheduling: Hash,
+    scheduling: Hash,
     /// Wrapper script
-    pub(crate) wrapper: Hash,
+    wrapper: Hash,
     /// User discovery bot binary
-    pub(crate) udb: Hash,
+    udb: Hash,
     /// Notifications bot binary
-    pub(crate) notifications: Hash,
+    notifications: Hash,
     /// Extra
-    pub(crate) extra: Option<Vec<Hash>>,
+    extra: Option<Vec<Hash>>,
 }
 
 /// Country code type
@@ -40,11 +40,11 @@ type PointsMultiplier = u16;
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct RewardPoints {
     /// Points per successful real-time round
-    pub(crate) success: u32,
+    success: u32,
     /// Points per failed real-time round (negative)
-    pub(crate) failure: u32,
+    failure: u32,
     /// Points per block produced
-    pub(crate) block: u32,
+    block: u32,
 }
 
 /// Performance measurement variables
@@ -52,13 +52,13 @@ pub struct RewardPoints {
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Performance {
     /// Period for round performance data collection
-    pub(crate) period: u64,
+    period: u64,
     /// Reward points
-    pub(crate) points: RewardPoints,
+    points: RewardPoints,
     /// List of countries and their geographic bins
-    pub(crate) countries: Vec<(CountryCode, GeoBin)>,
+    countries: Vec<(CountryCode, GeoBin)>,
     /// List of geographic bins and their points multiplier
-    pub(crate) multipliers: Vec<(GeoBin, PointsMultiplier)>,
+    multipliers: Vec<(GeoBin, PointsMultiplier)>,
 }
 
 /// Round Timeouts
@@ -66,11 +66,11 @@ pub struct Performance {
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Timeouts {
     /// Round precomputation timeout
-    pub(crate) precomputation: u64,
+    precomputation: u64,
     /// Round realtime timeout
-    pub(crate) realtime: u64,
+    realtime: u64,
     /// Round advertisement time
-    pub(crate) advertisement: u64,
+    advertisement: u64,
 }
 
 /// Scheduling variables
@@ -78,13 +78,13 @@ pub struct Timeouts {
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Scheduling {
     /// Mix team size
-    pub(crate) team_size: u8,
+    team_size: u8,
     /// Mix batch size
-    pub(crate) batch_size: u32,
+    batch_size: u32,
     /// Minimum delay between round assignments
-    pub(crate) min_delay: u64,
+    min_delay: u64,
     /// Minimum number of nodes in the waiting pool before rounds can be scheduled
-    pub(crate) pool_threshold: Permill,
+    pool_threshold: Permill,
 }
 
 /// User Registration variables
@@ -92,9 +92,9 @@ pub struct Scheduling {
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct UserRegistration {
     /// Maximum number of user registrations per period
-    pub(crate) max: u32,
+    max: u32,
     /// Period of user registration
-    pub(crate) period: u64,
+    period: u64,
 }
 
 /// CMIX Variables
@@ -102,13 +102,13 @@ pub struct UserRegistration {
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Variables {
     /// Performance measurement variables
-    pub(crate) performance: Performance,
+    performance: Performance,
     /// Round timeouts
-    pub(crate) timeouts: Timeouts,
+    timeouts: Timeouts,
     /// Scheduling
-    pub(crate) scheduling: Scheduling,
+    scheduling: Scheduling,
     /// User registration
-    pub(crate) registration: UserRegistration,
+    registration: UserRegistration,
 }
 
 impl Variables {

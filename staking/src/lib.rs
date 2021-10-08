@@ -264,12 +264,10 @@
 mod mock;
 #[cfg(test)]
 mod tests;
-#[cfg(test)]
-mod xx_tests;
-// #[cfg(any(feature = "runtime-benchmarks", test))]
-// pub mod testing_utils;
-// #[cfg(any(feature = "runtime-benchmarks", test))]
-// pub mod benchmarking;
+#[cfg(any(feature = "runtime-benchmarks", test))]
+pub mod testing_utils;
+#[cfg(any(feature = "runtime-benchmarks", test))]
+pub mod benchmarking;
 
 pub mod slashing;
 pub mod inflation;
@@ -366,9 +364,9 @@ pub struct ActiveEraInfo {
 #[derive(PartialEq, Encode, Decode, Default, RuntimeDebug)]
 pub struct EraRewardPoints<AccountId: Ord> {
 	/// Total number of points. Equals the sum of reward points for each validator.
-	pub total: RewardPoint,
+	total: RewardPoint,
 	/// The reward points earned by a given validator.
-	pub individual: BTreeMap<AccountId, RewardPoint>,
+	individual: BTreeMap<AccountId, RewardPoint>,
 }
 
 /// Indicates the initial status of the staker.
@@ -667,16 +665,6 @@ impl<Balance: Default> EraPayout<Balance> for () {
 	}
 }
 
-pub trait CmixHandler {
-    fn get_block_points() -> u32;
-    fn end_era();
-}
-
-pub trait CustodianHandler<AccountId, Balance> {
-    fn is_custody_account(who: &AccountId) -> bool;
-    fn total_custody() -> Balance;
-}
-
 /// Adaptor to turn a `PiecewiseLinear` curve definition into an `EraPayout` impl, used for
 /// backwards compatibility.
 pub struct ConvertCurve<T>(sp_std::marker::PhantomData<T>);
@@ -699,6 +687,16 @@ impl<
 		let rest = max_payout.saturating_sub(validator_payout.clone());
 		(validator_payout, rest)
 	}
+}
+
+/// Handler for xxnetwork specific calls
+pub trait XXNetworkHandler<AccountId> {
+	/// Check if a given stash account is a custody account
+	fn is_custody_account(who: &AccountId) -> bool;
+	/// Get the number of points awarded to a block producer
+	fn get_block_points() -> u32;
+	/// Inform end of era
+	fn end_era();
 }
 
 pub trait Config: frame_system::Config + SendTransactionTypes<Call<Self>> {
@@ -726,15 +724,8 @@ pub trait Config: frame_system::Config + SendTransactionTypes<Call<Self>> {
 		DataProvider = Module<Self>,
 	>;
 
-	/// Handler for xx-cmix pallet
-	/// used to retrieve block points and to
-	/// handle end of era
-	type CmixHandler: CmixHandler;
-
-
-	/// Handler used to retrieve which accounts are custodians
-	/// so they can be discounted from rewards
-	type CustodianHandler: CustodianHandler<Self::AccountId, BalanceOf<Self>>;
+	/// Handler for xx network pallet
+	type XXNetworkHandler: XXNetworkHandler<Self::AccountId>;
 
 	/// Origin used to change fee and destination
 	type AdminOrigin: EnsureOrigin<Self::Origin>;
@@ -1157,8 +1148,6 @@ decl_error! {
 		ValidatorInsufficientBond,
 		/// CMIX ID already exists
 		ValidatorCmixIdNotUnique,
-		/// The validator has enough bond and thus cannot be chilled forcefully by an external user.
-		CannotChillOther,
 	}
 }
 
@@ -1495,13 +1484,9 @@ decl_module! {
 			ensure!(ledger.active >= <ValidatorMinBond<T>>::get(),
 				Error::<T>::ValidatorInsufficientBond);
 			// Ensure validator cmix id is unique
-			// unless validator exists and cmix id remains the same
-			let existing_prefs = <Validators<T>>::get(stash);
 			let cmix_root = prefs.cmix_root.clone();
-			if existing_prefs.cmix_root != cmix_root {
-				if <CmixIds<T>>::contains_key(&cmix_root) {
-					Err(Error::<T>::ValidatorCmixIdNotUnique)?
-				}
+			if <CmixIds<T>>::contains_key(&cmix_root) {
+				Err(Error::<T>::ValidatorCmixIdNotUnique)?
 			}
 			<Nominators<T>>::remove(stash);
 			// Remove existing prefs to ensure cmix ID is cleared
@@ -1943,42 +1928,6 @@ decl_module! {
 
 			Ok(())
 		}
-
-		/// Declare a `controller` to stop participating as a validator.
-		///
-		/// Effects will be felt at the beginning of the next era.
-		///
-		/// The dispatch origin for this call must be _Signed_, but can be called by anyone.
-		///
-		/// If the caller is the same as the controller being targeted, then no further checks are
-		/// enforced, and this function behaves just like `chill`.
-		///
-		/// If the caller is different than the controller being targeted, the stash must be a
-		/// validator, and the active bond must be lower than the minimum validator bond.
-		///
-		/// This can be helpful if the minimum validator bond is increased, and we need to remove
-		/// validators who don't satisfy the new bond.
-		#[weight = T::WeightInfo::chill_other()]
-		pub fn chill_other(origin, controller: T::AccountId) -> DispatchResult {
-			// Anyone can call this function.
-			let caller = ensure_signed(origin)?;
-			let ledger = Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
-			let stash = ledger.stash;
-
-			// In order for one user to chill another user, the stash must be a
-			// validator, and the active bond must be lower than the minimum validator bond.
-			//
-			// Otherwise, if caller is the same as the controller, this is just like `chill`.
-			if caller != controller {
-				if !Validators::<T>::contains_key(&stash) {
-					Err(Error::<T>::CannotChillOther)?
-				}
-				ensure!(ledger.active < <ValidatorMinBond<T>>::get(), Error::<T>::CannotChillOther);
-			}
-
-			Self::chill_stash(&stash);
-			Ok(())
-		}
 	}
 }
 
@@ -2290,7 +2239,7 @@ impl<T: Config> Module<T> {
 			T::RewardRemainder::on_unbalanced(T::Currency::issue(rest));
 
 			// Inform xx network pallet that era is ending
-			T::CmixHandler::end_era();
+			T::XXNetworkHandler::end_era();
 		}
 	}
 
@@ -2420,7 +2369,7 @@ impl<T: Config> Module<T> {
 					.voters
 					.into_iter()
 					.filter_map(|(nominator, weight)| {
-						if T::CustodianHandler::is_custody_account(&nominator) {
+						if T::XXNetworkHandler::is_custody_account(&nominator) {
 							None
 						} else {
 							Some((nominator, to_currency(weight)))
@@ -2804,7 +2753,7 @@ where
 	T: Config + pallet_authorship::Config + pallet_session::Config,
 {
 	fn note_author(author: T::AccountId) {
-		Self::reward_by_ids(vec![(author, T::CmixHandler::get_block_points())])
+		Self::reward_by_ids(vec![(author, T::XXNetworkHandler::get_block_points())])
 	}
 	fn note_uncle(_author: T::AccountId, _age: T::BlockNumber) {
 	}

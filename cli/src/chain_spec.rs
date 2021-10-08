@@ -296,23 +296,19 @@ pub fn phoenixx_testnet_genesis(
 			threshold: 1,
 			balance: 100 * UNITS,
 		},
-		xx_cmix: phoenixx::XXCmixConfig {
+		xx_network: phoenixx::XXNetworkConfig {
 			admin_permission: 0,
-			cmix_address_space: 18,
-			cmix_hashes: Default::default(),
-			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
-			cmix_variables: Default::default(),
-		},
-		xx_economics: phoenixx::XXEconomicsConfig {
 			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
 			ideal_stake_rewards: 10 * UNITS,
 			liquidity_rewards: 100 * UNITS,
-		},
-		xx_custody: phoenixx::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
+			cmix_address_space: 18,
+			cmix_hashes: Default::default(),
+			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			cmix_variables: Default::default(),
 		}
 	}
 }
@@ -478,23 +474,19 @@ pub fn protonet_testnet_genesis(
 			threshold: 1,
 			balance: 100 * UNITS,
 		},
-		xx_cmix: protonet::XXCmixConfig {
+		xx_network: protonet::XXNetworkConfig {
 			admin_permission: 0,
-			cmix_address_space: 18,
-			cmix_hashes: Default::default(),
-			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
-			cmix_variables: Default::default(),
-		},
-		xx_economics: protonet::XXEconomicsConfig {
 			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
 			ideal_stake_rewards: 10 * UNITS,
 			liquidity_rewards: 100 * UNITS,
-		},
-		xx_custody: protonet::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
+			cmix_address_space: 18,
+			cmix_hashes: Default::default(),
+			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			cmix_variables: Default::default(),
 		}
 	}
 }
@@ -584,7 +576,6 @@ pub fn xxnetwork_testnet_genesis(
 
 	const ENDOWMENT: Balance = 10_000_000 * UNITS;
 	const STASH: Balance = ENDOWMENT / 1000;
-	const TEAM_ALLOCATION: Balance = 10_000_000 * UNITS;
 
 	xxnetwork::GenesisConfig {
 		system: xxnetwork::SystemConfig {
@@ -661,28 +652,19 @@ pub fn xxnetwork_testnet_genesis(
 			threshold: 1,
 			balance: 100 * UNITS,
 		},
-		xx_cmix: xxnetwork::XXCmixConfig {
+		xx_network: xxnetwork::XXNetworkConfig {
 			admin_permission: 0,
-			cmix_address_space: 18,
-			cmix_hashes: Default::default(),
-			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
-			cmix_variables: Default::default(),
-		},
-		xx_economics: xxnetwork::XXEconomicsConfig {
 			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
 			ideal_stake_rewards: 10 * UNITS,
 			liquidity_rewards: 100 * UNITS,
-		},
-		xx_custody: xxnetwork::XXCustodyConfig {
-			team_allocations: vec![
-				(get_account_id_from_seed::<sr25519::Public>("Alice"), TEAM_ALLOCATION),
-				(get_account_id_from_seed::<sr25519::Public>("Bob"), TEAM_ALLOCATION),
-			],
-			custodians: vec![
-				(get_account_id_from_seed::<sr25519::Public>("Charlie"), ())
-			],
+			team_allocations: vec![],
+			custodians: vec![],
+			cmix_address_space: 18,
+			cmix_hashes: Default::default(),
+			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			cmix_variables: Default::default(),
 		}
 	}
 }

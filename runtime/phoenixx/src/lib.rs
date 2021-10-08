@@ -235,7 +235,6 @@ pub enum ProxyType {
 	NonTransfer,
 	Governance,
 	Staking,
-	Voting,
 }
 impl Default for ProxyType { fn default() -> Self { Self::Any } }
 impl InstanceFilter<Call> for ProxyType {
@@ -256,11 +255,6 @@ impl InstanceFilter<Call> for ProxyType {
 				Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
-			ProxyType::Voting => matches!(
-				c,
-				Call::Democracy(pallet_democracy::Call::vote(..) | pallet_democracy::Call::remove_vote(..)) |
-				Call::Elections(pallet_elections_phragmen::Call::vote(..) | pallet_elections_phragmen::Call::remove_voter(..))
-			),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -440,7 +434,7 @@ parameter_types! {
 	pub const PayoutFrequency: BlockNumber = 1 * WEEKS;
 	pub const CustodyDuration: BlockNumber = 3 * YEARS;
 	pub const GovernanceCustodyDuration: BlockNumber = 1 * YEARS;
-	pub const CustodyProxy: ProxyType = ProxyType::Voting;
+	pub const GovernanceProxy: ProxyType = ProxyType::Governance;
 }
 
 type EnsureTechnicalUnanimity = EnsureOneOf<AccountId,
@@ -454,12 +448,11 @@ type EnsureTwoThirdsCouncil = EnsureOneOf<
 	EnsureRoot<AccountId>,
 >;
 
-impl xx_economics::Config for Runtime {
+impl xxnetwork::Config for Runtime {
 	// General config
 	type Event = Event;
 	type Currency = Balances;
-
-	type CustodianHandler = XXCustody;
+	type Inspect = Balances;
 
 	// Rewards Pool config
 	type RewardsPoolId = RewardsPoolId;
@@ -469,38 +462,18 @@ impl xx_economics::Config for Runtime {
 	// Inflation config
 	type EraDuration = EraDuration;
 
-	// Admin is technical committee unanimity
-	type AdminOrigin = EnsureTechnicalUnanimity;
-
-	type WeightInfo = xx_economics::weights::SubstrateWeight<Runtime>;
-}
-
-impl xx_team_custody::Config for Runtime {
-	// General config
-	type Event = Event;
-	type Currency = Balances;
-
 	// Custody config
 	type PayoutFrequency = PayoutFrequency;
 	type CustodyDuration = CustodyDuration;
 	type GovernanceCustodyDuration = GovernanceCustodyDuration;
-	type CustodyProxy = CustodyProxy;
+	type GovernanceProxy = GovernanceProxy;
 	type BlockNumberToBalance = ConvertInto;
-	// Admin is technical committee unanimity
-	type AdminOrigin = EnsureTechnicalUnanimity;
-    // Weight information for extrinsics in this pallet.
-    type WeightInfo = xx_team_custody::weights::SubstrateWeight<Self>;
-}
 
-impl xx_cmix::Config for Runtime {
-	// General config
-	type Event = Event;
 	// CMIX Variables can be changed by 2/3 Council
 	type CmixVariablesOrigin = EnsureTwoThirdsCouncil;
+
 	// Admin is technical committee unanimity
 	type AdminOrigin = EnsureTechnicalUnanimity;
-    // Weight information for extrinsics in this pallet.
-    type WeightInfo = xx_cmix::weights::SubstrateWeight<Self>;
 }
 
 impl pallet_staking::Config for Runtime {
@@ -508,16 +481,13 @@ impl pallet_staking::Config for Runtime {
 	type UnixTime = Timestamp;
 	type CurrencyToVote = U128CurrencyToVote;
 	type ElectionProvider = ElectionProviderMultiPhase;
-
-	type CmixHandler = XXCmix;
-	type CustodianHandler = XXCustody;
-
+	type XXNetworkHandler = XXNetwork;
 	type AdminOrigin = EnsureTechnicalUnanimity;
 	const MAX_NOMINATIONS: u32 = MAX_NOMINATIONS;
-	type RewardRemainder = xx_economics::rewards::RewardRemainderAdapter<Runtime>;
+	type RewardRemainder = xxnetwork::rewards::RewardRemainderAdapter<Runtime>;
 	type Event = Event;
 	type Slash = Treasury; // send the slashed funds to the treasury.
-	type Reward = XXEconomics; // rewards are taken from the rewards pool (and then minted once pool is empty)
+	type Reward = XXNetwork; // rewards are taken from the rewards pool (and then minted once pool is empty)
 	type SessionsPerEra = SessionsPerEra;
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
@@ -528,7 +498,7 @@ impl pallet_staking::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_3, _4, AccountId, CouncilCollective>
 	>;
 	type SessionInterface = Self;
-	type EraPayout = XXEconomics; // era payout is calculated according to inflation parameters
+	type EraPayout = XXNetwork; // era payout is calculated according to inflation parameters
 	type NextNewSession = Session;
 	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
@@ -599,7 +569,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type SignedDepositByte = SignedDepositByte;
 	type SignedDepositWeight = ();
 	type SlashHandler = ();
-	type RewardHandler = XXEconomics;
+	type RewardHandler = XXNetwork;
 	type MinerMaxLength = MinerMaxLength;
 	type DataProvider = Staking;
 	type CompactSolution = NposCompactSolution16;
@@ -1006,7 +976,6 @@ impl swap::Config for Runtime {
 	type Currency = Balances;
 	type NativeTokenId = TokenID;
 	type AdminOrigin = EnsureTwoThirdsTechnical;
-	type WeightInfo = swap::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime!(
@@ -1063,10 +1032,8 @@ construct_runtime!(
 		ChainBridge: chainbridge::{Pallet, Call, Storage, Event<T>} = 28,
 		// Swap pallet
 		Swap: swap::{Pallet, Call, Storage, Config<T>, Event<T>} = 29,
-		// xx network pallets
-		XXCmix: xx_cmix::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
-		XXEconomics: xx_economics::{Pallet, Call, Storage, Config<T>, Event<T>} = 31,
-		XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,
+		// xx network pallet
+		XXNetwork: xxnetwork::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 	}
 );
 
@@ -1208,6 +1175,7 @@ impl_runtime_apis! {
 			// probability of a slot being empty), is done in accordance to the
 			// slot duration and expected target block time, for safely
 			// resisting network delays of maximum two seconds.
+			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
 			sp_consensus_babe::BabeGenesisConfiguration {
 				slot_duration: Babe::slot_duration(),
 				epoch_length: EpochDuration::get(),

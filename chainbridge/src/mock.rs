@@ -7,7 +7,7 @@ use frame_system::{self as system};
 use sp_core::H256;
 use sp_runtime::{
     testing::Header,
-    traits::{BlakeTwo256, IdentityLookup},
+    traits::{AccountIdConversion, BlakeTwo256, IdentityLookup},
     Perbill,
 };
 
@@ -23,7 +23,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-    type BaseCallFilter = frame_support::traits::AllowAll;
+    type BaseCallFilter = ();
     type Origin = Origin;
     type Call = Call;
     type Index = u64;
@@ -45,7 +45,6 @@ impl frame_system::Config for Test {
     type BlockWeights = ();
     type BlockLength = ();
     type SS58Prefix = ();
-    type OnSetCode = ();
 }
 
 parameter_types! {
@@ -64,16 +63,11 @@ impl pallet_balances::Config for Test {
     type AccountStore = System;
     type MaxLocks = MaxLocks;
     type WeightInfo = ();
-    type MaxReserves = ();
-    type ReserveIdentifier = [u8; 8];
 }
-
-const PALLET_ID: PalletId = PalletId(*b"cb/bridg");
 
 parameter_types! {
     pub const TestChainId: u8 = 5;
     pub const ProposalLifetime: u64 = 50;
-    pub const ChainbridgePalletId: PalletId = PALLET_ID;
 }
 
 impl Config for Test {
@@ -82,7 +76,6 @@ impl Config for Test {
     type Proposal = Call;
     type ChainId = TestChainId;
     type ProposalLifetime = ProposalLifetime;
-    type PalletId = ChainbridgePalletId;
 }
 
 pub type Block = sp_runtime::generic::Block<Header, UncheckedExtrinsic>;
@@ -94,9 +87,9 @@ frame_support::construct_runtime!(
         NodeBlock = Block,
         UncheckedExtrinsic = UncheckedExtrinsic
     {
-        System: system::{Pallet, Call, Event<T>},
-        Balances: balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-        Bridge: bridge::{Pallet, Call, Storage, Event<T>},
+        System: system::{Module, Call, Event<T>},
+        Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
+        Bridge: bridge::{Module, Call, Storage, Event<T>},
     }
 );
 
@@ -108,11 +101,12 @@ pub const ENDOWED_BALANCE: u64 = 100_000_000;
 pub const TEST_THRESHOLD: u32 = 2;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
+    let bridge_id = ModuleId(*b"cb/bridg").into_account();
     let mut t = frame_system::GenesisConfig::default()
         .build_storage::<Test>()
         .unwrap();
     pallet_balances::GenesisConfig::<Test> {
-        balances: vec![(PALLET_ID.into_account(), ENDOWED_BALANCE)],
+        balances: vec![(bridge_id, ENDOWED_BALANCE)],
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -147,7 +141,7 @@ pub fn new_test_ext_initialized(
 // Checks events against the latest. A contiguous set of events must be provided. They must
 // include the most recent event, but do not have to include every past event.
 pub fn assert_events(mut expected: Vec<Event>) {
-    let mut actual: Vec<Event> = system::Pallet::<Test>::events()
+    let mut actual: Vec<Event> = system::Module::<Test>::events()
         .iter()
         .map(|e| e.event.clone())
         .collect();

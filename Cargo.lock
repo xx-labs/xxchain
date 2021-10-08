@@ -880,16 +880,12 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hex-literal",
- "libsecp256k1",
  "log",
  "pallet-balances",
  "pallet-vesting",
  "parity-scale-codec",
  "rustc-hex",
  "serde",
- "serde_json",
- "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -5255,9 +5251,7 @@ dependencies = [
  "static_assertions",
  "substrate-wasm-builder",
  "swap",
- "xx-cmix",
- "xx-economics",
- "xx-team-custody",
+ "xxnetwork",
 ]
 
 [[package]]
@@ -5670,9 +5664,7 @@ dependencies = [
  "static_assertions",
  "substrate-wasm-builder",
  "swap",
- "xx-cmix",
- "xx-economics",
- "xx-team-custody",
+ "xxnetwork",
 ]
 
 [[package]]
@@ -7465,9 +7457,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.67"
+version = "1.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7f9e390c27c3c0ce8bc5d725f6e4d30a29d26659494aa4b17535f7522c5c950"
+checksum = "336b10da19a12ad094b59d870ebde26a45402e5b470add4b5fd03c5048a32127"
 dependencies = [
  "itoa",
  "ryu",
@@ -8679,10 +8671,8 @@ name = "swap"
 version = "0.1.0"
 dependencies = [
  "chainbridge",
- "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-balances",
  "parity-scale-codec",
  "serde",
  "sp-arithmetic",
@@ -10086,79 +10076,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "xx-cmix"
+name = "xxnetwork"
 version = "0.1.0"
 dependencies = [
- "frame-benchmarking",
- "frame-election-provider-support",
  "frame-support",
  "frame-system",
- "pallet-authorship",
- "pallet-balances",
- "pallet-session",
- "pallet-staking 3.0.0",
- "pallet-staking-reward-curve",
- "pallet-timestamp",
- "parity-scale-codec",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-staking",
- "sp-std",
- "sp-tracing",
-]
-
-[[package]]
-name = "xx-economics"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-balances",
  "pallet-proxy",
  "pallet-staking 3.0.0",
  "pallet-staking-reward-fn",
  "parity-scale-codec",
  "serde",
  "sp-arithmetic",
- "sp-io",
  "sp-runtime",
  "sp-std",
- "sp-tracing",
- "xx-team-custody",
-]
-
-[[package]]
-name = "xx-team-custody"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-election-provider-support",
- "frame-support",
- "frame-system",
- "pallet-authorship",
- "pallet-balances",
- "pallet-democracy",
- "pallet-elections-phragmen",
- "pallet-proxy",
- "pallet-scheduler",
- "pallet-session",
- "pallet-staking 3.0.0",
- "pallet-staking-reward-curve",
- "pallet-staking-reward-fn",
- "pallet-timestamp",
- "parity-scale-codec",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-staking",
- "sp-std",
- "sp-tracing",
 ]
 
 [[package]]
@@ -10273,10 +10203,12 @@ dependencies = [
  "pallet-im-online",
  "pallet-membership",
  "pallet-offences",
+ "pallet-offences-benchmarking",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-session",
+ "pallet-session-benchmarking",
  "pallet-staking 3.0.0",
  "pallet-staking-reward-curve",
  "pallet-timestamp",
@@ -10307,9 +10239,7 @@ dependencies = [
  "static_assertions",
  "substrate-wasm-builder",
  "swap",
- "xx-cmix",
- "xx-economics",
- "xx-team-custody",
+ "xxnetwork",
 ]
 
 [[package]]

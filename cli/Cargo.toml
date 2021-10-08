@@ -153,8 +153,8 @@ cli = [
 ]
 runtime-benchmarks = [
 	"xxnetwork-runtime/runtime-benchmarks",
-	# "protonet-runtime/runtime-benchmarks",
-	# "phoenixx-runtime/runtime-benchmarks",
+	"protonet-runtime/runtime-benchmarks",
+	"phoenixx-runtime/runtime-benchmarks",
 	"frame-benchmarking-cli",
 ]
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change

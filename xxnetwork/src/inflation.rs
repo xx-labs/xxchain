@@ -1,13 +1,11 @@
-use crate::BalanceOf;
 use super::{Config, Module, LiquidityRewards};
 use pallet_staking::EraPayout;
 use pallet_staking_reward_fn::compute_inflation;
-use sp_runtime::traits::{Zero, Saturating};
-use sp_runtime::{Perbill, RuntimeDebug};
+use sp_runtime::traits::{Zero, AtLeast32BitUnsigned, Saturating};
+use sp_runtime::{Perbill, RuntimeDebug, SaturatedConversion};
 use codec::{Encode, Decode};
-use sp_std::{prelude::*};
+use sp_std::{prelude::*, fmt::Debug};
 use frame_support::{StorageValue, traits::Get};
-use pallet_staking::CustodianHandler;
 
 /// Inflation fixed parameters
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
@@ -98,18 +96,12 @@ impl<T: Config> Module<T> {
         let points = Self::interest_points();
         match points.iter().position(|p| p.block >= block) {
             // If position found, get points from index-1 and index
-            Some(index) => {
-                // If index is 0, take the first point
-                if index == 0 {
-                    points[0].interest
-                } else {
-                    Self::compute_ideal_interest(
-                        block,
-                        points[index-1].clone(),
-                        points[index].clone(),
-                    )
-                }
-            },
+            Some(index) =>
+                Self::compute_ideal_interest(
+                    block,
+                    points[index-1].clone(),
+                    points[index].clone(),
+                ),
             // If none found, get last point and return interest
             None =>
                 points.last().unwrap().interest,
@@ -122,13 +114,8 @@ impl<T: Config> Module<T> {
         block: T::BlockNumber,
         start: IdealInterestPoint<T::BlockNumber>,
         end: IdealInterestPoint<T::BlockNumber>) -> Perbill {
-        // Compute interest difference (according to curve direction)
-        let decreasing = start.interest > end.interest;
-        let diff = if decreasing {
-            start.interest.clone().saturating_sub(end.interest)
-        } else {
-            end.interest.clone().saturating_sub(start.interest.clone())
-        };
+        // Compute interest difference (start-end to ensure result is positive)
+        let diff = start.interest.clone().saturating_sub(end.interest);
         // If difference is zero, must be constant part, take interest from start (or end)
         if diff.is_zero() {
             return start.interest
@@ -136,23 +123,9 @@ impl<T: Config> Module<T> {
         // Compute block ratio
         let block_diff = end.block - start.block;
         let half_era_blocks = Perbill::from_rational(1u32,2u32) * T::EraDuration::get();
-        // If the block is the end of the first era or higher, interpolate from the era midpoint
-        // Otherwise, use the block directly
-        let calc_block = if block >= T::EraDuration::get() {
-            block - half_era_blocks
-        } else {
-            block
-        };
-        let ratio = Perbill::from_rational(calc_block, block_diff);
-        // Compute interest according to curve direction
-        // decreasing: start - diff*ratio
-        if decreasing {
-            start.interest.saturating_sub(ratio * diff)
-        }
-        // increasing: start + diff*ratio
-        else {
-            start.interest.saturating_add(ratio * diff)
-        }
+        let ratio = Perbill::from_rational(block - half_era_blocks, block_diff);
+        // Compute interest = start - diff*ratio
+        start.interest.saturating_sub(ratio * diff)
     }
 
     /// Update liquidity rewards balance
@@ -164,27 +137,32 @@ impl<T: Config> Module<T> {
     }
 
     /// Compute total stakeable
-    fn compute_total_stakeable(issuance: BalanceOf<T>) -> BalanceOf<T> {
+    fn compute_total_stakeable
+        <Balance: AtLeast32BitUnsigned>
+    (issuance: Balance) -> Balance {
         let unstakeable =
             // Balance of Rewards Pool
             Self::rewards_balance()
             // add total balance under custody
-            + T::CustodianHandler::total_custody()
+            + Self::total_custody()
             // add liquidity rewards balance
             + Self::liquidity_rewards();
-        issuance - unstakeable
+        issuance
+            // Ugly conversion from associated type BalanceOf<T> to u128 back to Balance parameter
+            - Balance::try_from(unstakeable.saturated_into::<u128>()).ok().unwrap_or(Zero::zero())
     }
 }
 
 /// Implement EraPayout trait
 impl<
     T: Config,
-> EraPayout<BalanceOf<T>> for Module<T> {
+    Balance: AtLeast32BitUnsigned + Clone + Debug,
+> EraPayout<Balance> for Module<T> {
     fn era_payout(
-        total_staked: BalanceOf<T>,
-        total_issuance: BalanceOf<T>,
+        total_staked: Balance,
+        total_issuance: Balance,
         era_duration_millis: u64,
-    ) -> (BalanceOf<T>, BalanceOf<T>) {
+    ) -> (Balance, Balance) {
         // Get inflation fixed params
         let params = Self::inflation_params();
 
@@ -198,7 +176,7 @@ impl<
         let max = ideal_interest.clone() * params.ideal_stake.clone();
 
         // Compute total stakeable amount
-        let total_stakeable = Self::compute_total_stakeable(total_issuance);
+        let total_stakeable = Self::compute_total_stakeable::<Balance>(total_issuance);
 
         // Ensure stake is at most total_stakeable
         let stake = total_staked.min(total_stakeable.clone());

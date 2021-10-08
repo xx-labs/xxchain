@@ -22,7 +22,7 @@ use crate::keyring::*;
 use sp_keyring::{Ed25519Keyring, Sr25519Keyring};
 use xxnetwork_runtime::{
 	GenesisConfig, BalancesConfig, SessionConfig, StakingConfig, SystemConfig,
-	GrandpaConfig, SwapConfig, wasm_binary_unwrap,
+	GrandpaConfig, wasm_binary_unwrap,
 	AccountId, StakerStatus, BabeConfig, BABE_GENESIS_EPOCH_CONFIG,
 };
 use xxnetwork_runtime::constants::currency::*;
@@ -114,12 +114,7 @@ pub fn config_endowed(
 		treasury: Default::default(),
 		claims: Default::default(),
 		vesting: Default::default(),
-		swap: SwapConfig {
-			threshold: 1,
-			..Default::default()
-		},
-		xx_cmix: Default::default(),
-		xx_economics: Default::default(),
-		xx_custody: Default::default(),
+		swap: Default::default(),
+		xx_network: Default::default(),
 	}
 }

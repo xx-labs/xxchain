@@ -17,7 +17,7 @@
 
 use std::sync::Arc;
 use xxnetwork_runtime::{
-	Executive, Runtime, UncheckedExtrinsic,
+	Executive, Indices, Runtime, UncheckedExtrinsic,
 };
 use sp_application_crypto::AppKey;
 use sp_core::{
@@ -214,54 +214,54 @@ fn should_submit_signed_twice_from_all_accounts() {
 	});
 }
 
-// #[test]
-// fn submitted_transaction_should_be_valid() {
-// 	use codec::Encode;
-// 	use sp_runtime::transaction_validity::{TransactionSource, TransactionTag};
-// 	use sp_runtime::traits::StaticLookup;
+#[test]
+fn submitted_transaction_should_be_valid() {
+	use codec::Encode;
+	use sp_runtime::transaction_validity::{TransactionSource, TransactionTag};
+	use sp_runtime::traits::StaticLookup;
 
-// 	let mut t = new_test_ext(compact_code_unwrap(), false);
-// 	let (pool, state) = TestTransactionPoolExt::new();
-// 	t.register_extension(TransactionPoolExt::new(pool));
+	let mut t = new_test_ext(compact_code_unwrap(), false);
+	let (pool, state) = TestTransactionPoolExt::new();
+	t.register_extension(TransactionPoolExt::new(pool));
 
-// 	let keystore = KeyStore::new();
-// 	SyncCryptoStore::sr25519_generate_new(
-// 		&keystore,
-// 		sr25519::AuthorityId::ID, Some(&format!("{}/hunter1", PHRASE))
-// 	).unwrap();
-// 	t.register_extension(KeystoreExt(Arc::new(keystore)));
+	let keystore = KeyStore::new();
+	SyncCryptoStore::sr25519_generate_new(
+		&keystore,
+		sr25519::AuthorityId::ID, Some(&format!("{}/hunter1", PHRASE))
+	).unwrap();
+	t.register_extension(KeystoreExt(Arc::new(keystore)));
 
-// 	t.execute_with(|| {
-// 		let results = Signer::<Runtime, TestAuthorityId>::all_accounts()
-// 			.send_signed_transaction(|_| {
-// 				pallet_balances::Call::transfer(Default::default(), Default::default())
-// 			});
-// 		let len = results.len();
-// 		assert_eq!(len, 1);
-// 		assert_eq!(results.into_iter().filter_map(|x| x.1.ok()).count(), len);
-// 	});
+	t.execute_with(|| {
+		let results = Signer::<Runtime, TestAuthorityId>::all_accounts()
+			.send_signed_transaction(|_| {
+				pallet_balances::Call::transfer(Default::default(), Default::default())
+			});
+		let len = results.len();
+		assert_eq!(len, 1);
+		assert_eq!(results.into_iter().filter_map(|x| x.1.ok()).count(), len);
+	});
 
-// 	// check that transaction is valid, but reset environment storage,
-// 	// since CreateTransaction increments the nonce
-// 	let tx0 = state.read().transactions[0].clone();
-// 	let mut t = new_test_ext(compact_code_unwrap(), false);
-// 	t.execute_with(|| {
-// 		let source = TransactionSource::External;
-// 		let extrinsic = UncheckedExtrinsic::decode(&mut &*tx0).unwrap();
-// 		// add balance to the account
-// 		let author = extrinsic.signature.clone().unwrap().0;
-// 		let address = Indices::lookup(author).unwrap();
-// 		let data = pallet_balances::AccountData { free: 5_000_000_000_000, ..Default::default() };
-// 		let account = frame_system::AccountInfo { data, .. Default::default() };
-// 		<frame_system::Account<Runtime>>::insert(&address, account);
+	// check that transaction is valid, but reset environment storage,
+	// since CreateTransaction increments the nonce
+	let tx0 = state.read().transactions[0].clone();
+	let mut t = new_test_ext(compact_code_unwrap(), false);
+	t.execute_with(|| {
+		let source = TransactionSource::External;
+		let extrinsic = UncheckedExtrinsic::decode(&mut &*tx0).unwrap();
+		// add balance to the account
+		let author = extrinsic.signature.clone().unwrap().0;
+		let address = Indices::lookup(author).unwrap();
+		let data = pallet_balances::AccountData { free: 5_000_000_000_000, ..Default::default() };
+		let account = frame_system::AccountInfo { data, .. Default::default() };
+		<frame_system::Account<Runtime>>::insert(&address, account);
 
-// 		// check validity
-// 		let res = Executive::validate_transaction(source, extrinsic).unwrap();
+		// check validity
+		let res = Executive::validate_transaction(source, extrinsic).unwrap();
 
-// 		// We ignore res.priority since this number can change based on updates to weights and such.
-// 		assert_eq!(res.requires, Vec::<TransactionTag>::new());
-// 		assert_eq!(res.provides, vec![(address, 0).encode()]);
-// 		assert_eq!(res.longevity, 2048);
-// 		assert_eq!(res.propagate, true);
-// 	});
-// }
+		// We ignore res.priority since this number can change based on updates to weights and such.
+		assert_eq!(res.requires, Vec::<TransactionTag>::new());
+		assert_eq!(res.provides, vec![(address, 0).encode()]);
+		assert_eq!(res.longevity, 2048);
+		assert_eq!(res.propagate, true);
+	});
+}

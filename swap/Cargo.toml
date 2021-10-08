@@ -19,16 +19,11 @@ sp-arithmetic = { git = "https://github.com/xx-labs/substrate", branch = "xx-pro
 # frame dependencies
 frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
-frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false, optional = true }
 
 chainbridge = { path = "../chainbridge" , default-features = false}
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-
-[dev-dependencies]
-pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
-
 
 [features]
 default = ["std"]
@@ -44,4 +39,3 @@ std = [
 	"frame-system/std",
 	"chainbridge/std",
 ]
-runtime-benchmarks = ["frame-benchmarking", "chainbridge/runtime-benchmarks"]

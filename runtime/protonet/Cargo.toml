@@ -86,10 +86,8 @@ swap = { path = "../../swap", default-features = false }
 # token claims
 claims = { path = "../../claims", default-features = false }
 
-# xx network pallets
-xx-cmix = {path = "../../xx-cmix", default-features = false }
-xx-economics = {path = "../../xx-economics", default-features = false }
-xx-team-custody = {path = "../../xx-team-custody", default-features = false }
+# xx network pallet
+xxnetwork = {path = "../../xxnetwork", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
@@ -154,9 +152,6 @@ std = [
 	"claims/std",
 	"chainbridge/std",
 	"swap/std",
-	"xx-cmix/std",
-	"xx-economics/std",
-	"xx-team-custody/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
@@ -182,8 +177,8 @@ runtime-benchmarks = [
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-vesting/runtime-benchmarks",
-	# "pallet-offences-benchmarking",
-	# "pallet-session-benchmarking",
+	"pallet-offences-benchmarking",
+	"pallet-session-benchmarking",
 	"frame-system-benchmarking",
 	"hex-literal",
 ]

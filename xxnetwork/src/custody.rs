@@ -8,7 +8,7 @@ use sp_std::convert::TryFrom;
 use codec::{Encode, Decode, HasCompact};
 
 use frame_support::traits::{
-    Currency, ReservableCurrency, Get, ExistenceRequirement::AllowDeath,
+    Currency, ReservableCurrency, Get, ExistenceRequirement::{KeepAlive, AllowDeath},
     fungible::Inspect,
 };
 use sp_runtime::traits::{
@@ -16,6 +16,9 @@ use sp_runtime::traits::{
     Convert, StaticLookup, SaturatedConversion
 };
 use frame_support::{StorageValue, StorageMap, dispatch::DispatchResult};
+
+type BalanceOfProxy<T> =
+<<T as pallet_proxy::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 /// Custody Info
 #[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
@@ -30,15 +33,27 @@ pub struct CustodyInfo<AccountId, Balance: HasCompact> {
     pub custody: AccountId,
     /// Reserve account
     pub reserve: AccountId,
+    /// Team member has proxied custody
+    pub proxied: bool,
 }
 
 impl<AccountId, Balance> CustodyInfo<AccountId, Balance> where
     AccountId: Default,
     Balance: AtLeast32BitUnsigned + Saturating + Copy,
 {
+    /// Return true if self is fully vested
+    fn is_vested(&self) -> bool {
+        self.allocation == self.vested
+    }
+
     /// Increase vested amount in self
     fn increase_vested(&mut self, amount: Balance) {
         self.vested += amount;
+    }
+
+    /// Get the remaining payout
+    fn remaining_payout(&self) -> Balance {
+        self.allocation - self.vested
     }
 }
 
@@ -84,7 +99,7 @@ impl<T: Config> Module<T> {
         let custody_account =
             <pallet_proxy::Pallet<T>>::anonymous_account(
                 who,
-                &T::CustodyProxy::get(),
+                &T::GovernanceProxy::get(),
                 0,
                 None
             );
@@ -101,7 +116,7 @@ impl<T: Config> Module<T> {
         let reserve_account =
             <pallet_proxy::Pallet<T>>::anonymous_account(
                 who,
-                &T::CustodyProxy::get(),
+                &T::GovernanceProxy::get(),
                 1,
                 None
             );
@@ -118,6 +133,7 @@ impl<T: Config> Module<T> {
             vested:  Zero::zero(),
             custody: custody_account.clone(),
             reserve: reserve_account,
+            proxied: false,
         };
 
         // 5. Store custody info and custody account
@@ -126,28 +142,64 @@ impl<T: Config> Module<T> {
 
         // 6. Update total amount under custody
         <TotalCustody<T>>::mutate(|n| *n += custody_balance);
-        <TotalCustody<T>>::mutate(|n| *n += reserve_balance);
     }
 
     /// Set the governance proxy of given custody account
-    fn set_custody_governance_proxy(custody: &T::AccountId, proxy: T::AccountId) -> DispatchResult {
+    fn set_custody_governance_proxy(custody: &T::AccountId, proxy: T::AccountId) {
         // 1. Remove any proxies
-        Self::remove_custody_proxies(custody);
+        let _ = Self::remove_custody_proxies(custody);
         // 2. Set new proxy
-        <pallet_proxy::Pallet<T>>::add_proxy_delegate(
+        let _ = <pallet_proxy::Pallet<T>>::add_proxy_delegate(
             custody,
             proxy,
-            T::CustodyProxy::get(),
+            T::GovernanceProxy::get(),
             Zero::zero()
-        )
+        );
     }
 
     /// Remove any proxies of given custody account, refunding team member's deposit if existing
     /// NOTE: Any proxies are guaranteed to be only of Governance type
-    fn remove_custody_proxies(custody: &T::AccountId) {
+    fn remove_custody_proxies(custody: &T::AccountId) -> BalanceOfProxy<T> {
         // Can't call remove_proxies directly, so need to replicate code here
         let (_, old_deposit) = <pallet_proxy::Proxies::<T>>::take(custody);
         <T as pallet_proxy::Config>::Currency::unreserve(custody, old_deposit.clone());
+        old_deposit
+    }
+
+    /// Transfer deposit from team member into custody for governance proxy
+    fn deposit_team_custody_proxy(
+        who: T::AccountId, mut info: CustodyInfo<T::AccountId, BalanceOf<T>>
+    ) -> DispatchResult {
+        // 1. Transfer deposit into custody
+        let deposit = <pallet_proxy::Pallet<T>>::deposit(1u32);
+        <T as pallet_proxy::Config>::Currency::transfer(
+            &who,
+            &info.custody,
+            deposit.into(),
+            KeepAlive
+        )?;
+        // 2. Update info
+        info.proxied = true;
+        Self::update_team_custody(&who, info);
+        Ok(())
+    }
+
+    /// Refund team member's deposit for custody proxy
+    fn refund_team_custody_proxy(
+        who: T::AccountId, info: CustodyInfo<T::AccountId, BalanceOf<T>>
+    ) -> DispatchResult {
+        // 1. Remove proxy
+        let deposit = Self::remove_custody_proxies(&info.custody);
+        // 2. Refund deposit if needed
+        if !deposit.is_zero() && info.proxied {
+            <T as pallet_proxy::Config>::Currency::transfer(
+                &info.custody,
+                &who,
+                deposit.into(),
+                AllowDeath
+            )?;
+        }
+        Ok(())
     }
 
     /// Compute payout
@@ -180,9 +232,9 @@ impl<T: Config> Module<T> {
                 )?;
             }
             // 3.2. Remove any proxies on the custody account
-            Self::remove_custody_proxies(&custody);
+            Self::refund_team_custody_proxy(who.clone(), info.clone())?;
             // 3.3. Payout remaining amount
-            Self::do_payout(who.clone(), Zero::zero(), info, false)?;
+            Self::do_payout(who.clone(), info.remaining_payout(), info, false)?;
             // 3.4. Emmit custody done event
             Self::deposit_event(RawEvent::CustodyDone(who));
             return Ok(())
@@ -206,6 +258,20 @@ impl<T: Config> Module<T> {
         Ok(())
     }
 
+    /// Update Team Custody Info
+    fn update_team_custody(who: &T::AccountId, info: CustodyInfo<T::AccountId, BalanceOf<T>>) {
+        // If allocation is vested then delete from storage
+        if info.is_vested() {
+            // Delete team member custody info
+            <TeamAccounts<T>>::remove(&who);
+            // Delete custody account
+            <CustodyAccounts<T>>::remove(&info.custody);
+        } else {
+            // Insert updated custody info
+            <TeamAccounts<T>>::insert(&who, info);
+        }
+    }
+
     /// Do a payout
     fn do_payout(
         who: T::AccountId, amount: BalanceOf<T>,
@@ -217,7 +283,7 @@ impl<T: Config> Module<T> {
         // alive to limit transfers down to existential deposit until end of the custody period
         let custody = info.custody.clone();
         let custody_transferable_balance =
-            <T as Config>::Currency::reducible_balance(&custody, keep_alive.clone());
+            T::Inspect::reducible_balance(&custody, keep_alive.clone());
         // T::Currency and T::Inspect are both implemented by Balances pallet, so the
         // balance type is the same. However, explicit conversion is needed here.
         let custody_balance = <BalanceOf<T>>::try_from(
@@ -233,7 +299,7 @@ impl<T: Config> Module<T> {
         // limit transfers down to existential deposit until end of the custody period
         let reserve = info.reserve.clone();
         let reserve_transferable_balance =
-            <T as Config>::Currency::reducible_balance(&reserve, keep_alive.clone());
+            T::Inspect::reducible_balance(&reserve, keep_alive);
         // T::Currency and T::Inspect are both implemented by Balances pallet, so the
         // balance type is the same. However, explicit conversion is needed here.
         let reserve_balance = <BalanceOf<T>>::try_from(
@@ -241,15 +307,9 @@ impl<T: Config> Module<T> {
             ).ok().unwrap_or(Zero::zero());
 
         // 3. Calculate amounts to withdraw from custody and reserve
-        // If custody period is done, transfer full amount from both accounts
-        // in order to not leave any inaccessible funds around
-        let (withdraw_custody, withdraw_reserve) = if keep_alive {
-            let from_custody = amount.min(custody_balance);
-            let from_reserve = amount - from_custody;
-            (from_custody, from_reserve.min(reserve_balance))
-        } else {
-            (custody_balance, reserve_balance)
-        };
+        let withdraw_custody = amount.min(custody_balance);
+        let withdraw_reserve = amount - withdraw_custody;
+        let withdraw_reserve = withdraw_reserve.min(reserve_balance);
         let withdraw = withdraw_custody + withdraw_reserve;
 
         // 4. Make transfer from custody, if possible
@@ -263,6 +323,8 @@ impl<T: Config> Module<T> {
             )?;
             // Emmit TeamPayoutCustody event
             Self::deposit_event(RawEvent::PayoutFromCustody(who.clone(), withdraw_custody));
+            // Update total amount under custody
+            <TotalCustody<T>>::mutate(|n| *n -= withdraw_custody);
         }
 
         // 5. Make transfer from reserve, if possible
@@ -278,49 +340,12 @@ impl<T: Config> Module<T> {
             Self::deposit_event(RawEvent::PayoutFromReserve(who.clone(), withdraw_reserve));
         }
 
-        // 6. Error if no payout is possible (only before custody ends)
-        if keep_alive && withdraw.is_zero() {
+        // 6. Update custody info if necessary, error if no payout is possible
+        if withdraw.is_zero() {
             Err(Error::<T>::PayoutFailedInsufficientFunds)?
-        }
-
-        // 7. Update custody info
-        // Increase vested amount
-        info.increase_vested(withdraw);
-
-        // Adjust total custody
-        let custody_deduct = if keep_alive {
-            // If its not the last payout, then use the total withdraw
-            withdraw
         } else {
-            // At the last payout, make sure to square total custody correctly based
-            // on difference between vested and allocation
-            if info.allocation < info.vested {
-                // If more was paid out than was allocated, make sure to deduct the difference
-                let diff = info.vested - info.allocation;
-                withdraw.saturating_sub(diff)
-            } else if info.allocation > info.vested {
-                // If not enough was paid out compared to allocation, make sure to add the difference
-                let diff = info.allocation - info.vested;
-                withdraw.saturating_add(diff)
-            } else {
-                // Total paid equals allocation, all good
-                withdraw
-            }
-        };
-
-        // Note: The logic above has been tested and results in exact amounts being subtracted
-        // from TotalCustody. Still, use saturating sub here just to be safe and not have panics
-        <TotalCustody<T>>::mutate(|n| *n = n.clone().saturating_sub(custody_deduct));
-
-        // Update or delete info in storage
-        if keep_alive {
-            // Insert updated custody info
-            <TeamAccounts<T>>::insert(&who, info);
-        } else {
-            // Delete team member custody info
-            <TeamAccounts<T>>::remove(&who);
-            // Delete custody account
-            <CustodyAccounts<T>>::remove(&info.custody);
+            info.increase_vested(withdraw);
+            Self::update_team_custody(&who, info);
         }
 
         Ok(())
@@ -411,7 +436,8 @@ impl<T: Config> Module<T> {
         Self::check_governance_custody(true)?;
 
         // 2. Set new governance proxy (removes any previous existing ones)
-        Self::set_custody_governance_proxy(&custody, proxy)
+        Self::set_custody_governance_proxy(&custody, proxy);
+        Ok(())
     }
 
     /// Attempt to set a governance proxy of a team member's own custody account
@@ -422,9 +448,16 @@ impl<T: Config> Module<T> {
         // 2. Get team member custody account
         // (can't fail because team member existing is checked before)
         let info = <TeamAccounts<T>>::get(&who);
+        let custody = info.custody.clone();
 
-        // 3. Set new governance proxy (removes any previous existing ones)
-        Self::set_custody_governance_proxy(&info.custody, proxy)
+        // 3. If first time proxying, transfer funds into custody
+        if !info.proxied {
+            Self::deposit_team_custody_proxy(who, info)?;
+        }
+
+        // 4. Set new governance proxy (removes any previous existing ones)
+        Self::set_custody_governance_proxy(&custody, proxy);
+        Ok(())
     }
 
     /// Update a team member account

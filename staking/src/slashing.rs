@@ -46,6 +46,8 @@
 //! eras that have already passed, would you encounter situations where a slashing span
 //! has multiple misbehaviors. However, accounting for such cases is necessary
 //! to deter a class of "rage-quit" attacks.
+//!
+//! Based on research at <https://research.web3.foundation/en/latest/polkadot/slashing/npos/>
 
 use super::{
 	EraIndex, Config, Module, Store, BalanceOf, Exposure, Perbill, SessionInterface,

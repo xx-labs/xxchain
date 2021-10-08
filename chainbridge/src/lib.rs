@@ -9,13 +9,13 @@ use frame_support::{
     ensure,
     traits::{EnsureOrigin, Get},
     weights::{GetDispatchInfo, Pays},
-    PalletId, Parameter,
+    Parameter, PalletId,
 };
 
 use frame_system::{self as system, ensure_root, ensure_signed};
 use sp_core::U256;
 use sp_runtime::traits::{AccountIdConversion, Dispatchable};
-use sp_runtime::RuntimeDebug;
+use sp_runtime::{RuntimeDebug};
 
 use codec::{Decode, Encode, EncodeLike};
 
@@ -211,7 +211,7 @@ decl_module! {
         const ChainIdentity: ChainId = T::ChainId::get();
         const ProposalLifetime: T::BlockNumber = T::ProposalLifetime::get();
         /// The ChainBridge's module id, used for deriving account ID
-        const PalletId: PalletId = T::PalletId::get();
+		const PalletId: PalletId = T::PalletId::get();
 
         fn deposit_event() = default;
 
@@ -616,15 +616,4 @@ impl<T: Config> EnsureOrigin<T::Origin> for EnsureBridge<T> {
             r => Err(T::Origin::from(r)),
         })
     }
-
-    /// Returns an outer origin capable of passing `try_origin` check.
-    ///
-    /// ** Should be used for benchmarking only!!! **
-    #[cfg(feature = "runtime-benchmarks")]
-    fn successful_origin() -> T::Origin {
-        T::Origin::from(
-            frame_system::RawOrigin::Signed(<Module<T>>::account_id())
-        )
-    }
-
 }

@@ -2,24 +2,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::traits::{Currency, EnsureOrigin, ExistenceRequirement::AllowDeath, Get};
-use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, dispatch::DispatchResult, ensure,
-};
-use frame_system::{self as system, ensure_root, ensure_signed};
-use sp_core::U256;
+use frame_support::{decl_error, decl_event, decl_storage, decl_module, dispatch::DispatchResult, ensure};
+use frame_system::{self as system, ensure_signed, ensure_root};
 use sp_runtime::traits::SaturatedConversion;
+use sp_core::U256;
 use sp_std::prelude::*;
-use weights::WeightInfo;
-
-pub mod weights;
-
-#[cfg(test)]
-mod mock;
-#[cfg(test)]
-mod tests;
-
-#[cfg(feature = "runtime-benchmarks")]
-pub mod benchmarking;
 
 type ResourceId = chainbridge::ResourceId;
 
@@ -41,18 +28,15 @@ pub trait Config: system::Config + chainbridge::Config {
 
     /// Origin used to change fee and destination
     type AdminOrigin: EnsureOrigin<Self::Origin>;
-
-    /// Weight information for extrinsics in this pallet.
-    type WeightInfo: WeightInfo;
 }
 
 decl_storage! {
     trait Store for Module<T: Config> as Swap {
-        /// Swap service fee charged when moving native tokens out of the chain
-        pub SwapFee get(fn swap_fee) config(): BalanceOf<T>;
+    	/// Swap service fee charged when moving native tokens out of the chain
+    	pub SwapFee get(fn swap_fee) config(): BalanceOf<T>;
 
-        /// Account to which the fee is paid to
-        pub FeeDestination get(fn fee_destination) config(): T::AccountId;
+    	/// Account to which the fee is paid to
+    	pub FeeDestination get(fn fee_destination) config(): T::AccountId;
     }
 
     add_extra_genesis {
@@ -63,16 +47,11 @@ decl_storage! {
         config(balance): BalanceOf<T>;
 
         build(|config: &GenesisConfig<T>| {
-            /*
-            Initialize chains, relayers and resources
-            Uses expect to panic in the case the values cannot be set. This is reasonable as in that
-            case the chain is invalid and should not progress any further.
-            */
-            <Module<T>>::initialize(&config.chains, &config.relayers, &config.resources, &config.threshold)
-                .expect("Could not set config on Chainbridge pallet");
+            // Initialize chains, relayers and resources
+            <Module<T>>::initialize(&config.chains, &config.relayers, &config.resources, &config.threshold);
             // Create chainbridge account and set the balance from genesis
-            let account_id = <chainbridge::Module<T>>::account_id();
-            T::Currency::make_free_balance_be(&account_id, config.balance);
+			let account_id = <chainbridge::Module<T>>::account_id();
+            let _ = T::Currency::make_free_balance_be(&account_id, config.balance);
         });
     }
 }
@@ -104,7 +83,7 @@ decl_module! {
         //
 
         /// Transfers an amount of the native token to some recipient on a (whitelisted) destination chain.
-        #[weight = <T as Config>::WeightInfo::transfer_native()]
+        #[weight = 195_000_000]
         pub fn transfer_native(origin, amount: BalanceOf<T>, recipient: Vec<u8>, dest_id: chainbridge::ChainId) -> DispatchResult {
             let source = ensure_signed(origin)?;
 
@@ -118,11 +97,11 @@ decl_module! {
 
             // Transfer fee to configured destination
             let dest = <FeeDestination<T>>::get();
-            T::Currency::transfer(&source, &dest, fee, AllowDeath)?;
+            T::Currency::transfer(&source, &dest, fee.into(), AllowDeath)?;
 
             // Transfer amount to bridge
             let bridge_id = <chainbridge::Module<T>>::account_id();
-            T::Currency::transfer(&source, &bridge_id, amount, AllowDeath)?;
+            T::Currency::transfer(&source, &bridge_id, amount.into(), AllowDeath)?;
 
             let resource_id = T::NativeTokenId::get();
             <chainbridge::Module<T>>::transfer_fungible(dest_id, resource_id, recipient,
@@ -135,30 +114,30 @@ decl_module! {
         //
 
         /// Executes a currency transfer from the bridge account
-        #[weight = <T as Config>::WeightInfo::transfer()]
+        #[weight = 195_000_000]
         pub fn transfer(origin, to: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
             let source = T::BridgeOrigin::ensure_origin(origin)?;
-            T::Currency::transfer(&source, &to, amount, AllowDeath)?;
+            T::Currency::transfer(&source, &to, amount.into(), AllowDeath)?;
             Ok(())
         }
 
         /// Set swap fee
-        #[weight = <T as Config>::WeightInfo::set_swap_fee()]
-        pub fn set_swap_fee(origin, #[compact] fee: BalanceOf<T>) -> DispatchResult {
-            Self::ensure_admin(origin)?;
-            <SwapFee<T>>::put(fee);
-            Self::deposit_event(RawEvent::FeeChanged(fee));
-            Ok(())
-        }
+        #[weight = 195_000_000]
+		pub fn set_swap_fee(origin, #[compact] fee: BalanceOf<T>) -> DispatchResult {
+			Self::ensure_admin(origin)?;
+			<SwapFee<T>>::put(fee);
+			Self::deposit_event(RawEvent::FeeChanged(fee));
+			Ok(())
+		}
 
-        /// Set fee destination
-        #[weight = <T as Config>::WeightInfo::set_fee_destination()]
-        pub fn set_fee_destination(origin, dest: T::AccountId) -> DispatchResult {
-            Self::ensure_admin(origin)?;
-            <FeeDestination<T>>::put(dest.clone());
-            Self::deposit_event(RawEvent::FeeDestinationChanged(dest));
-            Ok(())
-        }
+		/// Set fee destination
+        #[weight = 195_000_000]
+		pub fn set_fee_destination(origin, dest: T::AccountId) -> DispatchResult {
+			Self::ensure_admin(origin)?;
+			<FeeDestination<T>>::put(dest.clone());
+			Self::deposit_event(RawEvent::FeeDestinationChanged(dest));
+			Ok(())
+		}
     }
 }
 
@@ -167,22 +146,19 @@ impl<T: Config> Module<T> {
     fn initialize(
         chains: &[u8],
         relayers: &[T::AccountId],
-        resources: &[(ResourceId, Vec<u8>)],
+        resources: &Vec<(ResourceId, Vec<u8>)>,
         threshold: &u32,
-    ) -> DispatchResult {
-        for c in chains {
-            <chainbridge::Module<T>>::whitelist(*c)?;
-        }
-
-        for rs in relayers {
-            <chainbridge::Module<T>>::register_relayer(rs.clone())?;
-        }
-
+    ) {
+        chains.into_iter().for_each(|c| {
+            <chainbridge::Module<T>>::whitelist(*c).unwrap_or_default();
+        });
+        relayers.into_iter().for_each(|rs| {
+            <chainbridge::Module<T>>::register_relayer(rs.clone()).unwrap_or_default();
+        });
+        <chainbridge::Module<T>>::set_relayer_threshold(*threshold).unwrap_or_default();
         for &(ref re, ref m) in resources.iter() {
-            <chainbridge::Module<T>>::register_resource(*re, m.clone())?;
+            <chainbridge::Module<T>>::register_resource(*re, m.clone()).unwrap_or_default();
         }
-
-        <chainbridge::Module<T>>::set_relayer_threshold(*threshold)
     }
 
     fn ensure_admin(o: T::Origin) -> DispatchResult {

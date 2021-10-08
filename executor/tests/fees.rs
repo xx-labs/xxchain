@@ -21,7 +21,7 @@ use frame_support::{
 	weights::{GetDispatchInfo, constants::ExtrinsicBaseWeight, IdentityFee, WeightToFeePolynomial},
 };
 use sp_core::NeverNativeValue;
-use sp_runtime::{Perbill, FixedPointNumber, traits::One};
+use sp_runtime::{Perbill, FixedPointNumber};
 use xxnetwork_runtime::{
 	CheckedExtrinsic, Call, Runtime, Balances, TransactionPayment, Multiplier,
 	TransactionByteFee,
