@@ -30,6 +30,7 @@ use frame_support::{
 };
 use frame_system::{ensure_signed, ensure_root, ensure_none};
 use parity_scale_codec::{Encode, Decode};
+use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{self, Serialize, Deserialize, Serializer, Deserializer};
 #[cfg(feature = "std")]
@@ -76,7 +77,7 @@ impl From<ValidityError> for u8 {
 }
 
 /// The kind of a statement an account needs to make for a claim to be valid.
-#[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, RuntimeDebug)]
+#[derive(Encode, Decode, Clone, Copy, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum StatementKind {
     /// Statement required to be made by non-SAFT holders.
@@ -106,7 +107,7 @@ impl Default for StatementKind {
 /// An Ethereum address (i.e. 20 bytes, used to represent an Ethereum account).
 ///
 /// This gets serialized to the 0x-prefixed hex representation.
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, Default, RuntimeDebug)]
+#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 pub struct EthereumAddress([u8; 20]);
 
 #[cfg(feature = "std")]
@@ -134,7 +135,7 @@ impl<'de> Deserialize<'de> for EthereumAddress {
     }
 }
 
-#[derive(Encode, Decode, Clone)]
+#[derive(Encode, Decode, Clone, TypeInfo)]
 pub struct EcdsaSignature(pub [u8; 65]);
 
 impl PartialEq for EcdsaSignature {
@@ -471,14 +472,14 @@ impl<T: Config> sp_runtime::traits::ValidateUnsigned for Module<T> {
             // <weight>
             // The weight of this logic is included in the `claim` dispatchable.
             // </weight>
-            Call::claim(account, ethereum_signature) => {
+            Call::claim { dest: account, ethereum_signature } => {
                 let data = account.using_encoded(to_ascii_hex);
                 (Self::eth_recover(&ethereum_signature, &data, &[][..]), None)
             }
             // <weight>
             // The weight of this logic is included in the `claim_attest` dispatchable.
             // </weight>
-            Call::claim_attest(account, ethereum_signature, statement) => {
+            Call::claim_attest { dest: account, ethereum_signature, statement } => {
                 let data = account.using_encoded(to_ascii_hex);
                 (Self::eth_recover(&ethereum_signature, &data, &statement), Some(statement.as_slice()))
             }
@@ -509,7 +510,8 @@ impl<T: Config> sp_runtime::traits::ValidateUnsigned for Module<T> {
 
 /// Validate `attest` calls prior to execution. Needed to avoid a DoS attack since they are
 /// otherwise free to place on chain.
-#[derive(Encode, Decode, Clone, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+#[scale_info(skip_type_params(T))]
 pub struct PrevalidateAttests<T: Config + Send + Sync>(sp_std::marker::PhantomData<T>) where
     <T as frame_system::Config>::Call: IsSubType<Call<T>>;
 
@@ -560,7 +562,7 @@ impl<T: Config + Send + Sync> SignedExtension for PrevalidateAttests<T> where
         _len: usize,
     ) -> TransactionValidity {
         if let Some(local_call) = call.is_sub_type() {
-            if let Call::attest(attested_statement) = local_call {
+            if let Call::attest { statement: attested_statement } = local_call {
                 let signer = Preclaims::<T>::get(who)
                     .ok_or(InvalidTransaction::Custom(ValidityError::SignerHasNoClaim.into()))?;
                 if let Some(s) = Signing::get(signer) {

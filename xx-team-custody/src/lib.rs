@@ -303,8 +303,8 @@ impl<T: Config> Module<T> {
 
 }
 
-/// Implement CustodianHandler trait
-impl<T: Config> pallet_staking::CustodianHandler<T::AccountId, BalanceOf<T>> for Module<T> {
+/// Implement CustodyHandler trait
+impl<T: Config> pallet_staking::CustodyHandler<T::AccountId, BalanceOf<T>> for Module<T> {
     fn is_custody_account(who: &T::AccountId) -> bool {
         Self::is_custody(who)
     }

@@ -7,10 +7,10 @@ use sp_runtime::{Perbill, RuntimeDebug};
 use codec::{Encode, Decode};
 use sp_std::{prelude::*};
 use frame_support::{StorageValue, traits::Get};
-use pallet_staking::CustodianHandler;
+use pallet_staking::CustodyHandler;
 
 /// Inflation fixed parameters
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct InflationFixedParams {
     /// Minimum inflation
@@ -39,7 +39,7 @@ impl Default for InflationFixedParams {
 }
 
 /// Ideal interest point
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct IdealInterestPoint<B> {
     /// Block number
@@ -169,7 +169,7 @@ impl<T: Config> Module<T> {
             // Balance of Rewards Pool
             Self::rewards_balance()
             // add total balance under custody
-            + T::CustodianHandler::total_custody()
+            + T::CustodyHandler::total_custody()
             // add liquidity rewards balance
             + Self::liquidity_rewards();
         issuance - unstakeable

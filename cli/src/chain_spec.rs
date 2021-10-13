@@ -31,7 +31,6 @@ use sp_consensus_babe::{AuthorityId as BabeId};
 use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
-use pallet_staking::ValidatorPrefs;
 
 pub use node_primitives::{AccountId, Balance, Block, Signature};
 
@@ -197,11 +196,10 @@ pub fn phoenixx_testnet_genesis(
 	});
 
 	// stakers: all validators and nominators.
-	let prefs = ValidatorPrefs::default();
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(prefs.clone())))
+		.map(|x| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(Default::default())))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (phoenixx::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -379,11 +377,10 @@ pub fn protonet_testnet_genesis(
 	});
 
 	// stakers: all validators and nominators.
-	let prefs = ValidatorPrefs::default();
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(prefs.clone())))
+		.map(|x| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(Default::default())))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (protonet::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -561,11 +558,10 @@ pub fn xxnetwork_testnet_genesis(
 	});
 
 	// stakers: all validators and nominators.
-	let prefs = ValidatorPrefs::default();
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(prefs.clone())))
+		.map(|x| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Default::default())))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (xxnetwork::MAX_NOMINATIONS as usize).min(initial_authorities.len());

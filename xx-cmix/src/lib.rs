@@ -253,12 +253,12 @@ impl<T: Config> Module<T> {
 
     /// Add cmix points to staking era rewards
     pub fn reward_cmix_points(data: Vec<(T::AccountId, u32)>) {
-        <pallet_staking::Module<T>>::reward_by_ids(data)
+        <pallet_staking::Pallet<T>>::reward_by_ids(data)
     }
 
     /// Deduct cmix points from staking era rewards
     pub fn deduct_cmix_points(data: Vec<(T::AccountId, u32)>) {
-        <pallet_staking::Module<T>>::deduct_by_ids(data)
+        <pallet_staking::Pallet<T>>::deduct_by_ids(data)
     }
 }
 

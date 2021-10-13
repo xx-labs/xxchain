@@ -1,6 +1,6 @@
 [package]
 name = "node-testing"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["xxlabs <admin@xx.network>"]
 edition = "2018"
 homepage = "https://xx.network"
@@ -10,42 +10,31 @@ repository = "https://github.com/xx-labs/xxchain/"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", features = ["test-helpers", "db"] }
-sc-client-db = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", features = ["kvdb-rocksdb", "parity-db"] }
-sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", features = ["test-helpers", "db"] }
+sc-client-db = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", features = ["kvdb-rocksdb", "parity-db"] }
+sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 codec = { package = "parity-scale-codec", version = "2.0.0" }
-pallet-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-node-executor = { version = "0.1.0", path = "../executor" }
-node-primitives = { version = "0.1.0", path = "../primitives" }
-xxnetwork-runtime = { version = "0.1.0", path = "../runtime/xxnetwork" }
-sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-staking = { version = "3.0.0", path = "../staking" }
-sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", features = ["wasmtime"] }
-sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-substrate-test-client = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-pallet-treasury = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet", default-features = false }
-sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sc-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
-sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }
+sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+node-executor = { version = "0.2.0", path = "../executor" }
+node-primitives = { version = "0.2.0", path = "../primitives" }
+xxnetwork-runtime = { version = "0.2.0", path = "../runtime/xxnetwork" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", features = ["wasmtime"] }
+sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+substrate-test-client = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sc-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 log = "0.4.8"
 tempfile = "3.1.0"
 fs_extra = "1"
 futures = "0.3.1"
 claims = { path = "../claims" }
-
-[dev-dependencies]
-criterion = "0.3.0"
-sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-protonet" }

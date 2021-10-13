@@ -42,7 +42,7 @@ pub trait Config: frame_system::Config {
     type Currency: Currency<Self::AccountId>;
 
     // Handler with which to retrieve total token custody
-    type CustodianHandler: pallet_staking::CustodianHandler<Self::AccountId, BalanceOf<Self>>;
+    type CustodyHandler: pallet_staking::CustodyHandler<Self::AccountId, BalanceOf<Self>>;
 
     //---------------- REWARDS POOL ----------------//
 

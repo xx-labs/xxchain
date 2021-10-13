@@ -18,7 +18,7 @@ use sp_runtime::traits::{
 use frame_support::{StorageValue, StorageMap, dispatch::DispatchResult};
 
 /// Custody Info
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, scale_info::TypeInfo)]
 pub struct CustodyInfo<AccountId, Balance: HasCompact> {
     /// Allocation
     #[codec(compact)]
@@ -173,7 +173,7 @@ impl<T: Config> Module<T> {
             // 3.1. If any leftover custody amount is still bonded, force unstake
             let custody = info.custody.clone();
             if <pallet_staking::Bonded<T>>::contains_key(&custody) {
-                <pallet_staking::Module<T>>::force_unstake(
+                <pallet_staking::Pallet<T>>::force_unstake(
                     frame_system::RawOrigin::Root.into(),
                     custody.clone(),
                     Zero::zero(),
@@ -365,7 +365,7 @@ impl<T: Config> Module<T> {
         Self::check_custody()?;
 
         // 2. Call bond function
-        <pallet_staking::Module<T>>::bond(
+        <pallet_staking::Pallet<T>>::bond(
             T::Origin::from(Some(custody).into()),
             T::Lookup::unlookup(controller),
             value.into()
@@ -381,7 +381,7 @@ impl<T: Config> Module<T> {
         Self::check_custody()?;
 
         // 2. Call bond extra function
-        <pallet_staking::Module<T>>::bond_extra(
+        <pallet_staking::Pallet<T>>::bond_extra(
             T::Origin::from(Some(custody).into()),
             value.into()
         )
@@ -396,7 +396,7 @@ impl<T: Config> Module<T> {
         Self::check_custody()?;
 
         // 2. Call set controller function
-        <pallet_staking::Module<T>>::set_controller(
+        <pallet_staking::Pallet<T>>::set_controller(
             T::Origin::from(Some(custody).into()),
             T::Lookup::unlookup(controller)
         )

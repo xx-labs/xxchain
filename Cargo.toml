@@ -14,7 +14,6 @@ members = [
     'runtime/phoenixx',
     'runtime/protonet',
     'runtime/xxnetwork',
-    'staking',
     'swap',
     'xx-cmix',
     'xx-economics',

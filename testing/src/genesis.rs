@@ -28,7 +28,6 @@ use xxnetwork_runtime::{
 use xxnetwork_runtime::constants::currency::*;
 use sp_core::ChangesTrieConfiguration;
 use sp_runtime::Perbill;
-use pallet_staking::ValidatorPrefs;
 
 /// Create genesis runtime configuration for tests.
 pub fn config(support_changes_trie: bool, code: Option<&[u8]>) -> GenesisConfig {
@@ -56,8 +55,6 @@ pub fn config_endowed(
 		extra_endowed.into_iter().map(|endowed| (endowed, 100*UNITS))
 	);
 
-	let prefs = ValidatorPrefs::default();
-
 	GenesisConfig {
 		system: SystemConfig {
 			changes_trie_config: if support_changes_trie { Some(ChangesTrieConfiguration {
@@ -75,9 +72,9 @@ pub fn config_endowed(
 		},
 		staking: StakingConfig {
 			stakers: vec![
-				(dave(), alice(), 111 * UNITS, StakerStatus::Validator(prefs.clone())),
-				(eve(), bob(), 100 * UNITS, StakerStatus::Validator(prefs.clone())),
-				(ferdie(), charlie(), 100 * UNITS, StakerStatus::Validator(prefs.clone()))
+				(dave(), alice(), 111 * UNITS, StakerStatus::Validator(Default::default())),
+				(eve(), bob(), 100 * UNITS, StakerStatus::Validator(Default::default())),
+				(ferdie(), charlie(), 100 * UNITS, StakerStatus::Validator(Default::default()))
 			],
 			validator_count: 3,
 			minimum_validator_count: 0,
