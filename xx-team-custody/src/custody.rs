@@ -368,7 +368,8 @@ impl<T: Config> Module<T> {
         <pallet_staking::Pallet<T>>::bond(
             T::Origin::from(Some(custody).into()),
             T::Lookup::unlookup(controller),
-            value.into()
+            value.into(),
+            None,
         )
     }
 
