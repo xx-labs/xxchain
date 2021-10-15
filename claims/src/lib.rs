@@ -578,19 +578,19 @@ impl<T: Config + Send + Sync> SignedExtension for PrevalidateAttests<T> where
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod secp_utils {
     use super::*;
-    use secp256k1;
+    use libsecp256k1;
 
-    pub fn public(secret: &secp256k1::SecretKey) -> secp256k1::PublicKey {
-        secp256k1::PublicKey::from_secret_key(secret)
+    pub fn public(secret: &libsecp256k1::SecretKey) -> libsecp256k1::PublicKey {
+        libsecp256k1::PublicKey::from_secret_key(secret)
     }
-    pub fn eth(secret: &secp256k1::SecretKey) -> EthereumAddress {
+    pub fn eth(secret: &libsecp256k1::SecretKey) -> EthereumAddress {
         let mut res = EthereumAddress::default();
         res.0.copy_from_slice(&keccak_256(&public(secret).serialize()[1..65])[12..]);
         res
     }
-    pub fn sig<T: Config>(secret: &secp256k1::SecretKey, what: &[u8], extra: &[u8]) -> EcdsaSignature {
+    pub fn sig<T: Config>(secret: &libsecp256k1::SecretKey, what: &[u8], extra: &[u8]) -> EcdsaSignature {
         let msg = keccak_256(&<super::Module<T>>::ethereum_signable_message(&to_ascii_hex(what)[..], extra));
-        let (sig, recovery_id) = secp256k1::sign(&secp256k1::Message::parse(&msg), secret);
+        let (sig, recovery_id) = libsecp256k1::sign(&libsecp256k1::Message::parse(&msg), secret);
         let mut r = [0u8; 65];
         r[0..64].copy_from_slice(&sig.serialize()[..]);
         r[64] = recovery_id.serialize();
@@ -600,7 +600,7 @@ mod secp_utils {
 
 #[cfg(test)]
 mod tests {
-    use secp256k1;
+    use libsecp256k1;
     use hex_literal::hex;
     use super::*;
     use secp_utils::*;
@@ -639,7 +639,7 @@ mod tests {
 		pub const BlockHashCount: u32 = 250;
 	}
     impl frame_system::Config for Test {
-        type BaseCallFilter = frame_support::traits::AllowAll;
+        type BaseCallFilter = frame_support::traits::Everything;
         type BlockWeights = ();
         type BlockLength = ();
         type DbWeight = ();
@@ -690,6 +690,7 @@ mod tests {
         type BlockNumberToBalance = Identity;
         type MinVestedTransfer = MinVestedTransfer;
         type WeightInfo = ();
+        const MAX_VESTING_SCHEDULES: u32 = 28;
     }
 
     parameter_types!{
@@ -707,20 +708,20 @@ mod tests {
         type WeightInfo = weights::TestWeightInfo;
     }
 
-    fn alice() -> secp256k1::SecretKey {
-        secp256k1::SecretKey::parse(&keccak_256(b"Alice")).unwrap()
+    fn alice() -> libsecp256k1::SecretKey {
+        libsecp256k1::SecretKey::parse(&keccak_256(b"Alice")).unwrap()
     }
-    fn bob() -> secp256k1::SecretKey {
-        secp256k1::SecretKey::parse(&keccak_256(b"Bob")).unwrap()
+    fn bob() -> libsecp256k1::SecretKey {
+        libsecp256k1::SecretKey::parse(&keccak_256(b"Bob")).unwrap()
     }
-    fn dave() -> secp256k1::SecretKey {
-        secp256k1::SecretKey::parse(&keccak_256(b"Dave")).unwrap()
+    fn dave() -> libsecp256k1::SecretKey {
+        libsecp256k1::SecretKey::parse(&keccak_256(b"Dave")).unwrap()
     }
-    fn eve() -> secp256k1::SecretKey {
-        secp256k1::SecretKey::parse(&keccak_256(b"Eve")).unwrap()
+    fn eve() -> libsecp256k1::SecretKey {
+        libsecp256k1::SecretKey::parse(&keccak_256(b"Eve")).unwrap()
     }
-    fn frank() -> secp256k1::SecretKey {
-        secp256k1::SecretKey::parse(&keccak_256(b"Frank")).unwrap()
+    fn frank() -> libsecp256k1::SecretKey {
+        libsecp256k1::SecretKey::parse(&keccak_256(b"Frank")).unwrap()
     }
 
     // This function basically just builds a genesis storage key/value store according to
@@ -881,7 +882,7 @@ mod tests {
     fn valid_attest_transactions_are_free() {
         new_test_ext().execute_with(|| {
             let p = PrevalidateAttests::<Test>::new();
-            let c = Call::Claims(ClaimsCall::attest(StatementKind::Saft.to_text().to_vec()));
+            let c = Call::Claims(ClaimsCall::attest { statement: StatementKind::Saft.to_text().to_vec() });
             let di = c.get_dispatch_info();
             assert_eq!(di.pays_fee, Pays::No);
             let r = p.validate(&42, &c, &di, 20);
@@ -893,11 +894,11 @@ mod tests {
     fn invalid_attest_transactions_are_recognised() {
         new_test_ext().execute_with(|| {
             let p = PrevalidateAttests::<Test>::new();
-            let c = Call::Claims(ClaimsCall::attest(StatementKind::Regular.to_text().to_vec()));
+            let c = Call::Claims(ClaimsCall::attest { statement: StatementKind::Regular.to_text().to_vec() });
             let di = c.get_dispatch_info();
             let r = p.validate(&42, &c, &di, 20);
             assert!(r.is_err());
-            let c = Call::Claims(ClaimsCall::attest(StatementKind::Saft.to_text().to_vec()));
+            let c = Call::Claims(ClaimsCall::attest { statement: StatementKind::Saft.to_text().to_vec() });
             let di = c.get_dispatch_info();
             let r = p.validate(&69, &c, &di, 20);
             assert!(r.is_err());
@@ -1074,7 +1075,13 @@ mod tests {
 
         new_test_ext().execute_with(|| {
             assert_eq!(
-                <Module<Test>>::validate_unsigned(source, &ClaimsCall::claim(1, sig::<Test>(&alice(), &1u64.encode(), &[][..]))),
+                <Module<Test>>::validate_unsigned(source,
+                    &ClaimsCall::claim {
+                        dest:
+                            1,
+                        ethereum_signature:
+                            sig::<Test>(&alice(), &1u64.encode(), &[][..]),
+                    }),
                 Ok(ValidTransaction {
                     priority: 100,
                     requires: vec![],
@@ -1084,15 +1091,22 @@ mod tests {
                 })
             );
             assert_eq!(
-                <Module<Test>>::validate_unsigned(source, &ClaimsCall::claim(0, EcdsaSignature([0; 65]))),
+                <Module<Test>>::validate_unsigned(source,
+                    &ClaimsCall::claim { dest: 0, ethereum_signature: EcdsaSignature([0; 65]) }),
                 InvalidTransaction::Custom(ValidityError::InvalidEthereumSignature.into()).into(),
             );
             assert_eq!(
-                <Module<Test>>::validate_unsigned(source, &ClaimsCall::claim(1, sig::<Test>(&bob(), &1u64.encode(), &[][..]))),
+                <Module<Test>>::validate_unsigned(source,
+                    &ClaimsCall::claim {
+                      dest:
+                      1,
+                      ethereum_signature:
+                      sig::<Test>(&bob(), &1u64.encode(), &[][..]),
+                    }),
                 InvalidTransaction::Custom(ValidityError::SignerHasNoClaim.into()).into(),
             );
             let s = sig::<Test>(&dave(), &1u64.encode(), StatementKind::Regular.to_text());
-            let call = ClaimsCall::claim_attest(1, s, StatementKind::Regular.to_text().to_vec());
+            let call = ClaimsCall::claim_attest { dest: 1, ethereum_signature: s, statement: StatementKind::Regular.to_text().to_vec() };
             assert_eq!(
                 <Module<Test>>::validate_unsigned(source, &call),
                 Ok(ValidTransaction {
@@ -1106,28 +1120,28 @@ mod tests {
             assert_eq!(
                 <Module<Test>>::validate_unsigned(
                     source,
-                    &ClaimsCall::claim_attest(1, EcdsaSignature([0; 65]),
-                                              StatementKind::Regular.to_text().to_vec())
+                    &ClaimsCall::claim_attest { dest: 1, ethereum_signature: EcdsaSignature([0; 65]),
+                                              statement: StatementKind::Regular.to_text().to_vec() }
                 ),
                 InvalidTransaction::Custom(ValidityError::InvalidEthereumSignature.into()).into(),
             );
 
             let s = sig::<Test>(&bob(), &1u64.encode(), StatementKind::Regular.to_text());
-            let call = ClaimsCall::claim_attest(1, s, StatementKind::Regular.to_text().to_vec());
+            let call = ClaimsCall::claim_attest{ dest: 1, ethereum_signature: s, statement: StatementKind::Regular.to_text().to_vec() };
             assert_eq!(
                 <Module<Test>>::validate_unsigned(source, &call),
                 InvalidTransaction::Custom(ValidityError::SignerHasNoClaim.into()).into(),
             );
 
             let s = sig::<Test>(&dave(), &1u64.encode(), StatementKind::Saft.to_text());
-            let call = ClaimsCall::claim_attest(1, s, StatementKind::Regular.to_text().to_vec());
+            let call = ClaimsCall::claim_attest{ dest: 1, ethereum_signature: s, statement: StatementKind::Regular.to_text().to_vec() };
             assert_eq!(
                 <Module<Test>>::validate_unsigned(source, &call),
                 InvalidTransaction::Custom(ValidityError::SignerHasNoClaim.into()).into(),
             );
 
             let s = sig::<Test>(&dave(), &1u64.encode(), StatementKind::Saft.to_text());
-            let call = ClaimsCall::claim_attest(1, s, StatementKind::Saft.to_text().to_vec());
+            let call = ClaimsCall::claim_attest{ dest: 1, ethereum_signature: s, statement: StatementKind::Saft.to_text().to_vec() };
             assert_eq!(
                 <Module<Test>>::validate_unsigned(source, &call),
                 InvalidTransaction::Custom(ValidityError::InvalidStatement.into()).into(),
@@ -1152,7 +1166,7 @@ mod benchmarking {
     const VALUE: u32 = 1_000_000;
 
     fn create_claim<T: Config>(input: u32) -> DispatchResult {
-        let secret_key = secp256k1::SecretKey::parse(&keccak_256(&input.encode())).unwrap();
+        let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&input.encode())).unwrap();
         let eth_address = eth(&secret_key);
         let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
         super::Module::<T>::mint_claim(RawOrigin::Root.into(), eth_address, VALUE.into(), vesting, None)?;
@@ -1160,7 +1174,7 @@ mod benchmarking {
     }
 
     fn create_claim_attest<T: Config>(input: u32) -> DispatchResult {
-        let secret_key = secp256k1::SecretKey::parse(&keccak_256(&input.encode())).unwrap();
+        let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&input.encode())).unwrap();
         let eth_address = eth(&secret_key);
         let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
         super::Module::<T>::mint_claim(
@@ -1183,7 +1197,7 @@ mod benchmarking {
 				create_claim_attest::<T>(u32::max_value() - c)?;
 			}
 
-			let secret_key = secp256k1::SecretKey::parse(&keccak_256(&c.encode())).unwrap();
+			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 			let account: T::AccountId = account("user", c, SEED);
 			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
@@ -1228,7 +1242,7 @@ mod benchmarking {
 
 			// Crate signature
 			let attest_c = u32::max_value() - c;
-			let secret_key = secp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
+			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 			let account: T::AccountId = account("user", c, SEED);
 			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
@@ -1256,7 +1270,7 @@ mod benchmarking {
 			}
 
 			let attest_c = u32::max_value() - c;
-			let secret_key = secp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
+			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 			let account: T::AccountId = account("user", c, SEED);
 			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
@@ -1294,10 +1308,10 @@ mod benchmarking {
 			}
 
 			let attest_c = u32::max_value() - c;
-			let secret_key = secp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
+			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 
-			let new_secret_key = secp256k1::SecretKey::parse(&keccak_256(&(u32::max_value()/2).encode())).unwrap();
+			let new_secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&(u32::max_value()/2).encode())).unwrap();
 			let new_eth_address = eth(&new_secret_key);
 
 			let account: T::AccountId = account("user", c, SEED);
@@ -1327,7 +1341,7 @@ mod benchmarking {
 		eth_recover {
 			let i in 0 .. 1_000;
 			// Crate signature
-			let secret_key = secp256k1::SecretKey::parse(&keccak_256(&i.encode())).unwrap();
+			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&i.encode())).unwrap();
 			let account: T::AccountId = account("user", i, SEED);
 			let signature = sig::<T>(&secret_key, &account.encode(), &[][..]);
 			let data = account.using_encoded(to_ascii_hex);
