@@ -24,7 +24,7 @@ benchmarks!{
 		// transfer_fungible
 		// - chain whitelisted
 		// - account has balance for fee and transfer
-		
+
 		<chainbridge::Module<T>>::whitelist_chain(RawOrigin::Root.into(), TEST_DESTINATION_CHAIN)
 			.expect("Could not whitelist chain");
 
@@ -35,17 +35,17 @@ benchmarks!{
 		let amount = T::Currency::minimum_balance() * 100u32.into();
 
 	}: _(RawOrigin::Signed(payer), amount, TEST_RECIPIENT_ADDR.to_vec(), TEST_DESTINATION_CHAIN)
- 
+
 
  	transfer {
 		let amount = T::Currency::minimum_balance() * 10u32.into();
 		let dest = account_from_index::<T>(1);
 		let origin = T::BridgeOrigin::successful_origin();
 
-		let call = Call::<T>::transfer(
-			dest,
+		let call = Call::<T>::transfer {
+			to: dest,
 			amount,
-		);
+		};
 
 	}: { call.dispatch_bypass_filter(origin)? }
 
@@ -56,7 +56,7 @@ benchmarks!{
 
 
 	set_fee_destination {
-	}: _(RawOrigin::Root, account_from_index::<T>(1))	
+	}: _(RawOrigin::Root, account_from_index::<T>(1))
 }
 
 

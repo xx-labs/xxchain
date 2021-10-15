@@ -1,5 +1,6 @@
-
-for pallet in xx-cmix xx-team-custody xx-economics swap
+pallets=("swap" "xx-cmix" "xx-team-custody" "xx-economics")
+mkdir weights
+for pallet in ${pallets[@]}
 do
   cargo run --release \
     --features=runtime-benchmarks \
@@ -14,6 +15,11 @@ do
     --execution=wasm \
     --wasm-execution=compiled \
     --heap-pages=4096 \
-    --output=./$pallet/src/weights.rs \
+    --output=./weights/$pallet-weights.rs \
     --template=./scripts/frame-weight-template.hbs
 done
+for pallet in ${pallets[@]}
+do
+    cp -f ./weights/$pallet-weights.rs ./$pallet/src/weights.rs
+done
+rm -r weights

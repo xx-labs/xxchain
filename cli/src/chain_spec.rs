@@ -32,7 +32,7 @@ use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
 
-pub use node_primitives::{AccountId, Balance, Block, Signature};
+pub use node_primitives::{AccountId, Balance, Block, Signature, Hash};
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -199,7 +199,8 @@ pub fn phoenixx_testnet_genesis(
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(Default::default())))
+		.enumerate()
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (phoenixx::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -380,7 +381,8 @@ pub fn protonet_testnet_genesis(
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(Default::default())))
+		.enumerate()
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (protonet::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -561,7 +563,8 @@ pub fn xxnetwork_testnet_genesis(
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Default::default())))
+		.enumerate()
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (xxnetwork::MAX_NOMINATIONS as usize).min(initial_authorities.len());
