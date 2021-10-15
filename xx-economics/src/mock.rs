@@ -74,7 +74,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-    type BaseCallFilter = frame_support::traits::AllowAll;
+    type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
@@ -114,9 +114,9 @@ parameter_types! {
     pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(25);
 }
 
-pub struct MockCustodianHandler;
+pub struct MockCustodyHandler;
 
-impl pallet_staking::CustodianHandler<AccountId, Balance> for MockCustodianHandler {
+impl pallet_staking::CustodyHandler<AccountId, Balance> for MockCustodyHandler {
     fn is_custody_account(_: &AccountId) -> bool { false }
     fn total_custody() -> Balance { Balance::zero() }
 }
@@ -147,7 +147,7 @@ pub type TestAdminOrigin = EnsureSignedBy<AdminAccount, AccountId>;
 impl xx_economics::Config for Test {
     type Event = Event;
     type Currency = Balances;
-    type CustodianHandler = MockCustodianHandler;
+    type CustodyHandler = MockCustodyHandler;
     type RewardsPoolId = RewardsPoolId;
     type RewardRemainder = MockTreasury<Test>;
     type EraDuration = EraDuration;

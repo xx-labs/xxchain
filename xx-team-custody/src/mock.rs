@@ -45,8 +45,6 @@ pub use sp_runtime::{
 use sp_staking::SessionIndex;
 use std::{cell::RefCell, collections::HashSet};
 
-pub(crate) const ERA_DURATION_IN_SESSIONS: u32 = 3;
-
 pub(crate) const INIT_TIMESTAMP: u64 = 30_000;
 pub(crate) const BLOCK_TIME: u64 = 1000;
 
@@ -55,10 +53,6 @@ pub(crate) type AccountId = u64;
 pub(crate) type AccountIndex = u64;
 pub(crate) type BlockNumber = u64;
 pub(crate) type Balance = u128;
-
-thread_local! {
-    static SESSION: RefCell<(Vec<AccountId>, HashSet<AccountId>)> = RefCell::new(Default::default());
-}
 
 /// Another session handler struct to test on_disabled.
 pub struct OtherSessionHandler;
@@ -72,23 +66,14 @@ impl OneSessionHandler<AccountId> for OtherSessionHandler {
     {
     }
 
-    fn on_new_session<'a, I: 'a>(_: bool, validators: I, _: I)
+	fn on_new_session<'a, I: 'a>(_: bool, _: I, _: I)
     where
         I: Iterator<Item = (&'a AccountId, Self::Key)>,
         AccountId: 'a,
     {
-        SESSION.with(|x| {
-            *x.borrow_mut() = (validators.map(|x| *x.0).collect(), HashSet::new())
-        });
     }
 
-    fn on_disabled(validator_index: usize) {
-        SESSION.with(|d| {
-            let mut d = d.borrow_mut();
-            let value = d.0[validator_index];
-            d.1.insert(value);
-        })
-    }
+    fn on_disabled(_validator_index: u32) {}
 }
 
 impl sp_runtime::BoundToRuntimeAppPublic for OtherSessionHandler {
@@ -136,7 +121,7 @@ parameter_types! {
             frame_support::weights::constants::WEIGHT_PER_SECOND * 2
         );
     pub const MaxLocks: u32 = 1024;
-    pub static SessionsPerEra: SessionIndex = ERA_DURATION_IN_SESSIONS;
+    pub static SessionsPerEra: SessionIndex = 3;
     pub static ExistentialDeposit: Balance = 1;
     pub static SlashDeferDuration: EraIndex = 0;
     pub static Period: BlockNumber = 5;
@@ -144,7 +129,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-    type BaseCallFilter = frame_support::traits::AllowAll;
+    type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = ();
     type BlockLength = ();
     type Origin = Origin;
@@ -181,7 +166,6 @@ impl pallet_balances::Config for Test {
 }
 parameter_types! {
     pub const UncleGenerations: u64 = 0;
-    pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(25);
 }
 sp_runtime::impl_opaque_keys! {
     pub struct SessionKeys {
@@ -197,7 +181,6 @@ impl pallet_session::Config for Test {
     type SessionManager = pallet_session::historical::NoteHistoricalRoot<Test, Staking>;
     type SessionHandler = (OtherSessionHandler,);
     type Keys = SessionKeys;
-    type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
     type WeightInfo = ();
 }
 
@@ -209,7 +192,7 @@ impl pallet_authorship::Config for Test {
     type FindAuthor = Author11;
     type UncleGenerations = UncleGenerations;
     type FilterUncle = ();
-    type EventHandler = pallet_staking::Module<Test>;
+    type EventHandler = pallet_staking::Pallet<Test>;
 }
 parameter_types! {
     pub const MinimumPeriod: u64 = 5;
@@ -234,6 +217,7 @@ parameter_types! {
     pub const BondingDuration: EraIndex = 3;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &I_NPOS;
     pub const MaxNominatorRewardedPerValidator: u32 = 64;
+    pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(75);
 }
 
 thread_local! {
@@ -255,9 +239,9 @@ impl OnUnbalanced<NegativeImbalanceOf<Test>> for RewardRemainderMock {
     }
 }
 
-pub struct CustodianHandlerMock;
+pub struct CustodyHandlerMock;
 
-impl pallet_staking::CustodianHandler<AccountId, Balance> for CustodianHandlerMock {
+impl pallet_staking::CustodyHandler<AccountId, Balance> for CustodyHandlerMock {
     fn is_custody_account(_account: &AccountId) -> bool {
         false
     }
@@ -283,9 +267,6 @@ thread_local! {
 }
 
 impl onchain::Config for Test {
-    type BlockWeights = BlockWeights;
-    type AccountId = AccountId;
-    type BlockNumber = BlockNumber;
     type Accuracy = Perbill;
     type DataProvider = Staking;
 }
@@ -312,7 +293,7 @@ impl pallet_staking::Config for Test {
     type CurrencyToVote = frame_support::traits::SaturatingCurrencyToVote;
     type ElectionProvider = onchain::OnChainSequentialPhragmen<Self>;
     type CmixHandler = CmixHandlerMock;
-    type CustodianHandler = CustodianHandlerMock;
+    type CustodyHandler = CustodyHandlerMock;
     type AdminOrigin = EnsureRoot<Self::AccountId>;
     const MAX_NOMINATIONS: u32 = 16;
     type RewardRemainder = RewardRemainderMock;
@@ -323,11 +304,14 @@ impl pallet_staking::Config for Test {
     type BondingDuration = BondingDuration;
     type SlashDeferDuration = SlashDeferDuration;
     type SlashCancelOrigin = EnsureRoot<Self::AccountId>;
-    type SessionInterface = Test;
+    type SessionInterface = Self;
     type EraPayout = ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
     type WeightInfo = ();
+    type GenesisElectionProvider = Self::ElectionProvider;
+    type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
+    type SortedListProvider = pallet_staking::UseNominatorsMap<Self>;
 }
 
 parameter_types! {
@@ -341,7 +325,8 @@ parameter_types! {
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
-    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen,
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode,
+    RuntimeDebug, MaxEncodedLen, scale_info::TypeInfo,
 )]
 pub enum ProxyType {
     Any,
@@ -371,8 +356,8 @@ impl InstanceFilter<Call> for ProxyType {
             ProxyType::Staking => matches!(c, Call::Staking(..)),
             ProxyType::Voting => matches!(
 				c,
-				Call::Democracy(pallet_democracy::Call::vote(..) | pallet_democracy::Call::remove_vote(..)) |
-				Call::Elections(pallet_elections_phragmen::Call::vote(..) | pallet_elections_phragmen::Call::remove_voter(..))
+				Call::Democracy(pallet_democracy::Call::vote { .. } | pallet_democracy::Call::remove_vote { .. }) |
+				Call::Elections(pallet_elections_phragmen::Call::vote { .. } | pallet_elections_phragmen::Call::remove_voter { .. })
 			),
         }
     }
@@ -413,6 +398,7 @@ impl pallet_democracy::Config for Test {
     type EnactmentPeriod = EnactmentPeriod;
     type LaunchPeriod = LaunchPeriod;
     type VotingPeriod = VotingPeriod;
+    type VoteLockingPeriod = EnactmentPeriod;
     type MinimumDeposit = MinimumDeposit;
     type ExternalOrigin = EnsureRoot<Self::AccountId>;
     type ExternalMajorityOrigin = EnsureRoot<Self::AccountId>;

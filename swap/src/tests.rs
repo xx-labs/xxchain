@@ -193,7 +193,7 @@ fn set_fee_destination_successful_with_admin_origin() {
 ////////////////////////////////////////////////////
 
 /// This test creates a proposal on the chainbridge pallet for the execution
-/// of the `transfer` extrinsic in the swap pallet. Relayers vote to approve the proposal and 
+/// of the `transfer` extrinsic in the swap pallet. Relayers vote to approve the proposal and
 /// it should execute correctly leaving a record in the events log.
 #[test]
 fn sucessful_transfer_proposal() {
@@ -205,7 +205,7 @@ fn sucessful_transfer_proposal() {
         let r_id = <Test as swap::Config>::NativeTokenId::get(); // resource ID
 
         // The proposal for execution that a relayer will submit. Calling transfer of amount to account A.
-        let proposal = super::mock::Call::Swap(swap::Call::transfer(ACCOUNT_A, amount.into()));
+        let proposal = super::mock::Call::Swap(swap::Call::transfer { to: ACCOUNT_A, amount: amount.into() });
 
         assert_ok!(Bridge::set_threshold(Origin::root(), RELAYER_THRESHOLD,));
         assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_A));
@@ -323,7 +323,7 @@ fn config_sets_expected_storage_items() {
         assert!(Bridge::is_relayer(&RELAYER_A));
         assert!(Bridge::is_relayer(&RELAYER_B));
         assert!(Bridge::resource_exists(resource_id));
-        assert_eq!(Bridge::relayer_threshold(), 2);        
+        assert_eq!(Bridge::relayer_threshold(), 2);
     });
 
 }

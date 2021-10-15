@@ -1002,7 +1002,8 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
                     Origin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Balances(pallet_balances::Call::transfer_all(proxy, false)))
+                    Box::new(mock::Call::Balances(
+                        pallet_balances::Call::transfer_all { dest: proxy, keep_alive: false }))
                 )
             );
 
@@ -1010,6 +1011,7 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
             assert_eq!(
                 proxy_events(),
                 vec![
+                    pallet_proxy::Event::ProxyAdded(7793787273482591193, 3, ProxyType::Voting, 0),
                     pallet_proxy::Event::ProxyExecuted(Err(DispatchError::BadOrigin)),
                 ]
             );
@@ -1048,7 +1050,8 @@ fn custody_set_proxy_only_allowed_to_vote() {
                     Origin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Elections(pallet_elections_phragmen::Call::submit_candidacy(0)))
+                    Box::new(mock::Call::Elections(
+                        pallet_elections_phragmen::Call::submit_candidacy { candidate_count: 0 }))
                 )
             );
 
@@ -1059,7 +1062,11 @@ fn custody_set_proxy_only_allowed_to_vote() {
                     Origin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Democracy(pallet_democracy::Call::propose(Hash::repeat_byte(0x55), 110)))
+                    Box::new(mock::Call::Democracy(
+                        pallet_democracy::Call::propose {
+                            proposal_hash: Hash::repeat_byte(0x55),
+                            value: 110,
+                        }))
                 )
             );
 
@@ -1070,7 +1077,8 @@ fn custody_set_proxy_only_allowed_to_vote() {
                     Origin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Elections(pallet_elections_phragmen::Call::vote(vec![team], 5)))
+                    Box::new(mock::Call::Elections(
+                        pallet_elections_phragmen::Call::vote { votes: vec![team], value: 5 }))
                 )
             );
 
@@ -1081,7 +1089,8 @@ fn custody_set_proxy_only_allowed_to_vote() {
                     Origin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Democracy(pallet_democracy::Call::vote(0, aye(proxy))))
+                    Box::new(mock::Call::Democracy(
+                        pallet_democracy::Call::vote { ref_index: 0, vote: aye(proxy) }))
                 )
             );
 
@@ -1089,6 +1098,7 @@ fn custody_set_proxy_only_allowed_to_vote() {
             assert_eq!(
                 proxy_events(),
                 vec![
+                    pallet_proxy::Event::ProxyAdded(7793787273482591193, 3, ProxyType::Voting, 0),
                     // Elections::submit_candidacy not allowed
                     pallet_proxy::Event::ProxyExecuted(Err(DispatchError::BadOrigin)),
                     // Democracy::propose not allowed

@@ -139,7 +139,7 @@ fn cmix_points_adds_remove_points_in_staking_pallet() {
     let second_addition = 33;
 
     ExtBuilder::default()
-        .with_scheduling_acccount(scheduling)
+        .with_scheduling_account(scheduling)
         .build_and_execute(|| {
             start_active_era(1);
 
@@ -196,7 +196,7 @@ fn set_cmix_address_space_sets_storage() {
     let scheduling = 1;
     let new_address_space = 0x77;
     ExtBuilder::default()
-        .with_scheduling_acccount(scheduling)
+        .with_scheduling_account(scheduling)
         .build_and_execute(|| {
             assert_ok!(XXCmix::set_cmix_address_space(
                 Origin::signed(1),
