@@ -206,7 +206,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Vesting(_) | Call::Utility(_) | Call::Identity(_) |
 			Call::Proxy(_) | Call::Bounties(_) | Call::Tips(_) |
 			// XX Network
-			Call::XXCmix(_) | Call::XXCustody(_) | Call::XXEconomics(_)
+			Call::XXCmix(_) | Call::XXCustody(_) | Call::XXEconomics(_) | Call::XXBetanetRewards(_)
 			=> true,
 			// ChainBridge and Swap disabled at genesis
 			Call::ChainBridge(_) | Call::Swap(_) => false,
@@ -1086,6 +1086,7 @@ impl claims::Config for Runtime {
 	type Prefix = Prefix;
 	/// Tech committee unanimity can move a claim
 	type MoveClaimOrigin = EnsureTechnicalUnanimity;
+	type RewardHandler = XXBetanetRewards;
 	type WeightInfo = claims::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1114,6 +1115,17 @@ impl swap::Config for Runtime {
 	type NativeTokenId = TokenID;
 	type AdminOrigin = EnsureTwoThirdsTechnical;
 	type WeightInfo = swap::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const BetanetStakingRewardsBlock: BlockNumber = 30 * DAYS;
+}
+
+// xx betanet rewards
+impl xx_betanet_rewards::Config for Runtime {
+	type Event = Event;
+	type EnactmentBlock = BetanetStakingRewardsBlock;
+	type Reward = XXEconomics;
 }
 
 construct_runtime!(
@@ -1174,6 +1186,7 @@ construct_runtime!(
 		XXCmix: xx_cmix::{Pallet, Call, Storage, Config<T>, Event<T>} = 30,
 		XXEconomics: xx_economics::{Pallet, Call, Storage, Config<T>, Event<T>} = 31,
 		XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,
+		XXBetanetRewards: xx_betanet_rewards::{Pallet, Call, Storage, Config<T>, Event<T>} = 33,
 	}
 );
 

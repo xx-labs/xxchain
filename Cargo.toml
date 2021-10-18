@@ -15,6 +15,7 @@ members = [
     'runtime/protonet',
     'runtime/xxnetwork',
     'swap',
+    'xx-betanet-rewards',
     'xx-cmix',
     'xx-economics',
     'xx-team-custody'
