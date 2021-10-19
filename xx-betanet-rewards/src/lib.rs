@@ -249,20 +249,19 @@ impl<T: Config> Module<T> {
             (info.option.rewards() * info.reward.clone()) + (extra * info.reward)
         };
 
-        // 2. Compute vesting parameters based on option
-        let lock = (info.option.principal_lock() * info.principal) + reward_amount.clone();
-        let per_block = lock.clone() / info.option.vesting_period().into();
-
-        // 3. Payout reward
+        // 2. Payout reward
         // Deposit rewards in account, creating positive imbalance
-        let imbalance = <CurrencyOf<T>>::deposit_creating(&account, reward_amount);
+        let imbalance = <CurrencyOf<T>>::deposit_creating(&account, reward_amount.clone());
         // Debit the positive imbalance from T::Reward
         T::Reward::on_unbalanced(imbalance);
 
-        // 4. Add vesting schedule
+        // 3. Add vesting schedule
         match info.option {
             RewardOption::NoVesting => (),
             _ => {
+                // Compute vesting parameters based on option
+                let lock = (info.option.principal_lock() * info.principal) + reward_amount;
+                let per_block = lock.clone() / info.option.vesting_period().into();
                 let _ = <T as claims::Config>::VestingSchedule::add_vesting_schedule(
                     &account,
                     lock,
