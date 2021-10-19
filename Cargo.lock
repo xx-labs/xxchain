@@ -9281,7 +9281,6 @@ dependencies = [
  "claims",
  "frame-support",
  "frame-system",
- "pallet-vesting",
  "parity-scale-codec",
  "scale-info",
  "serde",

@@ -104,7 +104,7 @@ impl<Balance: Zero> Default for UserInfo<Balance> {
     }
 }
 
-pub trait Config: frame_system::Config + claims::Config + pallet_vesting::Config {
+pub trait Config: frame_system::Config + claims::Config {
 
     /// The Event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
@@ -260,7 +260,12 @@ impl<T: Config> Module<T> {
             RewardOption::NoVesting => (),
             _ => {
                 // Compute vesting parameters based on option
-                let lock = (info.option.principal_lock() * info.principal) + reward_amount;
+                // If account already has a vesting schedule then lock only reward
+                let lock = if <T as claims::Config>::VestingSchedule::vesting_balance(&account).is_some() {
+                    reward_amount
+                } else {
+                    (info.option.principal_lock() * info.principal) + reward_amount
+                };
                 let per_block = lock.clone() / info.option.vesting_period().into();
                 let _ = <T as claims::Config>::VestingSchedule::add_vesting_schedule(
                     &account,
