@@ -116,7 +116,7 @@ impl Default for StatementKind {
 ///
 /// This gets serialized to the 0x-prefixed hex representation.
 #[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
-pub struct EthereumAddress([u8; 20]);
+pub struct EthereumAddress(pub [u8; 20]);
 
 #[cfg(feature = "std")]
 impl Serialize for EthereumAddress {
@@ -406,7 +406,7 @@ decl_module! {
 }
 
 /// Converts the given binary data into ASCII-encoded hex. It will be twice the length.
-fn to_ascii_hex(data: &[u8]) -> Vec<u8> {
+pub fn to_ascii_hex(data: &[u8]) -> Vec<u8> {
     let mut r = Vec::with_capacity(data.len() * 2);
     let mut push_nibble = |n| r.push(if n < 10 { b'0' + n } else { b'a' - 10 + n });
     for &b in data.iter() {

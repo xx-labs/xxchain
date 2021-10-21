@@ -1,5 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 use frame_support::traits::{Currency, Get, OnUnbalanced, VestingSchedule};
 use frame_support::{
     decl_event, decl_error, decl_module, decl_storage, ensure, weights::{Weight, DispatchClass},

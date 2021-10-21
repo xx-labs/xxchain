@@ -9290,12 +9290,19 @@ dependencies = [
  "claims",
  "frame-support",
  "frame-system",
+ "libsecp256k1 0.6.0",
+ "pallet-balances",
+ "pallet-staking",
+ "pallet-vesting",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "sp-arithmetic",
+ "sp-io",
  "sp-runtime",
  "sp-std",
+ "sp-tracing",
+ "xx-economics",
 ]
 
 [[package]]
