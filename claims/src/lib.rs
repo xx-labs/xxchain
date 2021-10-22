@@ -163,7 +163,7 @@ decl_event!(
 		Balance = BalanceOf<T>,
 		AccountId = <T as frame_system::Config>::AccountId
 	{
-		/// Someone claimed some DOTs. [who, ethereum_address, amount, reward]
+		/// Someone claimed some coins. [who, ethereum_address, amount, reward]
 		Claimed(AccountId, EthereumAddress, Balance, Balance),
 	}
 );
@@ -197,13 +197,17 @@ decl_storage! {
 		pub Total get(fn total) build(|config: &GenesisConfig<T>| {
 			config.claims.iter().fold(Zero::zero(), |acc: BalanceOf<T>, &(_, b, _, _, _)| acc + b)
 		}): BalanceOf<T>;
-		/// Vesting schedule for a claim.
+		/// Vesting schedules for a claim.
+		/// NOTE: It is the responsibility of the caller to not set more genesis
+		/// config vesting schedules than supported by the Vesting pallet.
+		/// Any schedules specified above that limit will be ignored.
+		///
 		/// First balance is the total amount that should be held for vesting.
 		/// Second balance is how much should be unlocked per block.
 		/// The block number is when the vesting should start.
 		pub Vesting get(fn vesting) config():
 			map hasher(identity) EthereumAddress
-			=> Option<(BalanceOf<T>, BalanceOf<T>, T::BlockNumber)>;
+			=> Option<Vec<(BalanceOf<T>, BalanceOf<T>, T::BlockNumber)>>;
 
 		/// The statement kind that must be signed, if any.
 		Signing build(|config: &GenesisConfig<T>| {
@@ -241,7 +245,7 @@ decl_module! {
 		/// Deposit one of this module's events by using the default implementation.
 		fn deposit_event() = default;
 
-		/// Make a claim to collect your DOTs.
+		/// Make a claim to collect your coins.
 		///
 		/// The dispatch origin for this call must be _None_.
 		///
@@ -277,14 +281,18 @@ decl_module! {
 			Self::process_claim(signer, dest)?;
 		}
 
-		/// Mint a new claim to collect DOTs.
+		/// Mint a new claim to collect coins.
 		///
 		/// The dispatch origin for this call must be _Root_.
 		///
 		/// Parameters:
 		/// - `who`: The Ethereum address allowed to collect this claim.
-		/// - `value`: The number of DOTs that will be claimed.
-		/// - `vesting_schedule`: An optional vesting schedule for these DOTs.
+		/// - `value`: The number of coins that will be claimed.
+		/// - `vesting_schedules`: An optional list of vesting schedules for these coins.
+		///
+		/// NOTE: It is the responsibility of the caller to not list more vesting schedules
+		/// than supported by the Vesting pallet.
+		/// Any schedules specified above that limit will be ignored.
 		///
 		/// <weight>
 		/// The weight of this call is invariant over the input parameters.
@@ -296,14 +304,14 @@ decl_module! {
 		fn mint_claim(origin,
 			who: EthereumAddress,
 			value: BalanceOf<T>,
-			vesting_schedule: Option<(BalanceOf<T>, BalanceOf<T>, T::BlockNumber)>,
+			vesting_schedules: Option<Vec<(BalanceOf<T>, BalanceOf<T>, T::BlockNumber)>>,
 			statement: Option<StatementKind>,
 		) {
 			ensure_root(origin)?;
 
 			<Total<T>>::mutate(|t| *t += value);
 			<Claims<T>>::insert(who, value);
-			if let Some(vs) = vesting_schedule {
+			if let Some(vs) = vesting_schedules {
 				<Vesting<T>>::insert(who, vs);
 			}
 			if let Some(s) = statement {
@@ -311,7 +319,7 @@ decl_module! {
 			}
 		}
 
-		/// Make a claim to collect your DOTs by signing a statement.
+		/// Make a claim to collect your coins by signing a statement.
 		///
 		/// The dispatch origin for this call must be _None_.
 		///
@@ -457,12 +465,20 @@ impl<T: Config> Module<T> {
         // We first need to deposit the balance to ensure that the account exists.
         CurrencyOf::<T>::deposit_creating(&dest, balance_due);
 
-        // Check if this claim should have a vesting schedule.
+        // Check if this claim should have any vesting schedule.
+        let vesting = <Vesting<T>>::get(&signer);
         if let Some(vs) = vesting {
-            // This can only fail if the account already has a vesting schedule,
-            // but this is checked above.
-            T::VestingSchedule::add_vesting_schedule(&dest, vs.0, vs.1, vs.2)
-                .expect("No other vesting schedule exists, as checked above; qed");
+            vs.iter().for_each( |v| {
+                // This can fail if we try to add more vesting schedules
+                // than the Vesting pallet limit.
+                // However, we already returned an error above if there is at least
+                // one schedule in place.
+                // This means that the only possibility for failure is if we have
+                // configured more vesting schedules than allowed.
+                // In this case, by ignoring the return value, we ensure the claim never
+                // fails, but the extra vesting schedules are ignored.
+                let _ = T::VestingSchedule::add_vesting_schedule(&dest, v.0, v.1, v.2);
+            });
         }
 
         // Check if this claim has rewards and call handler if so
@@ -711,7 +727,7 @@ mod tests {
         type BlockNumberToBalance = Identity;
         type MinVestedTransfer = MinVestedTransfer;
         type WeightInfo = ();
-        const MAX_VESTING_SCHEDULES: u32 = 28;
+        const MAX_VESTING_SCHEDULES: u32 = 2;
     }
 
     parameter_types!{
@@ -741,6 +757,9 @@ mod tests {
     fn bob() -> libsecp256k1::SecretKey {
         libsecp256k1::SecretKey::parse(&keccak_256(b"Bob")).unwrap()
     }
+    fn charlie() -> libsecp256k1::SecretKey {
+        libsecp256k1::SecretKey::parse(&keccak_256(b"Charlie")).unwrap()
+    }
     fn dave() -> libsecp256k1::SecretKey {
         libsecp256k1::SecretKey::parse(&keccak_256(b"Dave")).unwrap()
     }
@@ -763,14 +782,21 @@ mod tests {
                 (eth(&dave()), 200, None, None, Some(StatementKind::Regular)),
                 (eth(&eve()), 300, None, Some(42), Some(StatementKind::Saft)),
                 (eth(&frank()), 400, None, Some(43), None),
+                (eth(&charlie()), 500, None, None, None),
             ],
-            vesting: vec![(eth(&alice()), (50, 10, 1))],
+            vesting: vec![
+                (eth(&alice()), vec![(50, 10, 1)]),
+                (eth(&charlie()), vec![
+                    (50, 10, 0),
+                    (450, 10, 0),
+                ]),
+            ],
         }.assimilate_storage(&mut t).unwrap();
         t.into()
     }
 
     fn total_claims() -> u64 {
-        100 + 200 + 300 + 400
+        100 + 200 + 300 + 400 + 500
     }
 
     #[test]
@@ -782,8 +808,10 @@ mod tests {
             assert_eq!(Claims::claims(&eth(&dave())), Some(200));
             assert_eq!(Claims::claims(&eth(&eve())), Some(300));
             assert_eq!(Claims::claims(&eth(&frank())), Some(400));
+            assert_eq!(Claims::claims(&eth(&charlie())), Some(500));
             assert_eq!(Claims::claims(&EthereumAddress::default()), None);
-            assert_eq!(Claims::vesting(&eth(&alice())), Some((50, 10, 1)));
+            assert_eq!(Claims::vesting(&eth(&alice())), Some(vec![(50, 10, 1)]));
+            assert_eq!(Claims::vesting(&eth(&charlie())), Some(vec![(50, 10, 0), (450, 10, 0)]));
         });
     }
 
@@ -969,7 +997,7 @@ mod tests {
     fn add_claim_with_vesting_works() {
         new_test_ext().execute_with(|| {
             assert_noop!(
-				Claims::mint_claim(Origin::signed(42), eth(&bob()), 200, Some((50, 10, 1)), None),
+				Claims::mint_claim(Origin::signed(42), eth(&bob()), 200, Some(vec![(50, 10, 1)]), None),
 				sp_runtime::traits::BadOrigin,
 			);
             assert_eq!(Balances::free_balance(42), 0);
@@ -977,7 +1005,7 @@ mod tests {
 				Claims::claim(Origin::none(), 69, sig::<Test>(&bob(), &69u64.encode(), &[][..])),
 				Error::<Test>::SignerHasNoClaim,
 			);
-            assert_ok!(Claims::mint_claim(Origin::root(), eth(&bob()), 200, Some((50, 10, 1)), None));
+            assert_ok!(Claims::mint_claim(Origin::root(), eth(&bob()), 200, Some(vec![(50, 10, 1)]), None));
             assert_ok!(Claims::claim(Origin::none(), 69, sig::<Test>(&bob(), &69u64.encode(), &[][..])));
             assert_eq!(Balances::free_balance(&69), 200);
             assert_eq!(Vesting::vesting_balance(&69), Some(50));
@@ -1045,13 +1073,24 @@ mod tests {
     }
 
     #[test]
+    fn claim_with_multiple_vesting_schedules_work() {
+        new_test_ext().execute_with(|| {
+            assert_eq!(Balances::free_balance(42), 0);
+            assert_ok!(Claims::claim(Origin::none(), 42, sig::<Test>(&charlie(), &42u64.encode(), &[][..])));
+            assert_eq!(Balances::free_balance(&42), 500);
+            assert_eq!(Vesting::vesting_balance(&42), Some(500));
+            assert_eq!(Claims::total(), total_claims() - 500);
+        });
+    }
+
+    #[test]
     fn claiming_while_vested_doesnt_work() {
         new_test_ext().execute_with(|| {
             // A user is already vested
             assert_ok!(<Test as Config>::VestingSchedule::add_vesting_schedule(&69, total_claims(), 100, 10));
             CurrencyOf::<Test>::make_free_balance_be(&69, total_claims());
             assert_eq!(Balances::free_balance(69), total_claims());
-            assert_ok!(Claims::mint_claim(Origin::root(), eth(&bob()), 200, Some((50, 10, 1)), None));
+            assert_ok!(Claims::mint_claim(Origin::root(), eth(&bob()), 200, Some(vec![(50, 10, 1)]), None));
             // New total
             assert_eq!(Claims::total(), total_claims() + 200);
 
@@ -1060,6 +1099,30 @@ mod tests {
 				Claims::claim(Origin::none(), 69, sig::<Test>(&bob(), &69u64.encode(), &[][..])),
 				Error::<Test>::VestedBalanceExists,
 			);
+        });
+    }
+
+    #[test]
+    fn claiming_with_too_many_schedules_ignores_excess() {
+        new_test_ext().execute_with(|| {
+            // The Vesting pallet was configured with limit of 2 vesting schedules
+            // Mint a claim with 4 schedules, confirm claim works, but excess schedules are ignored
+            assert_ok!(Claims::mint_claim(Origin::root(), eth(&bob()), 200,
+                Some(vec![
+                    (50, 10, 1),
+                    (50, 10, 1),
+                    (50, 10, 1),
+                    (50, 10, 1),
+                ]), None));
+            // New total
+            assert_eq!(Claims::total(), total_claims() + 200);
+
+            // Should be able to claim
+            assert_ok!(Claims::claim(Origin::none(), 69, sig::<Test>(&bob(), &69u64.encode(), &[][..])));
+
+            assert_eq!(Balances::free_balance(&69), 200);
+            // Only 2 schedules of 50 each were added
+            assert_eq!(Vesting::vesting_balance(&69), Some(100));
         });
     }
 
