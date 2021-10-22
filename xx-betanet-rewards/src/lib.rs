@@ -150,6 +150,8 @@ decl_error! {
 	pub enum Error for Module<T: Config> {
         /// Account doesn't have rewards
         NoRewards,
+        /// Enactment block has passed
+        EnactmentBlockHasPassed,
 	}
 }
 
@@ -172,6 +174,8 @@ decl_module! {
         pub fn select_option(origin, option: RewardOption) {
             let who = ensure_signed(origin)?;
             ensure!(<Accounts<T>>::contains_key(&who), Error::<T>::NoRewards);
+            let block = <frame_system::Pallet<T>>::block_number();
+            ensure!(block < T::EnactmentBlock::get(), Error::<T>::EnactmentBlockHasPassed);
             <Accounts<T>>::mutate(&who, |info| {
                 let curr_opt = &mut info.option;
                 *curr_opt = option.clone();
@@ -193,6 +197,8 @@ decl_module! {
 		)]
         pub fn approve(origin) {
             ensure_root(origin)?;
+            let block = <frame_system::Pallet<T>>::block_number();
+            ensure!(block < T::EnactmentBlock::get(), Error::<T>::EnactmentBlockHasPassed);
             <Approved>::put(true);
             Self::deposit_event(RawEvent::ProgramApproved)
         }

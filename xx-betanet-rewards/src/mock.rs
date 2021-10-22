@@ -180,6 +180,8 @@ parameter_types! {
 	pub const ClaimRewardAmount: Balance = 5_000 * Decimals::get();
 	// ClaimBalance / OneYearVest
 	pub const ClaimVestingPerBlock: Balance = 4_753_213;
+	// ClaimBalance + ClaimRewardAmount / OneYearVest
+	pub const ClaimVestingWithRewardsPerBlock: Balance = 5_703_856;
 	// Rewards Pool balance
 	pub const RewardsPoolBalance: Balance = 100_000_000 * Decimals::get();
 }
@@ -409,14 +411,23 @@ pub(crate) fn xx_betanet_rewards_events() -> Vec<xx_betanet_rewards::Event<Test>
         .collect()
 }
 
-pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, vesting: bool) -> Balance {
+pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, claim: bool, vesting: bool) -> Balance {
     // Compute reward
-    let reward = (option.extra_rewards() * RewardAmount::get()) + (option.rewards() * RewardAmount::get());
+    let reward = if claim {
+        (option.extra_rewards() * ClaimRewardAmount::get()) + (option.rewards() * ClaimRewardAmount::get())
+    } else {
+        (option.extra_rewards() * RewardAmount::get()) + (option.rewards() * RewardAmount::get())
+    };
 
     // Check balance
+    let expected_balance = if claim {
+        ClaimBalance::get()
+    } else {
+        RewardBalance::get()
+    };
     assert_eq!(
         Balances::free_balance(who),
-        RewardBalance::get() + reward,
+        expected_balance + reward,
     );
 
     // Check vesting schedule
@@ -426,7 +437,7 @@ pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, vesti
             let locked = if vesting {
                 reward
             } else {
-                option.principal_lock() * RewardBalance::get() + reward
+                option.principal_lock() * expected_balance + reward
             };
             let per_block = locked / option.vesting_period() as Balance;
             let schedules = Vesting::vesting(who);
@@ -442,4 +453,42 @@ pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, vesti
 
     // Return reward
     reward
+}
+
+pub(crate) fn confirm_claim_rewards_added(who: &AccountId) {
+    assert_eq!(
+        <Accounts<Test>>::get(who),
+        UserInfo {
+            principal: ClaimBalance::get(),
+            reward: ClaimRewardAmount::get(),
+            option: RewardOption::Vesting6Month,
+        }
+    );
+}
+
+
+pub(crate) fn confirm_leftover_claim_rewards_added(who: &EthereumAddress, vesting: bool) -> Balance {
+    // Check reward was added to claim value
+    assert_eq!(
+        <claims::Claims<Test>>::get(who).unwrap(),
+        ClaimBalance::get()+ClaimRewardAmount::get(),
+    );
+
+    // Check claim vesting schedule was changed to include reward amount
+    if vesting {
+        assert_eq!(
+            <claims::Vesting<Test>>::get(who).unwrap(),
+            (ClaimBalance::get()+ClaimRewardAmount::get(), ClaimVestingWithRewardsPerBlock::get(), 0u64),
+        );
+    }
+    // Leftover claims always get default option
+    ClaimRewardAmount::get()
+}
+
+pub(crate) fn confirm_leftover_claim_without_rewards(who: &EthereumAddress) {
+    // Check claim value didn't change
+    assert_eq!(
+        <claims::Claims<Test>>::get(who).unwrap(),
+        ClaimBalance::get(),
+    );
 }

@@ -266,7 +266,7 @@ decl_module! {
 		/// Total Complexity: O(1)
 		/// </weight>
 		#[weight = T::WeightInfo::claim()]
-		fn claim(origin, dest: T::AccountId, ethereum_signature: EcdsaSignature) {
+		pub fn claim(origin, dest: T::AccountId, ethereum_signature: EcdsaSignature) {
 			ensure_none(origin)?;
 
 			let data = dest.using_encoded(to_ascii_hex);
