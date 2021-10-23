@@ -10,13 +10,17 @@ use frame_support::{
     decl_event, decl_error, decl_module, decl_storage, ensure, weights::{Weight, DispatchClass},
     StorageValue, StorageMap, IterableStorageMap,
 };
-use sp_runtime::{PerThing, Perbill, RuntimeDebug, traits::Zero};
+use sp_runtime::{PerThing, Perbill, RuntimeDebug, traits::{Saturating, Zero, SaturatedConversion}};
 use frame_system::{ensure_root, ensure_signed};
 
 use sp_std::prelude::*;
+use sp_std::convert::TryFrom;
 use codec::{Encode, Decode};
 use claims::CurrencyOf;
 use claims::BalanceOf;
+
+type BalanceOfVesting<T> =
+<<T as pallet_vesting::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 type PositiveImbalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::PositiveImbalance;
 
@@ -109,7 +113,7 @@ impl<Balance: Zero> Default for UserInfo<Balance> {
     }
 }
 
-pub trait Config: frame_system::Config + claims::Config {
+pub trait Config: frame_system::Config + claims::Config + pallet_vesting::Config {
 
     /// The Event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
@@ -247,6 +251,23 @@ impl<T: Config> Module<T> {
         Self::process_claims()
     }
 
+    /// Compute vesting lock based on desired value and existing schedules
+    fn compute_vesting_lock(who: &T::AccountId, desired: BalanceOf<T>) -> BalanceOfVesting<T> {
+        let block = T::EnactmentBlock::get();
+        let mut lock = <BalanceOfVesting<T>>::try_from(
+            desired.saturated_into::<u128>()
+        ).ok().unwrap_or(Zero::zero());
+        // Get existing vesting schedules from Vesting pallet
+        if let Some(schedules) = <pallet_vesting::Vesting<T>>::get(who) {
+            // For each schedule, get how much is locked at the enactment block
+            // and subtract it from desired lock
+            schedules.iter().for_each( |vs| {
+                lock = lock.saturating_sub(vs.locked_at::<T::BlockNumberToBalance>(block))
+            });
+        }
+        lock
+    }
+
     /// Process a single account
     fn process_account(
         account: T::AccountId,
@@ -271,21 +292,50 @@ impl<T: Config> Module<T> {
             RewardOption::NoVesting => (),
             _ => {
                 // Compute vesting parameters based on option
-                // If account already has a vesting schedule then lock only reward
-                let lock = if <T as claims::Config>::VestingSchedule::vesting_balance(&account).is_some() {
-                    reward_amount
-                } else {
-                    (info.option.principal_lock() * info.principal) + reward_amount
-                };
-                let per_block = lock.clone() / info.option.vesting_period().into();
-                let _ = <T as claims::Config>::VestingSchedule::add_vesting_schedule(
+                let desired_lock = (info.option.principal_lock() * info.principal) + reward_amount;
+                // If account has any vesting schedule, adjust lock
+                let lock = Self::compute_vesting_lock(
                     &account,
-                    lock,
-                    per_block,
-                    T::EnactmentBlock::get(),
+                    desired_lock,
                 );
+                if !lock.is_zero() {
+                    let per_block = lock.clone() / info.option.vesting_period().into();
+                    let _ = <pallet_vesting::Pallet<T>>::add_vesting_schedule(
+                        &account,
+                        lock,
+                        per_block,
+                        T::EnactmentBlock::get(),
+                    );
+                }
             }
         }
+    }
+
+    /// Compute claims vesting lock based on desired value and existing schedule
+    fn compute_claims_vesting_lock(who: &claims::EthereumAddress, desired: BalanceOf<T>)
+        -> BalanceOf<T> {
+        let block = T::EnactmentBlock::get();
+        let mut lock = <BalanceOfVesting<T>>::try_from(
+            desired.saturated_into::<u128>()
+        ).ok().unwrap_or(Zero::zero());
+        // Get existing vesting schedules from claims pallet
+        if let Some(schedules) = <claims::Vesting<T>>::get(who) {
+            // For each schedule, get how much is locked at the enactment block
+            // and subtract it from desired lock
+            schedules.iter().for_each( |vs| {
+                let vs_lock = <BalanceOfVesting<T>>::try_from(
+                    vs.0.saturated_into::<u128>()
+                ).ok().unwrap_or(Zero::zero());
+                let vs_per_block = <BalanceOfVesting<T>>::try_from(
+                    vs.1.saturated_into::<u128>()
+                ).ok().unwrap_or(Zero::zero());
+                let v = pallet_vesting::VestingInfo::new(vs_lock, vs_per_block, vs.2);
+                lock = lock.saturating_sub(v.locked_at::<T::BlockNumberToBalance>(block))
+            });
+        }
+        <BalanceOf<T>>::try_from(
+            lock.saturated_into::<u128>()
+        ).ok().unwrap_or(Zero::zero())
     }
 
     /// Process a leftover claim
@@ -293,32 +343,9 @@ impl<T: Config> Module<T> {
         address: claims::EthereumAddress,
         reward: BalanceOf<T>)
     {
-        // 1. Compute vesting parameters
-        // If a vesting schedule exists, add the reward amount to the lock
-        // and recompute per block amount
-        let vesting = <claims::Vesting<T>>::take(&address);
-        let (locked, per_block, start_block) = if let Some(vs) = vesting {
-            // Add reward amount to locked
-            let new_locked = vs.0.clone() + reward.clone();
-            // Compute new per block amount
-            // The lock duration stays the same, so:
-            //   1. lock_time = orig_locked/orig_per_block
-            //   2. lock_time = new_locked/new_per_block
-            // 1 = 2 <=> new_per_block = orig_per_block * (new_locked/orig_locked)
-            // = orig_per_block + orig_per_block * (rewards/orig_locked)
-            let ratio = Perbill::from_rational(reward.clone(), vs.0);
-            let new_per_block = (ratio * vs.1.clone()) + vs.1;
-            (new_locked, new_per_block, vs.2)
-        } else {
-            // Compute vesting from default option
-            let option: RewardOption = Default::default();
-            let principal = <claims::Claims<T>>::get(&address).unwrap_or_default();
-            let lock = (option.principal_lock() * principal) + reward.clone();
-            let per_block = lock.clone() / option.vesting_period().into();
-            (lock, per_block, T::EnactmentBlock::get())
-        };
+        // For leftover claims, the default option is applied
 
-        // 2. "Payout" reward into claim
+        // 1. "Payout" reward into claim
         // Create a pair of imbalances
         let (debit, credit) = <CurrencyOf<T>>::pair(reward.clone());
         // Debit the positive imbalance from T::Reward
@@ -329,12 +356,25 @@ impl<T: Config> Module<T> {
                 *claim += reward.clone()
             }
         });
-        <claims::Total<T>>::mutate(|t| *t += reward);
+        <claims::Total<T>>::mutate(|t| *t += reward.clone());
         // Explicitly drop credit in order to burn from issuance
         drop(credit);
 
-        // 3. Add vesting schedule
-        <claims::Vesting<T>>::insert(&address, (locked, per_block, start_block));
+        // 2. Add vesting schedule (if needed)
+        // Compute vesting parameters
+        let option: RewardOption = Default::default();
+        let principal = <claims::Claims<T>>::get(&address).unwrap_or_default();
+        let desired_lock = (option.principal_lock() * principal) + reward;
+        // If account has any vesting schedule, adjust lock
+        let lock = Self::compute_claims_vesting_lock(
+            &address,
+            desired_lock,
+        );
+
+        if !lock.is_zero() {
+            let per_block = lock.clone() / option.vesting_period().into();
+            <claims::Vesting<T>>::append(&address, (lock, per_block, T::EnactmentBlock::get()));
+        }
     }
 
     /// Process rewards

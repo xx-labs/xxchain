@@ -330,8 +330,8 @@ impl ExtBuilder {
                     (eth(&frank()), ClaimBalance::get(), None, None, None),
                 ],
                 vesting: vec![
-                    (eth(&bob()), (ClaimBalance::get(), ClaimVestingPerBlock::get(), 0)),
-                    (eth(&dave()), (ClaimBalance::get(), ClaimVestingPerBlock::get(), 0)),
+                    (eth(&bob()), vec![(ClaimBalance::get(), ClaimVestingPerBlock::get(), 0)]),
+                    (eth(&dave()), vec![(ClaimBalance::get(), ClaimVestingPerBlock::get(), 0)]),
                 ],
             }.assimilate_storage(&mut storage).unwrap();
         }
@@ -477,8 +477,8 @@ pub(crate) fn confirm_leftover_claim_rewards_added(who: &EthereumAddress, vestin
     // Check claim vesting schedule was changed to include reward amount
     if vesting {
         assert_eq!(
-            <claims::Vesting<Test>>::get(who).unwrap(),
-            (ClaimBalance::get()+ClaimRewardAmount::get(), ClaimVestingWithRewardsPerBlock::get(), 0u64),
+            <claims::Vesting<Test>>::get(who).unwrap().last().unwrap(),
+            &(ClaimBalance::get()+ClaimRewardAmount::get(), ClaimVestingWithRewardsPerBlock::get(), 0u64),
         );
     }
     // Leftover claims always get default option
