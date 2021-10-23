@@ -411,7 +411,7 @@ pub(crate) fn xx_betanet_rewards_events() -> Vec<xx_betanet_rewards::Event<Test>
         .collect()
 }
 
-pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, claim: bool, vesting: bool) -> Balance {
+pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, claim: bool) -> Balance {
     // Compute reward
     let reward = if claim {
         (option.extra_rewards() * ClaimRewardAmount::get()) + (option.rewards() * ClaimRewardAmount::get())
@@ -430,24 +430,15 @@ pub(crate) fn confirm_reward_result(who: &AccountId, option: RewardOption, claim
         expected_balance + reward,
     );
 
-    // Check vesting schedule
+    // Check the sum of vesting schedules lock at least the required amount
     match option {
         RewardOption::NoVesting => (),
         _ => {
-            let locked = if vesting {
-                reward
-            } else {
-                option.principal_lock() * expected_balance + reward
-            };
-            let per_block = locked / option.vesting_period() as Balance;
-            let schedules = Vesting::vesting(who);
-            assert_eq!(
-                schedules.unwrap().last().unwrap(),
-                &pallet_vesting::VestingInfo::new(
-                    locked,
-                    per_block,
-                    BetanetStakingRewardsBlock::get()),
-            );
+            let min_locked = (option.principal_lock() * expected_balance) + reward;
+            let locked = Vesting::vesting(who).unwrap().iter().fold(0u128, |acc, x| {
+                acc + x.locked_at::<ConvertInto>(BetanetStakingRewardsBlock::get())
+            });
+            assert!(locked >= min_locked);
         }
     }
 
@@ -476,10 +467,13 @@ pub(crate) fn confirm_leftover_claim_rewards_added(who: &EthereumAddress, vestin
 
     // Check claim vesting schedule was changed to include reward amount
     if vesting {
-        assert_eq!(
-            <claims::Vesting<Test>>::get(who).unwrap().last().unwrap(),
-            &(ClaimBalance::get()+ClaimRewardAmount::get(), ClaimVestingWithRewardsPerBlock::get(), 0u64),
-        );
+        let option = RewardOption::default();
+        let min_locked = (option.principal_lock() * ClaimBalance::get()) + ClaimRewardAmount::get();
+        let locked = <claims::Vesting<Test>>::get(who).unwrap().iter().fold(0u128, |acc, x| {
+            let vs = pallet_vesting::VestingInfo::new(x.0, x.1, x.2);
+            acc + vs.locked_at::<ConvertInto>(BetanetStakingRewardsBlock::get())
+        });
+        assert!(locked >= min_locked);
     }
     // Leftover claims always get default option
     ClaimRewardAmount::get()

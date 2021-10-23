@@ -19,9 +19,6 @@ use codec::{Encode, Decode};
 use claims::CurrencyOf;
 use claims::BalanceOf;
 
-type BalanceOfVesting<T> =
-<<T as pallet_vesting::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-
 type PositiveImbalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::PositiveImbalance;
 
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
@@ -113,7 +110,7 @@ impl<Balance: Zero> Default for UserInfo<Balance> {
     }
 }
 
-pub trait Config: frame_system::Config + claims::Config + pallet_vesting::Config {
+pub trait Config: frame_system::Config + claims::Config {
 
     /// The Event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
@@ -251,23 +248,6 @@ impl<T: Config> Module<T> {
         Self::process_claims()
     }
 
-    /// Compute vesting lock based on desired value and existing schedules
-    fn compute_vesting_lock(who: &T::AccountId, desired: BalanceOf<T>) -> BalanceOfVesting<T> {
-        let block = T::EnactmentBlock::get();
-        let mut lock = <BalanceOfVesting<T>>::try_from(
-            desired.saturated_into::<u128>()
-        ).ok().unwrap_or(Zero::zero());
-        // Get existing vesting schedules from Vesting pallet
-        if let Some(schedules) = <pallet_vesting::Vesting<T>>::get(who) {
-            // For each schedule, get how much is locked at the enactment block
-            // and subtract it from desired lock
-            schedules.iter().for_each( |vs| {
-                lock = lock.saturating_sub(vs.locked_at::<T::BlockNumberToBalance>(block))
-            });
-        }
-        lock
-    }
-
     /// Process a single account
     fn process_account(
         account: T::AccountId,
@@ -294,13 +274,15 @@ impl<T: Config> Module<T> {
                 // Compute vesting parameters based on option
                 let desired_lock = (info.option.principal_lock() * info.principal) + reward_amount;
                 // If account has any vesting schedule, adjust lock
-                let lock = Self::compute_vesting_lock(
-                    &account,
-                    desired_lock,
-                );
+                let current_locked = <T as claims::Config>::VestingSchedule::vesting_balance(&account);
+                let lock = if let Some(l) = current_locked {
+                    desired_lock.saturating_sub(l)
+                } else {
+                    desired_lock
+                };
                 if !lock.is_zero() {
                     let per_block = lock.clone() / info.option.vesting_period().into();
-                    let _ = <pallet_vesting::Pallet<T>>::add_vesting_schedule(
+                    let _ = <T as claims::Config>::VestingSchedule::add_vesting_schedule(
                         &account,
                         lock,
                         per_block,
@@ -311,31 +293,23 @@ impl<T: Config> Module<T> {
         }
     }
 
-    /// Compute claims vesting lock based on desired value and existing schedule
+    /// Compute claims vesting lock based on desired value and existing schedules
     fn compute_claims_vesting_lock(who: &claims::EthereumAddress, desired: BalanceOf<T>)
         -> BalanceOf<T> {
         let block = T::EnactmentBlock::get();
-        let mut lock = <BalanceOfVesting<T>>::try_from(
-            desired.saturated_into::<u128>()
-        ).ok().unwrap_or(Zero::zero());
+        let mut lock = desired;
         // Get existing vesting schedules from claims pallet
         if let Some(schedules) = <claims::Vesting<T>>::get(who) {
             // For each schedule, get how much is locked at the enactment block
             // and subtract it from desired lock
             schedules.iter().for_each( |vs| {
-                let vs_lock = <BalanceOfVesting<T>>::try_from(
-                    vs.0.saturated_into::<u128>()
+                let blocks_as_balance = <BalanceOf<T>>::try_from(
+                    block.saturating_sub(vs.2).saturated_into::<u128>()
                 ).ok().unwrap_or(Zero::zero());
-                let vs_per_block = <BalanceOfVesting<T>>::try_from(
-                    vs.1.saturated_into::<u128>()
-                ).ok().unwrap_or(Zero::zero());
-                let v = pallet_vesting::VestingInfo::new(vs_lock, vs_per_block, vs.2);
-                lock = lock.saturating_sub(v.locked_at::<T::BlockNumberToBalance>(block))
+                lock = lock.saturating_sub(vs.0.saturating_sub(vs.1*blocks_as_balance))
             });
         }
-        <BalanceOf<T>>::try_from(
-            lock.saturated_into::<u128>()
-        ).ok().unwrap_or(Zero::zero())
+        lock
     }
 
     /// Process a leftover claim

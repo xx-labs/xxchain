@@ -176,12 +176,12 @@ fn rewards_are_correct_for_genesis_accounts_no_vesting() {
 
             // Confirm rewards paid out correctly and vesting schedules added
             let mut rewards_paid = 0u128;
-            rewards_paid += confirm_reward_result(&10, RewardOption::NoVesting, false, false);
-            rewards_paid += confirm_reward_result(&20, RewardOption::Vesting1Month, false, false);
-            rewards_paid += confirm_reward_result(&30, RewardOption::Vesting3Month, false, false);
-            rewards_paid += confirm_reward_result(&40, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&50, RewardOption::Vesting9Month, false, false);
-            rewards_paid += confirm_reward_result(&60, RewardOption::Vesting6Month, false, false);
+            rewards_paid += confirm_reward_result(&10, RewardOption::NoVesting, false);
+            rewards_paid += confirm_reward_result(&20, RewardOption::Vesting1Month, false);
+            rewards_paid += confirm_reward_result(&30, RewardOption::Vesting3Month, false);
+            rewards_paid += confirm_reward_result(&40, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&50, RewardOption::Vesting9Month, false);
+            rewards_paid += confirm_reward_result(&60, RewardOption::Vesting6Month, false);
 
             // Confirm total rewards were paid from reward pool
             assert_eq!(
@@ -256,12 +256,12 @@ fn rewards_are_correct_for_genesis_accounts_with_vesting() {
 
             // Confirm rewards paid out correctly and vesting schedules added
             let mut rewards_paid = 0u128;
-            rewards_paid += confirm_reward_result(&10, RewardOption::NoVesting, false, true);
-            rewards_paid += confirm_reward_result(&20, RewardOption::Vesting1Month, false, true);
-            rewards_paid += confirm_reward_result(&30, RewardOption::Vesting3Month, false, true);
-            rewards_paid += confirm_reward_result(&40, RewardOption::Vesting6Month, false, true);
-            rewards_paid += confirm_reward_result(&50, RewardOption::Vesting9Month, false, true);
-            rewards_paid += confirm_reward_result(&60, RewardOption::Vesting6Month, false, true);
+            rewards_paid += confirm_reward_result(&10, RewardOption::NoVesting, false);
+            rewards_paid += confirm_reward_result(&20, RewardOption::Vesting1Month, false);
+            rewards_paid += confirm_reward_result(&30, RewardOption::Vesting3Month, false);
+            rewards_paid += confirm_reward_result(&40, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&50, RewardOption::Vesting9Month, false);
+            rewards_paid += confirm_reward_result(&60, RewardOption::Vesting6Month, false);
 
             // Confirm total rewards were paid from reward pool
             assert_eq!(
@@ -336,14 +336,14 @@ fn rewards_are_correct_for_claims() {
 
             // Confirm rewards paid out correctly and vesting schedules added
             let mut rewards_paid = 0u128;
-            rewards_paid += confirm_reward_result(&10, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&20, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&30, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&40, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&50, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&60, RewardOption::Vesting6Month, false, false);
-            rewards_paid += confirm_reward_result(&70, RewardOption::Vesting1Month, true, false);
-            rewards_paid += confirm_reward_result(&80, RewardOption::Vesting3Month, true, true);
+            rewards_paid += confirm_reward_result(&10, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&20, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&30, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&40, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&50, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&60, RewardOption::Vesting6Month, false);
+            rewards_paid += confirm_reward_result(&70, RewardOption::Vesting1Month, true);
+            rewards_paid += confirm_reward_result(&80, RewardOption::Vesting3Month, true);
 
             // Confirm leftover claims got rewards
             let mut leftover_rewards_paid = 0u128;
