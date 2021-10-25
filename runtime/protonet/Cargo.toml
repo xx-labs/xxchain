@@ -82,6 +82,7 @@ pallet-utility = { git = "https://github.com/xx-labs/substrate", branch = "xx-ne
 pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+pallet-multisig = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 
 # chainbridge
 chainbridge = { path = "../../chainbridge", default-features = false }
@@ -162,6 +163,7 @@ std = [
 	"xx-economics/std",
 	"xx-team-custody/std",
 	"xx-betanet-rewards/std",
+    "pallet-multisig/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
@@ -196,6 +198,7 @@ runtime-benchmarks = [
 	"xx-economics/runtime-benchmarks",
 	"xx-team-custody/runtime-benchmarks",
 	"swap/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
@@ -226,4 +229,5 @@ try-runtime = [
 	"pallet-treasury/try-runtime",
 	"pallet-utility/try-runtime",
 	"pallet-vesting/try-runtime",
+	"pallet-multisig/try-runtime",
 ]
