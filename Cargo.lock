@@ -4092,6 +4092,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-assets"
+version = "4.0.0-dev"
+source = "git+https://github.com/xx-labs/substrate?branch=xx-network#6f94cbddee6ecf4a67a108167578cf907e111a60"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-authority-discovery"
 version = "4.0.0-dev"
 source = "git+https://github.com/xx-labs/substrate?branch=xx-network#6f94cbddee6ecf4a67a108167578cf907e111a60"
@@ -4415,6 +4429,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-recovery"
+version = "4.0.0-dev"
+source = "git+https://github.com/xx-labs/substrate?branch=xx-network#6f94cbddee6ecf4a67a108167578cf907e111a60"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-scheduler"
 version = "4.0.0-dev"
 source = "git+https://github.com/xx-labs/substrate?branch=xx-network#6f94cbddee6ecf4a67a108167578cf907e111a60"
@@ -4605,6 +4633,20 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-uniques"
+version = "4.0.0-dev"
+source = "git+https://github.com/xx-labs/substrate?branch=xx-network#6f94cbddee6ecf4a67a108167578cf907e111a60"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -4908,6 +4950,7 @@ dependencies = [
  "hex-literal",
  "log",
  "node-primitives",
+ "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -4926,6 +4969,7 @@ dependencies = [
  "pallet-offences-benchmarking",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
+ "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
  "pallet-session-benchmarking",
@@ -4936,6 +4980,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-vesting",
  "parity-scale-codec",
@@ -5318,6 +5363,7 @@ dependencies = [
  "hex-literal",
  "log",
  "node-primitives",
+ "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -5336,6 +5382,7 @@ dependencies = [
  "pallet-offences-benchmarking",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
+ "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
  "pallet-session-benchmarking",
@@ -5346,6 +5393,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-vesting",
  "parity-scale-codec",
@@ -9500,6 +9548,7 @@ dependencies = [
  "hex-literal",
  "log",
  "node-primitives",
+ "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -9518,6 +9567,7 @@ dependencies = [
  "pallet-offences-benchmarking",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
+ "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
  "pallet-session-benchmarking",
@@ -9528,6 +9578,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-vesting",
  "parity-scale-codec",

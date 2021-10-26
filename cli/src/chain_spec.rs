@@ -313,7 +313,8 @@ pub fn phoenixx_testnet_genesis(
 			team_allocations: vec![],
 			custodians: vec![],
 		},
-		xx_betanet_rewards: Default::default()
+		xx_betanet_rewards: Default::default(),
+		assets: Default::default(),
 	}
 }
 
@@ -496,7 +497,8 @@ pub fn protonet_testnet_genesis(
 			team_allocations: vec![],
 			custodians: vec![],
 		},
-		xx_betanet_rewards: Default::default()
+		xx_betanet_rewards: Default::default(),
+		assets: Default::default(),
 	}
 }
 
@@ -685,7 +687,8 @@ pub fn xxnetwork_testnet_genesis(
 				(get_account_id_from_seed::<sr25519::Public>("Charlie"), ())
 			],
 		},
-		xx_betanet_rewards: Default::default()
+		xx_betanet_rewards: Default::default(),
+		assets: Default::default(),
 	}
 }
 

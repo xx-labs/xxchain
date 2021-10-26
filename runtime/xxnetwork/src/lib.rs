@@ -205,6 +205,7 @@ impl Contains<Call> for BaseFilter {
 			// Misc
 			Call::Vesting(_) | Call::Utility(_) | Call::Identity(_) |
 			Call::Proxy(_) | Call::Bounties(_) | Call::Tips(_) | Call::Multisig(_) |
+			Call::Recovery(_) | Call::Assets(_) | Call::Uniques(_) |
 			// XX Network
 			Call::XXCmix(_) | Call::XXCustody(_) | Call::XXEconomics(_) | Call::XXBetanetRewards(_)
 			=> true,
@@ -1146,6 +1147,71 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const ConfigDepositBase: Balance = 5 * UNITS;
+	pub const FriendDepositFactor: Balance = 50 * CENTS;
+	pub const MaxFriends: u16 = 9;
+	pub const RecoveryDeposit: Balance = 5 * UNITS;
+}
+
+impl pallet_recovery::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ConfigDepositBase = ConfigDepositBase;
+	type FriendDepositFactor = FriendDepositFactor;
+	type MaxFriends = MaxFriends;
+	type RecoveryDeposit = RecoveryDeposit;
+}
+
+parameter_types! {
+	pub const AssetDeposit: Balance = 100 * UNITS;
+	pub const ApprovalDeposit: Balance = 1 * UNITS;
+	pub const StringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = 10 * UNITS;
+	pub const MetadataDepositPerByte: Balance = 1 * UNITS;
+}
+
+impl pallet_assets::Config for Runtime {
+	type Event = Event;
+	type Balance = u64;
+	type AssetId = u32;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = StringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const ClassDeposit: Balance = 100 * UNITS;
+	pub const InstanceDeposit: Balance = 1 * UNITS;
+	pub const KeyLimit: u32 = 32;
+	pub const ValueLimit: u32 = 256;
+}
+
+impl pallet_uniques::Config for Runtime {
+	type Event = Event;
+	type ClassId = u32;
+	type InstanceId = u32;
+	type Currency = Balances;
+	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type AttributeDepositBase = MetadataDepositBase;
+	type DepositPerByte = MetadataDepositPerByte;
+	type StringLimit = StringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -1206,6 +1272,9 @@ construct_runtime!(
 		XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,
 		XXBetanetRewards: xx_betanet_rewards::{Pallet, Call, Storage, Config<T>, Event<T>} = 33,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 34,
+		Recovery: pallet_recovery::{Pallet, Call, Storage, Event<T>} = 35,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>, Config<T>} = 36,
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 37,
 	}
 );
 
