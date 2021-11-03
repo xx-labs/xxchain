@@ -18,5 +18,6 @@ members = [
     'xx-betanet-rewards',
     'xx-cmix',
     'xx-economics',
+    'xx-public',
     'xx-team-custody'
 ]

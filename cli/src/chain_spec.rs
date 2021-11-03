@@ -688,6 +688,7 @@ pub fn xxnetwork_testnet_genesis(
 			],
 		},
 		xx_betanet_rewards: Default::default(),
+		xx_public: Default::default(),
 		assets: Default::default(),
 	}
 }

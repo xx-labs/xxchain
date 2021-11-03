@@ -9421,6 +9421,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "xx-public"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "xx-team-custody"
 version = "0.1.0"
 dependencies = [
@@ -9606,6 +9620,7 @@ dependencies = [
  "xx-betanet-rewards",
  "xx-cmix",
  "xx-economics",
+ "xx-public",
  "xx-team-custody",
 ]
 
