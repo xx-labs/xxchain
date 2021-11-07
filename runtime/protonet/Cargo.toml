@@ -100,6 +100,7 @@ xx-cmix = {path = "../../xx-cmix", default-features = false }
 xx-economics = {path = "../../xx-economics", default-features = false }
 xx-team-custody = {path = "../../xx-team-custody", default-features = false }
 xx-betanet-rewards = {path = "../../xx-betanet-rewards", default-features = false }
+xx-public = {path = "../../xx-public", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
@@ -166,6 +167,7 @@ std = [
 	"xx-economics/std",
 	"xx-team-custody/std",
 	"xx-betanet-rewards/std",
+	"xx-public/std",
     "pallet-multisig/std",
 	"pallet-assets/std",
 	"pallet-recovery/std",

@@ -6,7 +6,7 @@ use sp_runtime::traits::{Zero, Saturating};
 use sp_runtime::{Perbill, RuntimeDebug};
 use codec::{Encode, Decode};
 use sp_std::{prelude::*};
-use frame_support::{StorageValue, traits::Get};
+use frame_support::{StorageValue, traits::{Currency, Get}};
 use pallet_staking::CustodyHandler;
 
 /// Inflation fixed parameters
@@ -171,7 +171,10 @@ impl<T: Config> Module<T> {
             // add total balance under custody
             + T::CustodyHandler::total_custody()
             // add liquidity rewards balance
-            + Self::liquidity_rewards();
+            + Self::liquidity_rewards()
+            // add unallocated public balances (testnet + sale)
+            + T::Currency::free_balance(&<xx_public::Module<T>>::testnet_account_id())
+            + T::Currency::free_balance(&<xx_public::Module<T>>::sale_account_id());
         issuance - unstakeable
     }
 }

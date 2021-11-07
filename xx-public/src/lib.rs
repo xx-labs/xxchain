@@ -52,9 +52,9 @@ pub trait Config: frame_system::Config {
 decl_storage! {
     trait Store for Module<T: Config> as XXSale {
         /// Testnet Manager account
-        pub TestnetManagerAccount get(fn testnet_manager_account) config(): T::AccountId;
+        pub TestnetManager get(fn testnet_manager) config(): T::AccountId;
         /// Sale Manager account
-        pub SaleManagerAccount get(fn sale_manager_account) config(): T::AccountId;
+        pub SaleManager get(fn sale_manager) config(): T::AccountId;
     }
 	add_extra_genesis {
 	    config(testnet_balance): BalanceOf<T>;
@@ -73,18 +73,18 @@ decl_storage! {
 decl_event! {
     pub enum Event
     {
-        /// Testnet Manager account updated
-        TestnetManagerAccountUpdated,
-        /// Sale Manager account updated
-        SaleManagerAccountUpdated,
+        /// Testnet Manager updated
+        TestnetManagerUpdated,
+        /// Sale Manager updated
+        SaleManagerUpdated,
     }
 }
 
 decl_error! {
 	pub enum Error for Module<T: Config> {
-	    /// Must be testnet manager account to call this function
+	    /// Must be the testnet manager to call this function
         MustBeTestnetManager,
-		/// Must be sale manager account to call this function
+		/// Must be the sale manager to call this function
         MustBeSaleManager,
 	}
 }
@@ -108,8 +108,8 @@ decl_module! {
         #[weight = 150_000_000]
         pub fn set_testnet_manager_account(origin, who: T::AccountId) {
             Self::ensure_admin(origin)?;
-            <TestnetManagerAccount<T>>::put(who);
-            Self::deposit_event(Event::TestnetManagerAccountUpdated);
+            <TestnetManager<T>>::put(who);
+            Self::deposit_event(Event::TestnetManagerUpdated);
         }
 
         /// Set the Sale manager account
@@ -122,15 +122,15 @@ decl_module! {
         #[weight = 150_000_000]
         pub fn set_sale_manager_account(origin, who: T::AccountId) {
             Self::ensure_admin(origin)?;
-            <SaleManagerAccount<T>>::put(who);
-            Self::deposit_event(Event::SaleManagerAccountUpdated);
+            <SaleManager<T>>::put(who);
+            Self::deposit_event(Event::SaleManagerUpdated);
         }
 
         //----------------    MANAGERS    ----------------//
         /// Do a tesnet distribution
         ///
         /// `data` is a vector of TransferData
-        /// The dispatch origin must be `TestnetManagerAccount`
+        /// The dispatch origin must be `TestnetManager`
         ///
         /// # <weight>
         /// - TODO: Calculate correct weight
@@ -151,7 +151,7 @@ decl_module! {
         /// Do a sale distribution
         ///
         /// `data` is a vector of TransferData
-        /// The dispatch origin must be `SaleManagerAccount`
+        /// The dispatch origin must be `SaleManager`
         ///
         /// # <weight>
         /// - TODO: Calculate correct weight
@@ -192,12 +192,12 @@ impl<T: Config> Module<T> {
 
     /// Check if given account is the testnet manager
     fn is_testnet_manager(who: T::AccountId) -> bool {
-        who == <TestnetManagerAccount<T>>::get()
+        who == <TestnetManager<T>>::get()
     }
 
     /// Check if given account is the sale manager
     fn is_sale_manager(who: T::AccountId) -> bool {
-        who == <SaleManagerAccount<T>>::get()
+        who == <SaleManager<T>>::get()
     }
 
     /// Do a testnet distribution

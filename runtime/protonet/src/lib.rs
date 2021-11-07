@@ -190,6 +190,9 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		// These modules are all allowed to be called by transactions
 		match call {
+			// ChainBridge and Swap disabled at genesis
+			Call::ChainBridge(_) | Call::Swap(_) => false,
+
 			// System pallets
 			Call::System(_) | Call::Scheduler(_) |
 			// Block production, balances
@@ -207,10 +210,9 @@ impl Contains<Call> for BaseFilter {
 			Call::Proxy(_) | Call::Bounties(_) | Call::Tips(_) | Call::Multisig(_) |
 			Call::Recovery(_) | Call::Assets(_) | Call::Uniques(_) |
 			// XX Network
-			Call::XXCmix(_) | Call::XXCustody(_) | Call::XXEconomics(_) | Call::XXBetanetRewards(_)
+			Call::XXCmix(_) | Call::XXCustody(_) | Call::XXEconomics(_) |
+			Call::XXBetanetRewards(_) | Call::XXPublic(_)
 			=> true,
-			// ChainBridge and Swap disabled at genesis
-			Call::ChainBridge(_) | Call::Swap(_) => false,
 		}
 	}
 }
@@ -485,6 +487,8 @@ parameter_types! {
 	pub const CustodyDuration: BlockNumber = 45 * DAYS;
 	pub const GovernanceCustodyDuration: BlockNumber = 45 * DAYS;
 	pub const CustodyProxy: ProxyType = ProxyType::Voting;
+	pub const TestnetId: PalletId = PalletId(*b"xx/tstnt");
+	pub const SaleId: PalletId = PalletId(*b"xx//sale");
 }
 
 type EnsureTechnicalUnanimity = EnsureOneOf<AccountId,
@@ -545,6 +549,15 @@ impl xx_cmix::Config for Runtime {
 	type AdminOrigin = EnsureTechnicalUnanimity;
     // Weight information for extrinsics in this pallet.
     type WeightInfo = xx_cmix::weights::SubstrateWeight<Self>;
+}
+
+impl xx_public::Config for Runtime {
+	type Event = Event;
+	type VestingSchedule = Vesting;
+	type TestnetId = TestnetId;
+	type SaleId = SaleId;
+	// Admin is technical committee unanimity
+	type AdminOrigin = EnsureTechnicalUnanimity;
 }
 
 use frame_election_provider_support::onchain;
@@ -1270,10 +1283,11 @@ construct_runtime!(
 		XXEconomics: xx_economics::{Pallet, Call, Storage, Config<T>, Event<T>} = 31,
 		XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>} = 32,
 		XXBetanetRewards: xx_betanet_rewards::{Pallet, Call, Storage, Config<T>, Event<T>} = 33,
-		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 34,
-		Recovery: pallet_recovery::{Pallet, Call, Storage, Event<T>} = 35,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>, Config<T>} = 36,
-		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 37,
+		XXPublic: xx_public::{Pallet, Call, Storage, Config<T>, Event} = 34,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 35,
+		Recovery: pallet_recovery::{Pallet, Call, Storage, Event<T>} = 36,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>, Config<T>} = 37,
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 38,
 	}
 );
 

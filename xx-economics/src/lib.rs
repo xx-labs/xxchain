@@ -33,7 +33,7 @@ type PositiveImbalanceOf<T> = <<T as Config>::Currency as Currency<
 type NegativeImbalanceOf<T> = <<T as Config>::Currency as Currency<
     <T as frame_system::Config>::AccountId, >>::NegativeImbalance;
 
-pub trait Config: frame_system::Config {
+pub trait Config: frame_system::Config + xx_public::Config {
 
     /// The Event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;

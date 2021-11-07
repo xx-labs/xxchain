@@ -29,7 +29,7 @@ pallet-staking = { git = "https://github.com/xx-labs/substrate", branch = "xx-ne
 pallet-staking-reward-fn = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 pallet-proxy = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 
-xx-team-custody = { version = "0.1.0", default-features = false, path = "../xx-team-custody" }
+xx-public = { version = "0.1.0", path = "../xx-public", default-features = false}
 
 frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false, optional = true }
 

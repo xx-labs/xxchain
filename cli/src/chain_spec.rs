@@ -314,6 +314,7 @@ pub fn phoenixx_testnet_genesis(
 			custodians: vec![],
 		},
 		xx_betanet_rewards: Default::default(),
+		xx_public: Default::default(),
 		assets: Default::default(),
 	}
 }
@@ -498,6 +499,7 @@ pub fn protonet_testnet_genesis(
 			custodians: vec![],
 		},
 		xx_betanet_rewards: Default::default(),
+		xx_public: Default::default(),
 		assets: Default::default(),
 	}
 }
