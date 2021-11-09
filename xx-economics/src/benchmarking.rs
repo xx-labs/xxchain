@@ -19,7 +19,7 @@ benchmarks!{
  	set_liquidity_rewards_stake {
  	}: _(RawOrigin::Root, Default::default())
 
-  set_liquidity_rewards_balance {
+    set_liquidity_rewards_balance {
  	}: _(RawOrigin::Root, Default::default())
 }
 

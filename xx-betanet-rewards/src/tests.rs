@@ -78,10 +78,10 @@ fn nothing_happens_if_program_not_accepted() {
                 original_claim_total,
             );
 
-            // Confirm rewards pool balance remains the same
+            // Confirm rewards pool left untouched
             assert_eq!(
-                xx_economics::Module::<Test>::rewards_balance(),
-                RewardsPoolBalance::get(),
+                mock::RewardMock::total(),
+                Zero::zero(),
             );
 
             // Confirm total issuance remains the same
@@ -185,8 +185,8 @@ fn rewards_are_correct_for_genesis_accounts_no_vesting() {
 
             // Confirm total rewards were paid from reward pool
             assert_eq!(
-                xx_economics::Module::<Test>::rewards_balance(),
-                RewardsPoolBalance::get() - rewards_paid,
+                mock::RewardMock::total(),
+                rewards_paid,
             );
 
             // Confirm total issuance remained the same
@@ -265,8 +265,8 @@ fn rewards_are_correct_for_genesis_accounts_with_vesting() {
 
             // Confirm total rewards were paid from reward pool
             assert_eq!(
-                xx_economics::Module::<Test>::rewards_balance(),
-                RewardsPoolBalance::get() - rewards_paid,
+                mock::RewardMock::total(),
+                rewards_paid,
             );
 
             // Confirm total issuance remained the same
@@ -361,8 +361,8 @@ fn rewards_are_correct_for_claims() {
 
             // Confirm total rewards were paid from reward pool
             assert_eq!(
-                xx_economics::Module::<Test>::rewards_balance(),
-                RewardsPoolBalance::get() - rewards_paid - leftover_rewards_paid.clone(),
+                mock::RewardMock::total(),
+                rewards_paid + leftover_rewards_paid.clone(),
             );
 
             // Confirm total issuance decreased by the amount rewarded to leftover claims

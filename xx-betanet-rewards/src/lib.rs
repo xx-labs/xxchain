@@ -5,9 +5,14 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
+
+pub mod weights;
+
 use frame_support::traits::{Currency, Get, OnUnbalanced, VestingSchedule};
 use frame_support::{
-    decl_event, decl_error, decl_module, decl_storage, ensure, weights::{Weight, DispatchClass},
+    decl_event, decl_error, decl_module, decl_storage, ensure, weights::Weight,
     StorageValue, StorageMap, IterableStorageMap,
 };
 use sp_runtime::{PerThing, Perbill, RuntimeDebug, traits::{Saturating, Zero, SaturatedConversion}};
@@ -18,6 +23,7 @@ use sp_std::convert::TryFrom;
 use codec::{Encode, Decode};
 use claims::CurrencyOf;
 use claims::BalanceOf;
+use weights::WeightInfo;
 
 type PositiveImbalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::PositiveImbalance;
 
@@ -120,6 +126,9 @@ pub trait Config: frame_system::Config + claims::Config {
 
     /// The reward handler for paying out betanet rewards
     type Reward: OnUnbalanced<PositiveImbalanceOf<Self>>;
+
+    /// Weight information for extrinsics in this pallet.
+    type WeightInfo: WeightInfo;
 }
 
 decl_storage! {
@@ -168,10 +177,7 @@ decl_module! {
         ///
         /// Only callable by accounts that have rewards and no vesting period
         ///
-        /// # <weight>
-        /// - TODO: Calculate correct weight
-        /// # </weight>
-        #[weight = 150_000_000]
+        #[weight = <T as Config>::WeightInfo::select_option()]
         pub fn select_option(origin, option: RewardOption) {
             let who = ensure_signed(origin)?;
             ensure!(<Accounts<T>>::contains_key(&who), Error::<T>::NoRewards);
@@ -188,14 +194,7 @@ decl_module! {
         ///
         /// The dispatch origin must be Root.
         ///
-        /// # <weight>
-        /// - TODO: Calculate correct weight
-        /// # </weight>
-        #[weight = (
-			90_000_000,
-			DispatchClass::Operational
-
-		)]
+        #[weight = <T as Config>::WeightInfo::approve()]
         pub fn approve(origin) {
             ensure_root(origin)?;
             let block = <frame_system::Pallet<T>>::block_number();

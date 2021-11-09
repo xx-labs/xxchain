@@ -24,8 +24,7 @@ use crate::*;
 use frame_support::{
     parameter_types,
     ord_parameter_types,
-    traits::{GenesisBuild, OnInitialize},
-    PalletId,
+    traits::{GenesisBuild, OnInitialize, Imbalance},
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureSignedBy;
@@ -37,6 +36,8 @@ use sp_runtime::{
 use sp_io::hashing::keccak_256;
 use libsecp256k1::{SecretKey, PublicKey, Message, sign};
 use claims::{EthereumAddress, EcdsaSignature, to_ascii_hex};
+use std::cell::RefCell;
+use std::mem;
 
 /// The AccountId alias in this test module.
 pub(crate) type AccountId = u64;
@@ -57,7 +58,6 @@ frame_support::construct_runtime!(
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         Vesting: pallet_vesting::{Pallet, Call, Storage, Config<T>, Event<T>},
         Claims: claims::{Pallet, Call, Storage, Config<T>, Event<T>, ValidateUnsigned},
-        XXEconomics: xx_economics::{Pallet, Call, Storage, Config<T>, Event<T>},
         XXBetanetRewards: xx_betanet_rewards::{Pallet, Call, Storage, Config<T>, Event<T>},
     }
 );
@@ -151,22 +151,6 @@ impl pallet_staking::CustodyHandler<AccountId, Balance> for MockCustodyHandler {
 }
 
 parameter_types! {
-    pub const RewardsPoolId: PalletId = PalletId(*b"xx/rwrds");
-    pub const EraDuration: BlockNumber = 10; // 10 blocks per era
-}
-
-impl xx_economics::Config for Test {
-    type Event = Event;
-    type Currency = Balances;
-    type CustodyHandler = MockCustodyHandler;
-    type RewardsPoolId = RewardsPoolId;
-    type RewardRemainder = ();
-    type EraDuration = EraDuration;
-    type AdminOrigin = EnsureSignedBy<Six, AccountId>;
-    type WeightInfo = ();
-}
-
-parameter_types! {
 	pub const BetanetStakingRewardsBlock: BlockNumber = 10;
 	pub const OneMonthVest: BlockNumber = 432_000;
 	pub const ThreeMonthVest: BlockNumber = 3*OneMonthVest::get();
@@ -186,10 +170,34 @@ parameter_types! {
 	pub const RewardsPoolBalance: Balance = 100_000_000 * Decimals::get();
 }
 
+thread_local! {
+    static REWARD_DEDUCTIONS: RefCell<Balance> = RefCell::new(Default::default());
+}
+
+pub struct RewardMock;
+
+impl OnUnbalanced<PositiveImbalanceOf<Test>> for RewardMock {
+    fn on_nonzero_unbalanced(amount: PositiveImbalanceOf<Test>) {
+        REWARD_DEDUCTIONS.with(|v| {
+            *v.borrow_mut() += amount.peek();
+            mem::forget(amount)
+        });
+    }
+}
+
+impl RewardMock {
+    pub fn total() -> BalanceOf<Test> {
+        REWARD_DEDUCTIONS.with(|v| {
+            *v.borrow()
+        })
+    }
+}
+
 impl xx_betanet_rewards::Config for Test {
     type Event = Event;
     type EnactmentBlock = BetanetStakingRewardsBlock;
-    type Reward = XXEconomics;
+    type Reward = RewardMock;
+    type WeightInfo = ();
 }
 
 pub type Extrinsic = TestXt<Call, ()>;
@@ -369,11 +377,6 @@ impl ExtBuilder {
                     option: RewardOption::Vesting6Month,
                 }),
             ],
-        }.assimilate_storage(&mut storage).unwrap();
-
-        xx_economics::GenesisConfig::<Test> {
-            balance: RewardsPoolBalance::get(),
-            ..Default::default()
         }.assimilate_storage(&mut storage).unwrap();
 
         let ext = sp_io::TestExternalities::from(storage);

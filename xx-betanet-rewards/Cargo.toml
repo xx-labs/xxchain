@@ -22,6 +22,8 @@ frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-netw
 # pallets
 claims = { default-features = false, path = "../claims" }
 
+frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false, optional = true }
+
 [dev-dependencies]
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
@@ -29,7 +31,6 @@ sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-networ
 pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 pallet-staking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-xx-economics = { path = "../xx-economics" }
 libsecp256k1 = { version = "0.6", features = ["hmac"] }
 
 [features]
@@ -44,3 +45,4 @@ std = [
 	"frame-system/std",
 	"claims/std",
 ]
+runtime-benchmarks = ["frame-benchmarking"]

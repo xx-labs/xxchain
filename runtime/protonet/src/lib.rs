@@ -508,6 +508,7 @@ impl xx_economics::Config for Runtime {
 	type Currency = Balances;
 
 	type CustodyHandler = XXCustody;
+	type PublicAccountsHandler = XXPublic;
 
 	// Rewards Pool config
 	type RewardsPoolId = RewardsPoolId;
@@ -1139,6 +1140,7 @@ impl xx_betanet_rewards::Config for Runtime {
 	type Event = Event;
 	type EnactmentBlock = BetanetStakingRewardsBlock;
 	type Reward = XXEconomics;
+	type WeightInfo = xx_betanet_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {

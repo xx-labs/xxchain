@@ -31,6 +31,10 @@ pub struct TransferData<AccountId, Balance: HasCompact, Block> {
     pub schedules: Option<Vec<(Balance, Balance, Block)>>,
 }
 
+pub trait PublicAccountsHandler<AccountId> {
+    fn accounts() -> Vec<AccountId>;
+}
+
 pub trait Config: frame_system::Config {
     /// The Event type.
     type Event: From<Event>
@@ -246,5 +250,14 @@ impl<T: Config> Module<T> {
             }
             Ok(().into())
         })
+    }
+}
+
+// Implement PublicAccountsHandler
+impl<T: Config> PublicAccountsHandler<T::AccountId> for Module<T> {
+    fn accounts() -> Vec<T::AccountId> {
+        let testnet_account = Self::testnet_account_id();
+        let sale_account = Self::sale_account_id();
+        vec![testnet_account, sale_account]
     }
 }

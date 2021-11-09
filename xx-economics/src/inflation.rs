@@ -8,6 +8,7 @@ use codec::{Encode, Decode};
 use sp_std::{prelude::*};
 use frame_support::{StorageValue, traits::{Currency, Get}};
 use pallet_staking::CustodyHandler;
+use xx_public::PublicAccountsHandler;
 
 /// Inflation fixed parameters
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
@@ -172,9 +173,10 @@ impl<T: Config> Module<T> {
             + T::CustodyHandler::total_custody()
             // add liquidity rewards balance
             + Self::liquidity_rewards()
-            // add unallocated public balances (testnet + sale)
-            + T::Currency::free_balance(&<xx_public::Module<T>>::testnet_account_id())
-            + T::Currency::free_balance(&<xx_public::Module<T>>::sale_account_id());
+            // add public funds accounts funds (testnet + sale)
+            + T::PublicAccountsHandler::accounts().iter().fold(Zero::zero(), |acc, x| {
+                acc + T::Currency::free_balance(&x)
+            });
         issuance - unstakeable
     }
 }

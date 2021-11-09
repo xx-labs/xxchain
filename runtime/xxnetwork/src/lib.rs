@@ -511,6 +511,7 @@ impl xx_economics::Config for Runtime {
 	type Currency = Balances;
 
 	type CustodyHandler = XXCustody;
+	type PublicAccountsHandler = XXPublic;
 
 	// Rewards Pool config
 	type RewardsPoolId = RewardsPoolId;
@@ -1142,6 +1143,7 @@ impl xx_betanet_rewards::Config for Runtime {
 	type Event = Event;
 	type EnactmentBlock = BetanetStakingRewardsBlock;
 	type Reward = XXEconomics;
+	type WeightInfo = xx_betanet_rewards::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1565,6 +1567,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, xx_cmix, XXCmix);
 			list_benchmark!(list, extra, xx_team_custody, XXCustody);
 			list_benchmark!(list, extra, xx_economics, XXEconomics);
+			list_benchmark!(list, extra, xx_betanet_rewards, XXBetanetRewards);
 			list_benchmark!(list, extra, swap, Swap);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
@@ -1622,6 +1625,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, xx_cmix, XXCmix);
 			add_benchmark!(params, batches, xx_team_custody, XXCustody);
 			add_benchmark!(params, batches, xx_economics, XXEconomics);
+			add_benchmark!(params, batches, xx_betanet_rewards, XXBetanetRewards);
 			add_benchmark!(params, batches, swap, Swap);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }

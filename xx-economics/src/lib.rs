@@ -33,7 +33,7 @@ type PositiveImbalanceOf<T> = <<T as Config>::Currency as Currency<
 type NegativeImbalanceOf<T> = <<T as Config>::Currency as Currency<
     <T as frame_system::Config>::AccountId, >>::NegativeImbalance;
 
-pub trait Config: frame_system::Config + xx_public::Config {
+pub trait Config: frame_system::Config {
 
     /// The Event type.
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
@@ -41,8 +41,11 @@ pub trait Config: frame_system::Config + xx_public::Config {
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId>;
 
-    // Handler with which to retrieve total token custody
+    /// Handler with which to retrieve total token custody
     type CustodyHandler: pallet_staking::CustodyHandler<Self::AccountId, BalanceOf<Self>>;
+
+    /// Handler to retrieve public accounts
+    type PublicAccountsHandler: xx_public::PublicAccountsHandler<Self::AccountId>;
 
     //---------------- REWARDS POOL ----------------//
 

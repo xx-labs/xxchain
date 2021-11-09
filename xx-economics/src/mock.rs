@@ -142,12 +142,21 @@ ord_parameter_types! {
     pub const AdminAccount: AccountId = 99;
 }
 
+pub struct MockPublicAccountsHandler;
+
+impl xx_public::PublicAccountsHandler<AccountId> for MockPublicAccountsHandler {
+    fn accounts() -> Vec<AccountId> {
+        return vec![42, 43]
+    }
+}
+
 pub type TestAdminOrigin = EnsureSignedBy<AdminAccount, AccountId>;
 
 impl xx_economics::Config for Test {
     type Event = Event;
     type Currency = Balances;
     type CustodyHandler = MockCustodyHandler;
+    type PublicAccountsHandler = MockPublicAccountsHandler;
     type RewardsPoolId = RewardsPoolId;
     type RewardRemainder = MockTreasury<Test>;
     type EraDuration = EraDuration;
