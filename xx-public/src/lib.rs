@@ -1,5 +1,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
+pub mod weights;
+
 use frame_support::traits::{
     Currency, VestingSchedule, Get,
     EnsureOrigin, ExistenceRequirement::AllowDeath,
@@ -10,11 +17,12 @@ use frame_support::{
     weights::{DispatchClass, Pays},
 };
 use sp_runtime::{
-    traits::AccountIdConversion, RuntimeDebug
+    traits::{Zero, AccountIdConversion}, RuntimeDebug
 };
 use frame_system::{ensure_root, ensure_signed};
 use codec::{Encode, Decode, HasCompact};
 use sp_std::prelude::*;
+use weights::WeightInfo;
 
 pub type CurrencyOf<T> = <<T as Config>::VestingSchedule as VestingSchedule<<T as frame_system::Config>::AccountId>>::Currency;
 pub type BalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -51,6 +59,9 @@ pub trait Config: frame_system::Config {
 
     /// The admin origin for the pallet
     type AdminOrigin: EnsureOrigin<Self::Origin>;
+
+    /// Weight information for extrinsics in this pallet.
+    type WeightInfo: WeightInfo;
 }
 
 decl_storage! {
@@ -90,6 +101,8 @@ decl_error! {
         MustBeTestnetManager,
 		/// Must be the sale manager to call this function
         MustBeSaleManager,
+        /// Not enough funds to do distribution
+        NotEnoughFunds,
 	}
 }
 
@@ -106,10 +119,7 @@ decl_module! {
         ///
         /// The dispatch origin must be AdminOrigin.
         ///
-        /// # <weight>
-        /// - TODO: Calculate correct weight
-        /// # </weight>
-        #[weight = 150_000_000]
+        #[weight = <T as Config>::WeightInfo::set_testnet_manager_account()]
         pub fn set_testnet_manager_account(origin, who: T::AccountId) {
             Self::ensure_admin(origin)?;
             <TestnetManager<T>>::put(who);
@@ -120,10 +130,7 @@ decl_module! {
         ///
         /// The dispatch origin must be AdminOrigin.
         ///
-        /// # <weight>
-        /// - TODO: Calculate correct weight
-        /// # </weight>
-        #[weight = 150_000_000]
+        #[weight = <T as Config>::WeightInfo::set_sale_manager_account()]
         pub fn set_sale_manager_account(origin, who: T::AccountId) {
             Self::ensure_admin(origin)?;
             <SaleManager<T>>::put(who);
@@ -136,15 +143,12 @@ decl_module! {
         /// `data` is a vector of TransferData
         /// The dispatch origin must be `TestnetManager`
         ///
-        /// # <weight>
-        /// - TODO: Calculate correct weight
-        /// # </weight>
         #[weight = (
-			150_000_000,
+			<T as Config>::WeightInfo::tesnet_distribute(),
 			DispatchClass::Operational,
 			Pays::No
 		)]
-        pub fn tesnet_distribute(origin,
+        pub fn testnet_distribute(origin,
             data: Vec<TransferData<T::AccountId, BalanceOf<T>, T::BlockNumber>>,
         ) {
             let who = ensure_signed(origin)?;
@@ -157,11 +161,8 @@ decl_module! {
         /// `data` is a vector of TransferData
         /// The dispatch origin must be `SaleManager`
         ///
-        /// # <weight>
-        /// - TODO: Calculate correct weight
-        /// # </weight>
         #[weight = (
-			150_000_000,
+			<T as Config>::WeightInfo::sale_distribute(),
 			DispatchClass::Operational,
 			Pays::No
 		)]
@@ -223,6 +224,13 @@ impl<T: Config> Module<T> {
         account: T::AccountId,
         data: Vec<TransferData<T::AccountId, BalanceOf<T>, T::BlockNumber>>,
     ) -> DispatchResult {
+        // Exit early if not enough funds to do distribution
+        let available = <CurrencyOf<T>>::free_balance(&account);
+        let total = data.iter().fold(Zero::zero(), |acc, x| {
+            acc + x.amount
+        });
+        ensure!(available >= total, Error::<T>::NotEnoughFunds);
+        // Do distribution
         data.iter().try_for_each(|d| -> DispatchResult {
             <CurrencyOf<T>>::transfer(
                 &account,

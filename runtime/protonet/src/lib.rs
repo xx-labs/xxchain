@@ -559,6 +559,8 @@ impl xx_public::Config for Runtime {
 	type SaleId = SaleId;
 	// Admin is technical committee unanimity
 	type AdminOrigin = EnsureTechnicalUnanimity;
+	// Weight information for extrinsics in this pallet.
+	type WeightInfo = xx_public::weights::SubstrateWeight<Self>;
 }
 
 use frame_election_provider_support::onchain;

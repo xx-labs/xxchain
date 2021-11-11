@@ -9442,12 +9442,16 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "pallet-balances",
+ "pallet-vesting",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "sp-arithmetic",
+ "sp-io",
  "sp-runtime",
  "sp-std",
+ "sp-tracing",
 ]
 
 [[package]]

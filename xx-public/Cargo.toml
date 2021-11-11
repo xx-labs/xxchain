@@ -22,6 +22,13 @@ sp-arithmetic = { git = "https://github.com/xx-labs/substrate", branch = "xx-net
 frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 
+[dev-dependencies]
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+
 
 [features]
 default = ["std"]

@@ -186,9 +186,9 @@ pub struct ExtBuilder {
 impl Default for ExtBuilder {
     fn default() -> Self {
         Self {
-            rewards_balance:   Default::default(),
+            rewards_balance: Default::default(),
             liquidity_balance: Default::default(),
-            interest_points:   Default::default(),
+            interest_points: Default::default(),
             with_public: false,
         }
     }

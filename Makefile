@@ -24,4 +24,5 @@ test-pallets:
 	@cd xx-betanet-rewards; cargo test; cd ../
 	@cd xx-cmix; cargo test; cd ../
 	@cd xx-economics; cargo test; cd ../
+	@cd xx-public; cargo test; cd ../
 	@cd xx-team-custody; cargo test; cd ../
