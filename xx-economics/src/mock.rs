@@ -33,7 +33,7 @@ use frame_system::{EnsureSignedBy};
 use pallet_staking::{EraIndex};
 use sp_runtime::{
     testing::{Header, TestXt, H256},
-    traits::{IdentityLookup, Zero},
+    traits::IdentityLookup,
     Perbill,
 };
 
@@ -118,7 +118,9 @@ pub struct MockCustodyHandler;
 
 impl pallet_staking::CustodyHandler<AccountId, Balance> for MockCustodyHandler {
     fn is_custody_account(_: &AccountId) -> bool { false }
-    fn total_custody() -> Balance { Balance::zero() }
+    fn total_custody() -> Balance {
+        1000u128
+    }
 }
 
 pub const MOCK_TREASURY: &AccountId = &1337;
@@ -176,14 +178,18 @@ where
 
 pub struct ExtBuilder {
     rewards_balance: BalanceOf<Test>,
+    liquidity_balance: BalanceOf<Test>,
     interest_points: Vec<inflation::IdealInterestPoint<BlockNumber>>,
+    with_public: bool,
 }
 
 impl Default for ExtBuilder {
     fn default() -> Self {
         Self {
-            rewards_balance: Default::default(),
-            interest_points: Default::default(),
+            rewards_balance:   Default::default(),
+            liquidity_balance: Default::default(),
+            interest_points:   Default::default(),
+            with_public: false,
         }
     }
 }
@@ -195,8 +201,18 @@ impl ExtBuilder {
         self
     }
 
+    pub fn with_liquidity_balance(mut self, liquidity_balance: BalanceOf<Test>) -> Self {
+        self.liquidity_balance = liquidity_balance;
+        self
+    }
+
     pub fn with_interest_points(mut self, points: Vec<inflation::IdealInterestPoint<BlockNumber>>) -> Self {
         self.interest_points = points;
+        self
+    }
+
+    pub fn with_public_accounts(mut self) -> Self {
+        self.with_public = true;
         self
     }
 
@@ -208,11 +224,21 @@ impl ExtBuilder {
 
         xx_economics::GenesisConfig::<Test> {
             balance: self.rewards_balance,
+            liquidity_rewards: self.liquidity_balance,
             interest_points: self.interest_points,
             ..Default::default()
         }
         .assimilate_storage(&mut storage)
         .unwrap();
+
+        if self.with_public {
+            pallet_balances::GenesisConfig::<Test> {
+                balances: vec![
+                    (42, 1000),
+                    (43, 1000),
+                ]
+            }.assimilate_storage(&mut storage).unwrap();
+        }
 
 
         let ext = sp_io::TestExternalities::from(storage);

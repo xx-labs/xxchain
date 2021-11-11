@@ -360,7 +360,7 @@ fn get_era_payout_with_increasing_interest() {
 		)
 		.build_and_execute(|| {
 			run_to_block(5);
-			assert_eq!(XXEconomics::era_payout(5000, 10000, MILLISECONDS_PER_YEAR), (1875, 0));
+			assert_eq!(XXEconomics::era_payout(5000, 11000, MILLISECONDS_PER_YEAR), (1875, 0));
 		});
 }
 
@@ -412,5 +412,32 @@ fn confirm_unordered_points_get_sorted_when_set_by_admin() {
 				xx_economics_events(),
 				vec![RawEvent::InterestPointsChanged]
 			);
+		});
+}
+
+// Test payout doesn't count unstakeable coins in issuance
+#[test]
+fn confirm_payout_stakeable_calculation() {
+	let rewards_balance = 1000;
+	ExtBuilder::default()
+		.with_rewards_balance(rewards_balance)
+		.with_liquidity_balance(rewards_balance)
+		.with_public_accounts()
+		.with_interest_points(
+			vec![
+				IdealInterestPoint { block: 0, interest: Perbill::from_rational(1u32, 4u32) },
+				IdealInterestPoint { block: 10, interest: Perbill::from_rational(1u32, 2u32) },
+			]
+		)
+		// Total unstakeable should be
+		// rewards -> 1000
+		// liquidity -> 1000
+		// custody -> 1000
+		// public -> 2000
+		// total = 5000
+		// So if issuance is 15000, total stakeable should be 10000, so staking ratio is 50%
+		.build_and_execute(|| {
+			run_to_block(5);
+			assert_eq!(XXEconomics::era_payout(5000, 15000, MILLISECONDS_PER_YEAR), (1875, 0));
 		});
 }

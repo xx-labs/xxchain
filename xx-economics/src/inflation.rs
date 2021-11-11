@@ -177,7 +177,7 @@ impl<T: Config> Module<T> {
             + T::PublicAccountsHandler::accounts().iter().fold(Zero::zero(), |acc, x| {
                 acc + T::Currency::free_balance(&x)
             });
-        issuance - unstakeable
+        issuance.saturating_sub(unstakeable)
     }
 }
 
