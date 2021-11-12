@@ -697,7 +697,12 @@ pub fn xxnetwork_testnet_genesis(
 				)
 			]
 		},
-		xx_public: Default::default(),
+		xx_public: xxnetwork::XXPublicConfig {
+			testnet_manager: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			sale_manager: get_account_id_from_seed::<sr25519::Public>("Bob"),
+			testnet_balance: 1000000 * UNITS,
+			sale_balance: 1000000 * UNITS,
+		},
 		assets: Default::default(),
 	}
 }

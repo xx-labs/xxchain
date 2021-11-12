@@ -22,6 +22,8 @@ sp-arithmetic = { git = "https://github.com/xx-labs/substrate", branch = "xx-net
 frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 
+frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false, optional = true }
+
 [dev-dependencies]
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
@@ -42,3 +44,4 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 ]
+runtime-benchmarks = ["frame-benchmarking"]

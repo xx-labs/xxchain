@@ -1567,6 +1567,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_vesting, Vesting);
 
 			list_benchmark!(list, extra, xx_cmix, XXCmix);
+			list_benchmark!(list, extra, xx_public, XXPublic);
 			list_benchmark!(list, extra, xx_team_custody, XXCustody);
 			list_benchmark!(list, extra, xx_economics, XXEconomics);
 			list_benchmark!(list, extra, xx_betanet_rewards, XXBetanetRewards);
@@ -1625,6 +1626,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_vesting, Vesting);
 
 			add_benchmark!(params, batches, xx_cmix, XXCmix);
+			add_benchmark!(params, batches, xx_public, XXPublic);
 			add_benchmark!(params, batches, xx_team_custody, XXCustody);
 			add_benchmark!(params, batches, xx_economics, XXEconomics);
 			add_benchmark!(params, batches, xx_betanet_rewards, XXBetanetRewards);

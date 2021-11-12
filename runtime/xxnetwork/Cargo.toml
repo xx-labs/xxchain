@@ -206,6 +206,7 @@ runtime-benchmarks = [
 	"xx-economics/runtime-benchmarks",
 	"xx-team-custody/runtime-benchmarks",
 	"xx-betanet-rewards/runtime-benchmarks",
+	"xx-public/runtime-benchmarks",
 	"swap/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
