@@ -1,4 +1,4 @@
-pallets=("swap" "xx-betanet-rewards" "xx-cmix" "xx-team-custody" "xx-economics")
+pallets=("swap" "xx-betanet-rewards" "xx-cmix" "xx-public" "xx-team-custody" "xx-economics")
 mkdir weights
 for pallet in ${pallets[@]}
 do

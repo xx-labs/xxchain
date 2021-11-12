@@ -147,7 +147,7 @@ decl_module! {
         /// The dispatch origin must be `TestnetManager`
         ///
         #[weight = (
-			<T as Config>::WeightInfo::tesnet_distribute(),
+			<T as Config>::WeightInfo::testnet_distribute(data.len() as u32),
 			DispatchClass::Operational,
 			Pays::No
 		)]
@@ -165,7 +165,7 @@ decl_module! {
         /// The dispatch origin must be `SaleManager`
         ///
         #[weight = (
-			<T as Config>::WeightInfo::sale_distribute(),
+			<T as Config>::WeightInfo::sale_distribute(data.len() as u32),
 			DispatchClass::Operational,
 			Pays::No
 		)]
