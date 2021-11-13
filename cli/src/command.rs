@@ -50,8 +50,7 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		let id = if id == "" {
-			// For now default to protonet testnet if no chain provided
-			"protonet"
+			"xxnetwork"
 		} else { id };
 		Ok(match id {
 			"xxnetwork" => Box::new(chain_spec::xxnetwork_config()?),
