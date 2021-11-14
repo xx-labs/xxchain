@@ -33,7 +33,7 @@ use frame_support::{
 	},
 	traits::{
 		Currency, Imbalance, KeyOwnerProofSystem, OnUnbalanced, LockIdentifier,
-		U128CurrencyToVote,
+		U128CurrencyToVote, EqualPrivilegeOnly,
 	},
 };
 use frame_system::{EnsureRoot, EnsureOneOf, limits::{BlockWeights, BlockLength}};
@@ -246,6 +246,7 @@ impl frame_system::Config for Runtime {
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
+	type PalletsOrigin = OriginCaller;
 	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
 }
 
@@ -272,7 +273,7 @@ parameter_types! {
 	Decode,
 	RuntimeDebug,
 	MaxEncodedLen,
-	scale_info::TypeInfo
+	scale_info::TypeInfo,
 )]
 pub enum ProxyType {
 	Any,
@@ -288,6 +289,7 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
+				Call::Assets(..) | Call::Uniques(..) |
 				Call::Balances(..) |
 				Call::Vesting(pallet_vesting::Call::vested_transfer { .. })
 			),
@@ -348,6 +350,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 parameter_types! {
@@ -546,8 +549,8 @@ impl xx_cmix::Config for Runtime {
 	type Event = Event;
 	// CMIX Variables can be changed by 2/3 Council
 	type CmixVariablesOrigin = EnsureTwoThirdsCouncil;
-	// Admin is technical committee unanimity
-	type AdminOrigin = EnsureTechnicalUnanimity;
+	// Admin is 2/3 technical committee
+	type AdminOrigin = EnsureTwoThirdsTechnical;
     // Weight information for extrinsics in this pallet.
     type WeightInfo = xx_cmix::weights::SubstrateWeight<Self>;
 }

@@ -10,7 +10,6 @@ members = [
     'executor',
     'primitives',
     'rpc',
-    'rpc-client',
     'runtime/phoenixx',
     'runtime/protonet',
     'runtime/xxnetwork',

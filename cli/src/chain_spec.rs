@@ -223,7 +223,6 @@ pub fn phoenixx_testnet_genesis(
 	phoenixx::GenesisConfig {
 		system: phoenixx::SystemConfig {
 			code: phoenixx::wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: phoenixx::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()
@@ -408,7 +407,6 @@ pub fn protonet_testnet_genesis(
 	protonet::GenesisConfig {
 		system: protonet::SystemConfig {
 			code: protonet::wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: protonet::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()
@@ -594,7 +592,6 @@ pub fn xxnetwork_testnet_genesis(
 	xxnetwork::GenesisConfig {
 		system: xxnetwork::SystemConfig {
 			code: xxnetwork::wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: xxnetwork::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()

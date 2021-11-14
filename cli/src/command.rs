@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{chain_spec, service, Cli, Subcommand};
-use sc_cli::{Result, SubstrateCli, RuntimeVersion, Role, ChainSpec};
+use sc_cli::{Result, SubstrateCli, RuntimeVersion, ChainSpec};
 use sc_service::PartialComponents;
 use crate::service::{new_partial, new_partial_protonet, new_partial_phoenixx};
 use crate::chain_spec::IdentifyVariant;
@@ -98,10 +98,7 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
 			runner.run_node_until_exit(|config| async move {
-				match config.role {
-					Role::Light => service::new_light(config),
-					_ => service::new_full(config),
-				}.map_err(sc_cli::Error::Service)
+				service::new_full(config).map_err(sc_cli::Error::Service)
 			})
 		}
 		Some(Subcommand::Inspect(cmd)) => {
