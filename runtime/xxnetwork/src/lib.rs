@@ -1578,11 +1578,9 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_vesting, Vesting);
 
-			// Chainbridge + Swap
-			list_benchmark!(list, extra, swap, Swap);
-			list_benchmark!(list, extra, chainbridge, ChainBridge);
-
 			// xx network
+			list_benchmark!(list, extra, claims, Claims);
+			list_benchmark!(list, extra, swap, Swap);
 			list_benchmark!(list, extra, xx_cmix, XXCmix);
 			list_benchmark!(list, extra, xx_public, XXPublic);
 			list_benchmark!(list, extra, xx_team_custody, XXCustody);
@@ -1656,11 +1654,9 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_vesting, Vesting);
 
-			// Chainbridge + Swap
-			add_benchmark!(params, batches, swap, Swap);
-			add_benchmark!(params, batches, chainbridge, ChainBridge);
-
 			// xx network
+			add_benchmark!(params, batches, claims, Claims);
+			add_benchmark!(params, batches, swap, Swap);
 			add_benchmark!(params, batches, xx_cmix, XXCmix);
 			add_benchmark!(params, batches, xx_public, XXPublic);
 			add_benchmark!(params, batches, xx_team_custody, XXCustody);

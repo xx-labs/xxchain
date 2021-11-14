@@ -2,7 +2,7 @@
 name = "xx-cmix"
 version = "0.1.0"
 authors = ["Bernardo Cardoso <bernardo@xx.network>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 # third-party dependencies

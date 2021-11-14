@@ -99,9 +99,12 @@ impl StatementKind {
     fn to_text(self) -> &'static [u8] {
         match self {
             StatementKind::Regular =>
-                &b"TODO: Create REGULAR statement, hash and upload to website"[..],
+                &b"I hereby agree to the terms of the statement whose SHA-256 hash is \
+                0x75b58335d343dcc339045a54a27b61c6bff3cfc4585e742cc438adc65a1838d6. \
+                (This may be found at the URL: \
+                https://docs.xx.network/xxNetworkDistributionContract.pdf)"[..],
             StatementKind::Saft =>
-                &b"TODO: Create SAFT statement, hash and upload to website"[..],
+                &b"xx network doesn't have a SAFT statement"[..],
         }
     }
 }
@@ -1260,7 +1263,7 @@ mod benchmarking {
     fn create_claim<T: Config>(input: u32) -> DispatchResult {
         let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&input.encode())).unwrap();
         let eth_address = eth(&secret_key);
-        let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
+        let vesting = Some(vec![(100_000u32.into(), 1_000u32.into(), 100u32.into())]);
         super::Module::<T>::mint_claim(RawOrigin::Root.into(), eth_address, VALUE.into(), vesting, None)?;
         Ok(())
     }
@@ -1268,7 +1271,7 @@ mod benchmarking {
     fn create_claim_attest<T: Config>(input: u32) -> DispatchResult {
         let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&input.encode())).unwrap();
         let eth_address = eth(&secret_key);
-        let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
+        let vesting = Some(vec![(100_000u32.into(), 1_000u32.into(), 100u32.into())]);
         super::Module::<T>::mint_claim(
             RawOrigin::Root.into(),
             eth_address,
@@ -1292,14 +1295,14 @@ mod benchmarking {
 			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 			let account: T::AccountId = account("user", c, SEED);
-			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
+			let vesting = Some(vec![(100_000u32.into(), 1_000u32.into(), 100u32.into())]);
 			let signature = sig::<T>(&secret_key, &account.encode(), &[][..]);
 			super::Module::<T>::mint_claim(RawOrigin::Root.into(), eth_address, VALUE.into(), vesting, None)?;
 			assert_eq!(Claims::<T>::get(eth_address), Some(VALUE.into()));
 			let source = sp_runtime::transaction_validity::TransactionSource::External;
-			let call = Call::<T>::claim(account.clone(), signature.clone());
+			let call = Call::<T>::claim { dest: account.clone(), ethereum_signature: signature.clone() };
 		}: {
-			super::Module::<T>::validate_unsigned(source, &call)?;
+			super::Module::<T>::validate_unsigned(source, &call).map_err(|e| -> &'static str { e.into() })?;
 			super::Module::<T>::claim(RawOrigin::None.into(), account, signature)?;
 		}
 		verify {
@@ -1316,7 +1319,7 @@ mod benchmarking {
 			}
 
 			let eth_address = account("eth_address", 0, SEED);
-			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
+			let vesting = Some(vec![(100_000u32.into(), 1_000u32.into(), 100u32.into())]);
 			let statement = StatementKind::Regular;
 		}: _(RawOrigin::Root, eth_address, VALUE.into(), vesting, Some(statement))
 		verify {
@@ -1337,15 +1340,19 @@ mod benchmarking {
 			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 			let account: T::AccountId = account("user", c, SEED);
-			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
+			let vesting = Some(vec![(100_000u32.into(), 1_000u32.into(), 100u32.into())]);
 			let statement = StatementKind::Regular;
 			let signature = sig::<T>(&secret_key, &account.encode(), statement.to_text());
 			super::Module::<T>::mint_claim(RawOrigin::Root.into(), eth_address, VALUE.into(), vesting, Some(statement))?;
 			assert_eq!(Claims::<T>::get(eth_address), Some(VALUE.into()));
-			let call = Call::<T>::claim_attest(account.clone(), signature.clone(), StatementKind::Regular.to_text().to_vec());
+			let call = Call::<T>::claim_attest {
+			    dest: account.clone(),
+			    ethereum_signature: signature.clone(),
+			    statement: StatementKind::Regular.to_text().to_vec(),
+			};
 			let source = sp_runtime::transaction_validity::TransactionSource::External;
 		}: {
-			super::Module::<T>::validate_unsigned(source, &call)?;
+			super::Module::<T>::validate_unsigned(source, &call).map_err(|e| -> &'static str { e.into() })?;
 			super::Module::<T>::claim_attest(RawOrigin::None.into(), account, signature, statement.to_text().to_vec())?;
 		}
 		verify {
@@ -1365,17 +1372,17 @@ mod benchmarking {
 			let secret_key = libsecp256k1::SecretKey::parse(&keccak_256(&attest_c.encode())).unwrap();
 			let eth_address = eth(&secret_key);
 			let account: T::AccountId = account("user", c, SEED);
-			let vesting = Some((100_000u32.into(), 1_000u32.into(), 100u32.into()));
+			let vesting = Some(vec![(100_000u32.into(), 1_000u32.into(), 100u32.into())]);
 			let statement = StatementKind::Regular;
 			let signature = sig::<T>(&secret_key, &account.encode(), statement.to_text());
 			super::Module::<T>::mint_claim(RawOrigin::Root.into(), eth_address, VALUE.into(), vesting, Some(statement))?;
 			Preclaims::<T>::insert(&account, eth_address);
 			assert_eq!(Claims::<T>::get(eth_address), Some(VALUE.into()));
 
-			let call = super::Call::attest(StatementKind::Regular.to_text().to_vec());
+			let call = super::Call::attest { statement: StatementKind::Regular.to_text().to_vec()};
 			// We have to copy the validate statement here because of trait issues... :(
 			let validate = |who: &T::AccountId, call: &super::Call<T>| -> DispatchResult {
-				if let Call::attest(attested_statement) = call {
+				if let Call::attest { statement: attested_statement } = call {
 					let signer = Preclaims::<T>::get(who).ok_or("signer has no claim")?;
 					if let Some(s) = Signing::get(signer) {
 						ensure!(&attested_statement[..] == s.to_text(), "invalid statement");
@@ -1443,25 +1450,11 @@ mod benchmarking {
 				assert!(super::Module::<T>::eth_recover(&signature, &data, extra).is_some());
 			}
 		}
+
+		impl_benchmark_test_suite!(
+			Module,
+			crate::claims::tests::new_test_ext(),
+			crate::claims::tests::Test,
+		);
 	}
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-        use crate::claims::tests::{new_test_ext, Test};
-        use frame_support::assert_ok;
-
-        #[test]
-        fn test_benchmarks() {
-            new_test_ext().execute_with(|| {
-                assert_ok!(test_benchmark_claim::<Test>());
-                assert_ok!(test_benchmark_mint_claim::<Test>());
-                assert_ok!(test_benchmark_claim_attest::<Test>());
-                assert_ok!(test_benchmark_attest::<Test>());
-                assert_ok!(test_benchmark_move_claim::<Test>());
-                assert_ok!(test_benchmark_keccak256::<Test>());
-                assert_ok!(test_benchmark_eth_recover::<Test>());
-            });
-        }
-    }
 }

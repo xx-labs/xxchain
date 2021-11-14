@@ -2,7 +2,7 @@
 name = "node-executor"
 version = "0.2.0"
 authors = ["xxlabs <admin@xx.network>"]
-edition = "2018"
+edition = "2021"
 homepage = "https://xx.network"
 repository = "https://github.com/xx-labs/xxchain/"
 
