@@ -21,7 +21,7 @@ fn account_from_index<T: Config>(index: u32) -> T::AccountId {
 benchmarks!{
 
 	payout {
-		// worst case: 
+		// worst case:
 		// - custody period is over
 		// - balance is bonded
 		// - account has a governence proxy
@@ -35,11 +35,11 @@ benchmarks!{
 
 		// set up a bond
 		XXCustody::<T>::custody_bond(
-        RawOrigin::Signed(custodian.clone()).into(),
-        info.custody.clone(),
-        custodian.clone(),
-        <<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::minimum_balance() * 10u32.into()
-    ).expect("Failed to bond allocation");
+			RawOrigin::Signed(custodian.clone()).into(),
+			info.custody.clone(),
+			custodian.clone(),
+			<<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::minimum_balance() * 10u32.into()
+		).expect("Failed to bond allocation");
 
 		// set up a proxy
 		XXCustody::<T>::custody_set_proxy(
@@ -72,11 +72,11 @@ benchmarks!{
 
 		// set up an initial bond
 		XXCustody::<T>::custody_bond(
-        RawOrigin::Signed(custodian.clone()).into(),
-        info.custody.clone(),
-        custodian.clone(),
-        amount
-    ).expect("Failed to bond allocation");
+			RawOrigin::Signed(custodian.clone()).into(),
+			info.custody.clone(),
+			custodian.clone(),
+			amount
+		).expect("Failed to bond allocation");
 	}: _(RawOrigin::Signed(custodian.clone()), info.custody, amount)
 
 
@@ -90,11 +90,11 @@ benchmarks!{
 
 		// set up an initial bond with the custodian as the controller
 		XXCustody::<T>::custody_bond(
-        RawOrigin::Signed(custodian.clone()).into(),
-        info.custody.clone(),
-        custodian.clone(),
-        amount
-    ).expect("Failed to bond allocation");
+			RawOrigin::Signed(custodian.clone()).into(),
+			info.custody.clone(),
+			custodian.clone(),
+			amount
+		).expect("Failed to bond allocation");
 	}: _(RawOrigin::Signed(custodian.clone()), info.custody, new_controller)
 
 
@@ -106,7 +106,7 @@ benchmarks!{
 		let info = XXCustody::<T>::team_accounts(team.clone());
 
 	}: _(RawOrigin::Signed(custodian.clone()), info.custody, proxy)
- 	
+
  	team_custody_set_proxy {
 		let team = team_member::<T>();
 		let proxy = account_from_index::<T>(11);

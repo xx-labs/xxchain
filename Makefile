@@ -20,8 +20,9 @@ test-pallets:
 	@echo -e "Running unit tests for all pallets\n"
 	@cd chainbridge; cargo test; cd ../
 	@cd claims; cargo test; cd ../
-	@cd staking; cargo test; cd ../
 	@cd swap; cargo test; cd ../
+	@cd xx-betanet-rewards; cargo test; cd ../
 	@cd xx-cmix; cargo test; cd ../
 	@cd xx-economics; cargo test; cd ../
+	@cd xx-public; cargo test; cd ../
 	@cd xx-team-custody; cargo test; cd ../

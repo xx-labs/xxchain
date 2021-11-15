@@ -20,40 +20,40 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
-use std::sync::Arc;
-use sc_consensus_babe;
-use node_primitives::Block;
-use sc_service::{
-	config::Configuration, error::Error as ServiceError, TaskManager,
-};
-use sc_network::Event;
-use sp_runtime::traits::Block as BlockT;
 use futures::prelude::*;
-use sc_client_api::{ExecutorProvider, RemoteBackend};
-use sc_telemetry::{Telemetry, TelemetryWorker};
-use sc_consensus_babe::SlotProportion;
-use crate::chain_spec::IdentifyVariant;
+use node_executor::{XXNetworkExecutorDispatch, ProtonetExecutorDispatch, PhoenixxExecutorDispatch};
+use node_primitives::Block;
 use xxnetwork_runtime::RuntimeApi as XXNetworkRuntimeApi;
 use protonet_runtime::RuntimeApi as ProtonetRuntimeApi;
 use phoenixx_runtime::RuntimeApi as PhoenixxRuntimeApi;
-use node_executor::{XXNetworkExecutor, ProtonetExecutor, PhoenixxExecutor};
+use sc_client_api::ExecutorProvider;
+use sc_consensus_babe::{self, SlotProportion};
+use sc_executor::NativeElseWasmExecutor;
+use sc_network::Event;
+use sc_service::{
+	config::Configuration, error::Error as ServiceError, TaskManager,
+};
+use sc_telemetry::{Telemetry, TelemetryWorker};
+use sp_runtime::traits::Block as BlockT;
+use crate::chain_spec::IdentifyVariant;
+use std::sync::Arc;
 
 // Common types
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
 // Default (xxnetwork) types
-type FullClient = sc_service::TFullClient<Block, XXNetworkRuntimeApi, XXNetworkExecutor>;
+type FullClient = sc_service::TFullClient<Block, XXNetworkRuntimeApi, NativeElseWasmExecutor<XXNetworkExecutorDispatch>>;
 type FullGrandpaBlockImport =
 	grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
 
 // Protonet types
-type FullClientProtonet = sc_service::TFullClient<Block, ProtonetRuntimeApi, ProtonetExecutor>;
+type FullClientProtonet = sc_service::TFullClient<Block, ProtonetRuntimeApi, NativeElseWasmExecutor<ProtonetExecutorDispatch>>;
 type FullGrandpaBlockImportProtonet =
 	grandpa::GrandpaBlockImport<FullBackend, Block, FullClientProtonet, FullSelectChain>;
 
 // Phoenixx types
-type FullClientPhoenixx = sc_service::TFullClient<Block, PhoenixxRuntimeApi, PhoenixxExecutor>;
+type FullClientPhoenixx = sc_service::TFullClient<Block, PhoenixxRuntimeApi, NativeElseWasmExecutor<PhoenixxExecutorDispatch>>;
 type FullGrandpaBlockImportPhoenixx =
 	grandpa::GrandpaBlockImport<FullBackend, Block, FullClientPhoenixx, FullSelectChain>;
 
@@ -86,16 +86,22 @@ pub fn new_partial(
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<XXNetworkExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, XXNetworkRuntimeApi, XXNetworkExecutor>(
+		sc_service::new_full_parts::<Block, XXNetworkRuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 	let client = Arc::new(client);
 
-	let telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+			task_manager.spawn_handle().spawn("telemetry", None, worker.run());
 			telemetry
 		});
 
@@ -130,8 +136,7 @@ pub fn new_partial(
 		Some(Box::new(justification_import)),
 		client.clone(),
 		select_chain.clone(),
-		move |_, ()| {
-			async move {
+		move |_, ()| async move {
 				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 				let slot =
@@ -144,7 +149,6 @@ pub fn new_partial(
 					sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
 
 				Ok((timestamp, slot, uncles))
-			}
 		},
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
@@ -244,16 +248,22 @@ pub fn new_partial_protonet(
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<ProtonetExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, ProtonetRuntimeApi, ProtonetExecutor>(
+		sc_service::new_full_parts::<Block, ProtonetRuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 	let client = Arc::new(client);
 
-	let telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+			task_manager.spawn_handle().spawn("telemetry", None, worker.run());
 			telemetry
 		});
 
@@ -288,8 +298,7 @@ pub fn new_partial_protonet(
 		Some(Box::new(justification_import)),
 		client.clone(),
 		select_chain.clone(),
-		move |_, ()| {
-			async move {
+		move |_, ()| async move {
 				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 				let slot =
@@ -302,7 +311,6 @@ pub fn new_partial_protonet(
 					sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
 
 				Ok((timestamp, slot, uncles))
-			}
 		},
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
@@ -402,16 +410,22 @@ pub fn new_partial_phoenixx(
 		})
 		.transpose()?;
 
+	let executor = NativeElseWasmExecutor::<PhoenixxExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, PhoenixxRuntimeApi, PhoenixxExecutor>(
+		sc_service::new_full_parts::<Block, PhoenixxRuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 	let client = Arc::new(client);
 
-	let telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+			task_manager.spawn_handle().spawn("telemetry", None, worker.run());
 			telemetry
 		});
 
@@ -446,8 +460,7 @@ pub fn new_partial_phoenixx(
 		Some(Box::new(justification_import)),
 		client.clone(),
 		select_chain.clone(),
-		move |_, ()| {
-			async move {
+		move |_, ()| async move {
 				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 				let slot =
@@ -460,7 +473,6 @@ pub fn new_partial_phoenixx(
 					sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
 
 				Ok((timestamp, slot, uncles))
-			}
 		},
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
@@ -564,6 +576,7 @@ pub fn new_full_base(mut config: Configuration) -> Result<TaskManager, ServiceEr
 	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
+		Vec::default(),
 	));
 
 	let (network, system_rpc_tx, network_starter) =
@@ -573,7 +586,6 @@ pub fn new_full_base(mut config: Configuration) -> Result<TaskManager, ServiceEr
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: Some(warp_sync),
 		})?;
@@ -597,15 +609,13 @@ pub fn new_full_base(mut config: Configuration) -> Result<TaskManager, ServiceEr
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 			config,
-			backend: backend.clone(),
+			backend,
 			client: client.clone(),
 			keystore: keystore_container.sync_keystore(),
 			network: network.clone(),
 			rpc_extensions_builder: Box::new(rpc_extensions_builder),
 			transaction_pool: transaction_pool.clone(),
 			task_manager: &mut task_manager,
-			on_demand: None,
-			remote_blockchain: None,
 			system_rpc_tx,
 			telemetry: telemetry.as_mut(),
 		})?;
@@ -650,7 +660,13 @@ pub fn new_full_base(mut config: Configuration) -> Result<TaskManager, ServiceEr
 							slot_duration,
 						);
 
-					Ok((timestamp, slot, uncles))
+					let storage_proof =
+						sp_transaction_storage_proof::registration::new_data_provider(
+							&*client_clone,
+							&parent,
+						)?;
+
+					Ok((timestamp, slot, uncles, storage_proof))
 				}
 			},
 			force_authoring,
@@ -663,41 +679,48 @@ pub fn new_full_base(mut config: Configuration) -> Result<TaskManager, ServiceEr
 		};
 
 		let babe = sc_consensus_babe::start_babe(babe_config)?;
-		task_manager.spawn_essential_handle().spawn_blocking("babe-proposer", babe);
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"babe-proposer",
+			Some("block-authoring"),
+			babe,
+		);
 	}
 
 	// Spawn authority discovery module.
 	if role.is_authority() {
-		let authority_discovery_role = sc_authority_discovery::Role::PublishAndDiscover(
-			keystore_container.keystore(),
-		);
-		let dht_event_stream = network.event_stream("authority-discovery")
-			.filter_map(|e| async move { match e {
-				Event::Dht(e) => Some(e),
-				_ => None,
-			}});
-		let (authority_discovery_worker, _service) = sc_authority_discovery::new_worker_and_service_with_config(
-			sc_authority_discovery::WorkerConfig {
-				publish_non_global_ips: auth_disc_publish_non_global_ips,
-				..Default::default()
-			},
-			client.clone(),
-			network.clone(),
-			Box::pin(dht_event_stream),
-			authority_discovery_role,
-			prometheus_registry.clone(),
-		);
+		let authority_discovery_role =
+		    sc_authority_discovery::Role::PublishAndDiscover(keystore_container.keystore());
+		let dht_event_stream =
+		    network.event_stream("authority-discovery").filter_map(|e| async move {
+		        match e {
+                    Event::Dht(e) => Some(e),
+                    _ => None,
+                    }
+                });
+		let (authority_discovery_worker, _service) =
+		    sc_authority_discovery::new_worker_and_service_with_config(
+                sc_authority_discovery::WorkerConfig {
+                    publish_non_global_ips: auth_disc_publish_non_global_ips,
+                    ..Default::default()
+                },
+                client.clone(),
+                network.clone(),
+                Box::pin(dht_event_stream),
+                authority_discovery_role,
+                prometheus_registry.clone(),
+            );
 
-		task_manager.spawn_handle().spawn("authority-discovery-worker", authority_discovery_worker.run());
+		task_manager.spawn_handle().spawn(
+			"authority-discovery-worker",
+			Some("networking"),
+			authority_discovery_worker.run(),
+		);
 	}
 
 	// if the node isn't actively participating in consensus then it doesn't
 	// need a keystore, regardless of which protocol we use below.
-	let keystore = if role.is_authority() {
-		Some(keystore_container.sync_keystore())
-	} else {
-		None
-	};
+	let keystore =
+		if role.is_authority() { Some(keystore_container.sync_keystore()) } else { None };
 
 	let config = grandpa::Config {
 		// FIXME #1578 make this available through chainspec
@@ -731,7 +754,8 @@ pub fn new_full_base(mut config: Configuration) -> Result<TaskManager, ServiceEr
 		// if it fails we take down the service with it.
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"grandpa-voter",
-			grandpa::run_grandpa_voter(grandpa_config)?
+			None,
+			grandpa::run_grandpa_voter(grandpa_config)?,
 		);
 	}
 
@@ -756,11 +780,10 @@ pub fn new_full_base_protonet(mut config: Configuration) -> Result<TaskManager, 
 	let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
 
 	config.network.extra_sets.push(grandpa::grandpa_peers_set_config());
-
-	#[cfg(feature = "cli")]
-		let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
+	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
+		Vec::default(),
 	));
 
 	let (network, system_rpc_tx, network_starter) =
@@ -770,7 +793,6 @@ pub fn new_full_base_protonet(mut config: Configuration) -> Result<TaskManager, 
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: Some(warp_sync),
 		})?;
@@ -794,15 +816,13 @@ pub fn new_full_base_protonet(mut config: Configuration) -> Result<TaskManager, 
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 			config,
-			backend: backend.clone(),
+			backend,
 			client: client.clone(),
 			keystore: keystore_container.sync_keystore(),
 			network: network.clone(),
 			rpc_extensions_builder: Box::new(rpc_extensions_builder),
 			transaction_pool: transaction_pool.clone(),
 			task_manager: &mut task_manager,
-			on_demand: None,
-			remote_blockchain: None,
 			system_rpc_tx,
 			telemetry: telemetry.as_mut(),
 		})?;
@@ -847,7 +867,13 @@ pub fn new_full_base_protonet(mut config: Configuration) -> Result<TaskManager, 
 							slot_duration,
 						);
 
-					Ok((timestamp, slot, uncles))
+					let storage_proof =
+						sp_transaction_storage_proof::registration::new_data_provider(
+							&*client_clone,
+							&parent,
+						)?;
+
+					Ok((timestamp, slot, uncles, storage_proof))
 				}
 			},
 			force_authoring,
@@ -860,41 +886,48 @@ pub fn new_full_base_protonet(mut config: Configuration) -> Result<TaskManager, 
 		};
 
 		let babe = sc_consensus_babe::start_babe(babe_config)?;
-		task_manager.spawn_essential_handle().spawn_blocking("babe-proposer", babe);
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"babe-proposer",
+			Some("block-authoring"),
+			babe,
+		);
 	}
 
 	// Spawn authority discovery module.
 	if role.is_authority() {
-		let authority_discovery_role = sc_authority_discovery::Role::PublishAndDiscover(
-			keystore_container.keystore(),
-		);
-		let dht_event_stream = network.event_stream("authority-discovery")
-			.filter_map(|e| async move { match e {
-				Event::Dht(e) => Some(e),
-				_ => None,
-			}});
-		let (authority_discovery_worker, _service) = sc_authority_discovery::new_worker_and_service_with_config(
-			sc_authority_discovery::WorkerConfig {
-				publish_non_global_ips: auth_disc_publish_non_global_ips,
-				..Default::default()
-			},
-			client.clone(),
-			network.clone(),
-			Box::pin(dht_event_stream),
-			authority_discovery_role,
-			prometheus_registry.clone(),
-		);
+		let authority_discovery_role =
+			sc_authority_discovery::Role::PublishAndDiscover(keystore_container.keystore());
+		let dht_event_stream =
+			network.event_stream("authority-discovery").filter_map(|e| async move {
+				match e {
+					Event::Dht(e) => Some(e),
+					_ => None,
+				}
+			});
+		let (authority_discovery_worker, _service) =
+			sc_authority_discovery::new_worker_and_service_with_config(
+				sc_authority_discovery::WorkerConfig {
+					publish_non_global_ips: auth_disc_publish_non_global_ips,
+					..Default::default()
+				},
+				client.clone(),
+				network.clone(),
+				Box::pin(dht_event_stream),
+				authority_discovery_role,
+				prometheus_registry.clone(),
+			);
 
-		task_manager.spawn_handle().spawn("authority-discovery-worker", authority_discovery_worker.run());
+		task_manager.spawn_handle().spawn(
+			"authority-discovery-worker",
+			Some("networking"),
+			authority_discovery_worker.run(),
+		);
 	}
 
 	// if the node isn't actively participating in consensus then it doesn't
 	// need a keystore, regardless of which protocol we use below.
-	let keystore = if role.is_authority() {
-		Some(keystore_container.sync_keystore())
-	} else {
-		None
-	};
+	let keystore =
+		if role.is_authority() { Some(keystore_container.sync_keystore()) } else { None };
 
 	let config = grandpa::Config {
 		// FIXME #1578 make this available through chainspec
@@ -928,7 +961,8 @@ pub fn new_full_base_protonet(mut config: Configuration) -> Result<TaskManager, 
 		// if it fails we take down the service with it.
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"grandpa-voter",
-			grandpa::run_grandpa_voter(grandpa_config)?
+			None,
+			grandpa::run_grandpa_voter(grandpa_config)?,
 		);
 	}
 
@@ -957,6 +991,7 @@ pub fn new_full_base_phoenixx(mut config: Configuration) -> Result<TaskManager, 
 	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
+		Vec::default(),
 	));
 
 	let (network, system_rpc_tx, network_starter) =
@@ -966,7 +1001,6 @@ pub fn new_full_base_phoenixx(mut config: Configuration) -> Result<TaskManager, 
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
-			on_demand: None,
 			block_announce_validator_builder: None,
 			warp_sync: Some(warp_sync),
 		})?;
@@ -990,15 +1024,13 @@ pub fn new_full_base_phoenixx(mut config: Configuration) -> Result<TaskManager, 
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 			config,
-			backend: backend.clone(),
+			backend,
 			client: client.clone(),
 			keystore: keystore_container.sync_keystore(),
 			network: network.clone(),
 			rpc_extensions_builder: Box::new(rpc_extensions_builder),
 			transaction_pool: transaction_pool.clone(),
 			task_manager: &mut task_manager,
-			on_demand: None,
-			remote_blockchain: None,
 			system_rpc_tx,
 			telemetry: telemetry.as_mut(),
 		})?;
@@ -1043,7 +1075,13 @@ pub fn new_full_base_phoenixx(mut config: Configuration) -> Result<TaskManager, 
 							slot_duration,
 						);
 
-					Ok((timestamp, slot, uncles))
+					let storage_proof =
+						sp_transaction_storage_proof::registration::new_data_provider(
+							&*client_clone,
+							&parent,
+						)?;
+
+					Ok((timestamp, slot, uncles, storage_proof))
 				}
 			},
 			force_authoring,
@@ -1056,41 +1094,48 @@ pub fn new_full_base_phoenixx(mut config: Configuration) -> Result<TaskManager, 
 		};
 
 		let babe = sc_consensus_babe::start_babe(babe_config)?;
-		task_manager.spawn_essential_handle().spawn_blocking("babe-proposer", babe);
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"babe-proposer",
+			Some("block-authoring"),
+			babe,
+		);
 	}
 
 	// Spawn authority discovery module.
 	if role.is_authority() {
-		let authority_discovery_role = sc_authority_discovery::Role::PublishAndDiscover(
-			keystore_container.keystore(),
-		);
-		let dht_event_stream = network.event_stream("authority-discovery")
-			.filter_map(|e| async move { match e {
-				Event::Dht(e) => Some(e),
-				_ => None,
-			}});
-		let (authority_discovery_worker, _service) = sc_authority_discovery::new_worker_and_service_with_config(
-			sc_authority_discovery::WorkerConfig {
-				publish_non_global_ips: auth_disc_publish_non_global_ips,
-				..Default::default()
-			},
-			client.clone(),
-			network.clone(),
-			Box::pin(dht_event_stream),
-			authority_discovery_role,
-			prometheus_registry.clone(),
-		);
+		let authority_discovery_role =
+			sc_authority_discovery::Role::PublishAndDiscover(keystore_container.keystore());
+		let dht_event_stream =
+			network.event_stream("authority-discovery").filter_map(|e| async move {
+				match e {
+					Event::Dht(e) => Some(e),
+					_ => None,
+				}
+			});
+		let (authority_discovery_worker, _service) =
+			sc_authority_discovery::new_worker_and_service_with_config(
+				sc_authority_discovery::WorkerConfig {
+					publish_non_global_ips: auth_disc_publish_non_global_ips,
+					..Default::default()
+				},
+				client.clone(),
+				network.clone(),
+				Box::pin(dht_event_stream),
+				authority_discovery_role,
+				prometheus_registry.clone(),
+			);
 
-		task_manager.spawn_handle().spawn("authority-discovery-worker", authority_discovery_worker.run());
+		task_manager.spawn_handle().spawn(
+			"authority-discovery-worker",
+			Some("networking"),
+			authority_discovery_worker.run(),
+		);
 	}
 
 	// if the node isn't actively participating in consensus then it doesn't
 	// need a keystore, regardless of which protocol we use below.
-	let keystore = if role.is_authority() {
-		Some(keystore_container.sync_keystore())
-	} else {
-		None
-	};
+	let keystore =
+		if role.is_authority() { Some(keystore_container.sync_keystore()) } else { None };
 
 	let config = grandpa::Config {
 		// FIXME #1578 make this available through chainspec
@@ -1124,472 +1169,10 @@ pub fn new_full_base_phoenixx(mut config: Configuration) -> Result<TaskManager, 
 		// if it fails we take down the service with it.
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"grandpa-voter",
-			grandpa::run_grandpa_voter(grandpa_config)?
+			None,
+			grandpa::run_grandpa_voter(grandpa_config)?,
 		);
 	}
-
-	network_starter.start_network();
-	Ok(task_manager)
-}
-
-/// Builds a new service for a light client.
-pub fn new_light(
-	config: Configuration,
-) -> Result<TaskManager, ServiceError> {
-	if config.chain_spec.is_phoenixx() {
-		return new_light_base_phoenixx(config)
-	}
-	if config.chain_spec.is_protonet() {
-		return new_light_base_protonet(config)
-	}
-	new_light_base(config)
-}
-
-fn new_light_base(
-	mut config: Configuration,
-) -> Result<TaskManager, ServiceError> {
-	let telemetry = config.telemetry_endpoints.clone()
-		.filter(|x| !x.is_empty())
-		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
-			let worker = TelemetryWorker::with_transport(16, None)?;
-			let telemetry = worker.handle().new_telemetry(endpoints);
-			Ok((worker, telemetry))
-		})
-		.transpose()?;
-
-	let (client, backend, keystore_container, mut task_manager, on_demand) =
-		sc_service::new_light_parts::<Block, XXNetworkRuntimeApi, XXNetworkExecutor>(
-			&config,
-			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
-		)?;
-
-	let mut telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
-			telemetry
-		});
-
-	config.network.extra_sets.push(grandpa::grandpa_peers_set_config());
-
-	let select_chain = sc_consensus::LongestChain::new(backend.clone());
-
-	let transaction_pool = Arc::new(sc_transaction_pool::BasicPool::new_light(
-		config.transaction_pool.clone(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
-		on_demand.clone(),
-	));
-
-	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
-		client.clone(),
-		&(client.clone() as Arc<_>),
-		select_chain.clone(),
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-	let justification_import = grandpa_block_import.clone();
-
-	let (babe_block_import, babe_link) = sc_consensus_babe::block_import(
-		sc_consensus_babe::Config::get_or_compute(&*client)?,
-		grandpa_block_import,
-		client.clone(),
-	)?;
-
-	let slot_duration = babe_link.config().slot_duration();
-	let import_queue = sc_consensus_babe::import_queue(
-		babe_link,
-		babe_block_import,
-		Some(Box::new(justification_import)),
-		client.clone(),
-		select_chain.clone(),
-		move |_, ()| async move {
-			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-			let slot =
-				sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
-					*timestamp,
-					slot_duration,
-				);
-
-			let uncles =
-				sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
-
-			Ok((timestamp, slot, uncles))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		sp_consensus::NeverCanAuthor,
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-
-	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
-		backend.clone(),
-		grandpa_link.shared_authority_set().clone(),
-	));
-
-	let (network, system_rpc_tx, network_starter) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &config,
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			spawn_handle: task_manager.spawn_handle(),
-			import_queue,
-			on_demand: Some(on_demand.clone()),
-			block_announce_validator_builder: None,
-			warp_sync: Some(warp_sync),
-		})?;
-
-	let enable_grandpa = !config.disable_grandpa;
-	if enable_grandpa {
-		let name = config.network.node_name.clone();
-
-		let config = grandpa::Config {
-			gossip_duration: std::time::Duration::from_millis(333),
-			justification_period: 512,
-			name: Some(name),
-			observer_enabled: false,
-			keystore: None,
-			local_role: config.role.clone(),
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
-		};
-
-		task_manager.spawn_handle().spawn_blocking(
-			"grandpa-observer",
-			grandpa::run_grandpa_observer(config, grandpa_link, network.clone())?,
-		);
-	}
-
-	if config.offchain_worker.enabled {
-		sc_service::build_offchain_workers(
-			&config,
-			task_manager.spawn_handle(),
-			client.clone(),
-			network.clone(),
-		);
-	}
-
-	let light_deps = node_rpc::LightDeps {
-		remote_blockchain: backend.remote_blockchain(),
-		fetcher: on_demand.clone(),
-		client: client.clone(),
-		pool: transaction_pool.clone(),
-	};
-
-	let rpc_extensions = node_rpc::create_light(light_deps);
-
-	let _ =
-		sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-			on_demand: Some(on_demand),
-			remote_blockchain: Some(backend.remote_blockchain()),
-			rpc_extensions_builder: Box::new(sc_service::NoopRpcExtensionBuilder(rpc_extensions)),
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			keystore: keystore_container.sync_keystore(),
-			config, backend, system_rpc_tx,
-			network: network.clone(),
-			task_manager: &mut task_manager,
-			telemetry: telemetry.as_mut(),
-		})?;
-
-	network_starter.start_network();
-	Ok(task_manager)
-}
-
-fn new_light_base_protonet(
-	mut config: Configuration,
-) -> Result<TaskManager, ServiceError> {
-	let telemetry = config.telemetry_endpoints.clone()
-		.filter(|x| !x.is_empty())
-		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
-			let worker = TelemetryWorker::with_transport(16, None)?;
-			let telemetry = worker.handle().new_telemetry(endpoints);
-			Ok((worker, telemetry))
-		})
-		.transpose()?;
-
-	let (client, backend, keystore_container, mut task_manager, on_demand) =
-		sc_service::new_light_parts::<Block, ProtonetRuntimeApi, ProtonetExecutor>(
-			&config,
-			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
-		)?;
-
-	let mut telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
-			telemetry
-		});
-
-	config.network.extra_sets.push(grandpa::grandpa_peers_set_config());
-
-	let select_chain = sc_consensus::LongestChain::new(backend.clone());
-
-	let transaction_pool = Arc::new(sc_transaction_pool::BasicPool::new_light(
-		config.transaction_pool.clone(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
-		on_demand.clone(),
-	));
-
-	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
-		client.clone(),
-		&(client.clone() as Arc<_>),
-		select_chain.clone(),
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-	let justification_import = grandpa_block_import.clone();
-
-	let (babe_block_import, babe_link) = sc_consensus_babe::block_import(
-		sc_consensus_babe::Config::get_or_compute(&*client)?,
-		grandpa_block_import,
-		client.clone(),
-	)?;
-
-	let slot_duration = babe_link.config().slot_duration();
-	let import_queue = sc_consensus_babe::import_queue(
-		babe_link,
-		babe_block_import,
-		Some(Box::new(justification_import)),
-		client.clone(),
-		select_chain.clone(),
-		move |_, ()| async move {
-			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-			let slot =
-				sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
-					*timestamp,
-					slot_duration,
-				);
-
-			let uncles =
-				sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
-
-			Ok((timestamp, slot, uncles))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		sp_consensus::NeverCanAuthor,
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-
-	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
-		backend.clone(),
-		grandpa_link.shared_authority_set().clone(),
-	));
-
-	let (network, system_rpc_tx, network_starter) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &config,
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			spawn_handle: task_manager.spawn_handle(),
-			import_queue,
-			on_demand: Some(on_demand.clone()),
-			block_announce_validator_builder: None,
-			warp_sync: Some(warp_sync),
-		})?;
-
-	let enable_grandpa = !config.disable_grandpa;
-	if enable_grandpa {
-		let name = config.network.node_name.clone();
-
-		let config = grandpa::Config {
-			gossip_duration: std::time::Duration::from_millis(333),
-			justification_period: 512,
-			name: Some(name),
-			observer_enabled: false,
-			keystore: None,
-			local_role: config.role.clone(),
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
-		};
-
-		task_manager.spawn_handle().spawn_blocking(
-			"grandpa-observer",
-			grandpa::run_grandpa_observer(config, grandpa_link, network.clone())?,
-		);
-	}
-
-	if config.offchain_worker.enabled {
-		sc_service::build_offchain_workers(
-			&config,
-			task_manager.spawn_handle(),
-			client.clone(),
-			network.clone(),
-		);
-	}
-
-	let light_deps = node_rpc::LightDeps {
-		remote_blockchain: backend.remote_blockchain(),
-		fetcher: on_demand.clone(),
-		client: client.clone(),
-		pool: transaction_pool.clone(),
-	};
-
-	let rpc_extensions = node_rpc::create_light(light_deps);
-
-	let _ =
-		sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-			on_demand: Some(on_demand),
-			remote_blockchain: Some(backend.remote_blockchain()),
-			rpc_extensions_builder: Box::new(sc_service::NoopRpcExtensionBuilder(rpc_extensions)),
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			keystore: keystore_container.sync_keystore(),
-			config, backend, system_rpc_tx,
-			network: network.clone(),
-			task_manager: &mut task_manager,
-			telemetry: telemetry.as_mut(),
-		})?;
-
-	network_starter.start_network();
-	Ok(task_manager)
-}
-
-fn new_light_base_phoenixx(
-	mut config: Configuration,
-) -> Result<TaskManager, ServiceError> {
-	let telemetry = config.telemetry_endpoints.clone()
-		.filter(|x| !x.is_empty())
-		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
-			let worker = TelemetryWorker::with_transport(16, None)?;
-			let telemetry = worker.handle().new_telemetry(endpoints);
-			Ok((worker, telemetry))
-		})
-		.transpose()?;
-
-	let (client, backend, keystore_container, mut task_manager, on_demand) =
-		sc_service::new_light_parts::<Block, PhoenixxRuntimeApi, PhoenixxExecutor>(
-			&config,
-			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
-		)?;
-
-	let mut telemetry = telemetry
-		.map(|(worker, telemetry)| {
-			task_manager.spawn_handle().spawn("telemetry", worker.run());
-			telemetry
-		});
-
-	config.network.extra_sets.push(grandpa::grandpa_peers_set_config());
-
-	let select_chain = sc_consensus::LongestChain::new(backend.clone());
-
-	let transaction_pool = Arc::new(sc_transaction_pool::BasicPool::new_light(
-		config.transaction_pool.clone(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
-		on_demand.clone(),
-	));
-
-	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
-		client.clone(),
-		&(client.clone() as Arc<_>),
-		select_chain.clone(),
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-	let justification_import = grandpa_block_import.clone();
-
-	let (babe_block_import, babe_link) = sc_consensus_babe::block_import(
-		sc_consensus_babe::Config::get_or_compute(&*client)?,
-		grandpa_block_import,
-		client.clone(),
-	)?;
-
-	let slot_duration = babe_link.config().slot_duration();
-	let import_queue = sc_consensus_babe::import_queue(
-		babe_link,
-		babe_block_import,
-		Some(Box::new(justification_import)),
-		client.clone(),
-		select_chain.clone(),
-		move |_, ()| async move {
-			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-			let slot =
-				sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
-					*timestamp,
-					slot_duration,
-				);
-
-			let uncles =
-				sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
-
-			Ok((timestamp, slot, uncles))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		sp_consensus::NeverCanAuthor,
-		telemetry.as_ref().map(|x| x.handle()),
-	)?;
-
-	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
-		backend.clone(),
-		grandpa_link.shared_authority_set().clone(),
-	));
-
-	let (network, system_rpc_tx, network_starter) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &config,
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			spawn_handle: task_manager.spawn_handle(),
-			import_queue,
-			on_demand: Some(on_demand.clone()),
-			block_announce_validator_builder: None,
-			warp_sync: Some(warp_sync),
-		})?;
-
-	let enable_grandpa = !config.disable_grandpa;
-	if enable_grandpa {
-		let name = config.network.node_name.clone();
-
-		let config = grandpa::Config {
-			gossip_duration: std::time::Duration::from_millis(333),
-			justification_period: 512,
-			name: Some(name),
-			observer_enabled: false,
-			keystore: None,
-			local_role: config.role.clone(),
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
-		};
-
-		task_manager.spawn_handle().spawn_blocking(
-			"grandpa-observer",
-			grandpa::run_grandpa_observer(config, grandpa_link, network.clone())?,
-		);
-	}
-
-	if config.offchain_worker.enabled {
-		sc_service::build_offchain_workers(
-			&config,
-			task_manager.spawn_handle(),
-			client.clone(),
-			network.clone(),
-		);
-	}
-
-	let light_deps = node_rpc::LightDeps {
-		remote_blockchain: backend.remote_blockchain(),
-		fetcher: on_demand.clone(),
-		client: client.clone(),
-		pool: transaction_pool.clone(),
-	};
-
-	let rpc_extensions = node_rpc::create_light(light_deps);
-
-	let _ =
-		sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-			on_demand: Some(on_demand),
-			remote_blockchain: Some(backend.remote_blockchain()),
-			rpc_extensions_builder: Box::new(sc_service::NoopRpcExtensionBuilder(rpc_extensions)),
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			keystore: keystore_container.sync_keystore(),
-			config, backend, system_rpc_tx,
-			network: network.clone(),
-			task_manager: &mut task_manager,
-			telemetry: telemetry.as_mut(),
-		})?;
 
 	network_starter.start_network();
 	Ok(task_manager)

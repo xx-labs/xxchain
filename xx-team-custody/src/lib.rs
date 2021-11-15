@@ -6,7 +6,7 @@ use frame_support::{
 };
 use sp_runtime::traits::{Convert};
 use frame_system::{ensure_root, ensure_signed};
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 use sp_std::prelude::*;
 
 pub mod custody;
@@ -303,8 +303,8 @@ impl<T: Config> Module<T> {
 
 }
 
-/// Implement CustodianHandler trait
-impl<T: Config> pallet_staking::CustodianHandler<T::AccountId, BalanceOf<T>> for Module<T> {
+/// Implement CustodyHandler trait
+impl<T: Config> pallet_staking::CustodyHandler<T::AccountId, BalanceOf<T>> for Module<T> {
     fn is_custody_account(who: &T::AccountId) -> bool {
         Self::is_custody(who)
     }

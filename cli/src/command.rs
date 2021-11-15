@@ -17,11 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{chain_spec, service, Cli, Subcommand};
-use sc_cli::{Result, SubstrateCli, RuntimeVersion, Role, ChainSpec};
+use sc_cli::{Result, SubstrateCli, RuntimeVersion, ChainSpec};
 use sc_service::PartialComponents;
 use crate::service::{new_partial, new_partial_protonet, new_partial_phoenixx};
 use crate::chain_spec::IdentifyVariant;
-use node_executor::{XXNetworkExecutor, ProtonetExecutor, PhoenixxExecutor};
+use node_executor::{XXNetworkExecutorDispatch, ProtonetExecutorDispatch, PhoenixxExecutorDispatch};
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -50,8 +50,7 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		let id = if id == "" {
-			// For now default to protonet testnet if no chain provided
-			"protonet"
+			"xxnetwork"
 		} else { id };
 		Ok(match id {
 			"xxnetwork" => Box::new(chain_spec::xxnetwork_config()?),
@@ -99,10 +98,7 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
 			runner.run_node_until_exit(|config| async move {
-				match config.role {
-					Role::Light => service::new_light(config),
-					_ => service::new_full(config),
-				}.map_err(sc_cli::Error::Service)
+				service::new_full(config).map_err(sc_cli::Error::Service)
 			})
 		}
 		Some(Subcommand::Inspect(cmd)) => {
@@ -113,7 +109,7 @@ pub fn run() -> Result<()> {
 					cmd.run::<
 						chain_spec::phoenixx::Block,
 						chain_spec::phoenixx::RuntimeApi,
-						PhoenixxExecutor>(config)
+						PhoenixxExecutorDispatch>(config)
 				)
 			}
 			if chain_spec.is_protonet() {
@@ -121,13 +117,13 @@ pub fn run() -> Result<()> {
 					cmd.run::<
 						chain_spec::protonet::Block,
 						chain_spec::protonet::RuntimeApi,
-						ProtonetExecutor>(config)
+						ProtonetExecutorDispatch>(config)
 				)
 			}
 			runner.sync_run(|config| cmd.run::<
 				chain_spec::xxnetwork::Block,
 				chain_spec::xxnetwork::RuntimeApi,
-				XXNetworkExecutor>(config))
+				XXNetworkExecutorDispatch>(config))
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
@@ -135,14 +131,14 @@ pub fn run() -> Result<()> {
 				let chain_spec = &runner.config().chain_spec;
 				if chain_spec.is_phoenixx() {
 					return runner.sync_run(|config|
-						cmd.run::<chain_spec::phoenixx::Block, PhoenixxExecutor>(config))
+						cmd.run::<chain_spec::phoenixx::Block, PhoenixxExecutorDispatch>(config))
 				}
 				if chain_spec.is_protonet() {
 					return runner.sync_run(|config|
-						cmd.run::<chain_spec::protonet::Block, ProtonetExecutor>(config))
+						cmd.run::<chain_spec::protonet::Block, ProtonetExecutorDispatch>(config))
 				}
 				runner.sync_run(|config|
-					cmd.run::<chain_spec::xxnetwork::Block, XXNetworkExecutor>(config))
+					cmd.run::<chain_spec::xxnetwork::Block, XXNetworkExecutorDispatch>(config))
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`.".into())
@@ -288,12 +284,12 @@ pub fn run() -> Result<()> {
 					registry,
 				).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 				if chain_spec.is_phoenixx() {
-					return Ok((cmd.run::<chain_spec::phoenixx::Block, PhoenixxExecutor>(config), task_manager))
+					return Ok((cmd.run::<chain_spec::phoenixx::Block, PhoenixxExecutorDispatch>(config), task_manager))
 				}
 				if chain_spec.is_protonet() {
-					return Ok((cmd.run::<chain_spec::protonet::Block, ProtonetExecutor>(config), task_manager))
+					return Ok((cmd.run::<chain_spec::protonet::Block, ProtonetExecutorDispatch>(config), task_manager))
 				}
-				Ok((cmd.run::<chain_spec::xxnetwork::Block, XXNetworkExecutor>(config), task_manager))
+				Ok((cmd.run::<chain_spec::xxnetwork::Block, XXNetworkExecutorDispatch>(config), task_manager))
 			})
 		}
 	}

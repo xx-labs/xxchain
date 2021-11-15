@@ -1,9 +1,10 @@
 use sp_runtime::{Permill, RuntimeDebug};
 use codec::{Encode, Decode};
+use scale_info::TypeInfo;
 use sp_std::prelude::*;
 
 /// CMIX software hashes
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct SoftwareHashes<Hash> {
     /// Server binary
@@ -36,7 +37,7 @@ type GeoBin = u8;
 type PointsMultiplier = u16;
 
 /// Reward Points
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct RewardPoints {
     /// Points per successful real-time round
@@ -48,7 +49,7 @@ pub struct RewardPoints {
 }
 
 /// Performance measurement variables
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Performance {
     /// Period for round performance data collection
@@ -62,7 +63,7 @@ pub struct Performance {
 }
 
 /// Round Timeouts
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Timeouts {
     /// Round precomputation timeout
@@ -74,7 +75,7 @@ pub struct Timeouts {
 }
 
 /// Scheduling variables
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Scheduling {
     /// Mix team size
@@ -88,7 +89,7 @@ pub struct Scheduling {
 }
 
 /// User Registration variables
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct UserRegistration {
     /// Maximum number of user registrations per period
@@ -98,7 +99,7 @@ pub struct UserRegistration {
 }
 
 /// CMIX Variables
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct Variables {
     /// Performance measurement variables

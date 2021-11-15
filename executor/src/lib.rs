@@ -18,32 +18,52 @@
 //! A `CodeExecutor` specialization which uses natively compiled runtime when the wasm to be
 //! executed is equivalent to the natively compiled code.
 
-pub use sc_executor::NativeExecutor;
-use sc_executor::native_executor_instance;
+pub use sc_executor::NativeElseWasmExecutor;
 
-// Declare an instance of the native executor named `Executor`. Include the wasm binary as the
-// equivalent wasm code.
-native_executor_instance!(
-	pub XXNetworkExecutor,
-	xxnetwork_runtime::api::dispatch,
-	xxnetwork_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+// Declare an instance of the native executor named `XXNetworkExecutorDispatch`.
+// Include the wasm binary as the equivalent wasm code.
+pub struct XXNetworkExecutorDispatch;
 
-// Declare an instance of the native executor named `Executor`. Include the wasm binary as the
-// equivalent wasm code.
-native_executor_instance!(
-	pub ProtonetExecutor,
-	protonet_runtime::api::dispatch,
-	protonet_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+impl sc_executor::NativeExecutionDispatch for XXNetworkExecutorDispatch {
+    type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
-// Declare an instance of the native executor named `Executor`. Include the wasm binary as the
-// equivalent wasm code.
-native_executor_instance!(
-	pub PhoenixxExecutor,
-	phoenixx_runtime::api::dispatch,
-	phoenixx_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+        xxnetwork_runtime::api::dispatch(method, data)
+    }
+
+    fn native_version() -> sc_executor::NativeVersion {
+        xxnetwork_runtime::native_version()
+    }
+}
+
+// Declare an instance of the native executor named `ProtonetExecutorDispatch`.
+// Include the wasm binary as the equivalent wasm code.
+pub struct ProtonetExecutorDispatch;
+
+impl sc_executor::NativeExecutionDispatch for ProtonetExecutorDispatch {
+    type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+        protonet_runtime::api::dispatch(method, data)
+    }
+
+    fn native_version() -> sc_executor::NativeVersion {
+        protonet_runtime::native_version()
+    }
+}
+
+// Declare an instance of the native executor named `PhoenixxExecutorDispatch`.
+// Include the wasm binary as the equivalent wasm code.
+pub struct PhoenixxExecutorDispatch;
+
+impl sc_executor::NativeExecutionDispatch for PhoenixxExecutorDispatch {
+    type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+        phoenixx_runtime::api::dispatch(method, data)
+    }
+
+    fn native_version() -> sc_executor::NativeVersion {
+        phoenixx_runtime::native_version()
+    }
+}

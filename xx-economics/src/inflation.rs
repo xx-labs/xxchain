@@ -6,11 +6,12 @@ use sp_runtime::traits::{Zero, Saturating};
 use sp_runtime::{Perbill, RuntimeDebug};
 use codec::{Encode, Decode};
 use sp_std::{prelude::*};
-use frame_support::{StorageValue, traits::Get};
-use pallet_staking::CustodianHandler;
+use frame_support::{StorageValue, traits::{Currency, Get}};
+use pallet_staking::CustodyHandler;
+use xx_public::PublicAccountsHandler;
 
 /// Inflation fixed parameters
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct InflationFixedParams {
     /// Minimum inflation
@@ -39,7 +40,7 @@ impl Default for InflationFixedParams {
 }
 
 /// Ideal interest point
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct IdealInterestPoint<B> {
     /// Block number
@@ -169,10 +170,14 @@ impl<T: Config> Module<T> {
             // Balance of Rewards Pool
             Self::rewards_balance()
             // add total balance under custody
-            + T::CustodianHandler::total_custody()
+            + T::CustodyHandler::total_custody()
             // add liquidity rewards balance
-            + Self::liquidity_rewards();
-        issuance - unstakeable
+            + Self::liquidity_rewards()
+            // add public funds accounts funds (testnet + sale)
+            + T::PublicAccountsHandler::accounts().iter().fold(Zero::zero(), |acc, x| {
+                acc + T::Currency::free_balance(&x)
+            });
+        issuance.saturating_sub(unstakeable)
     }
 }
 

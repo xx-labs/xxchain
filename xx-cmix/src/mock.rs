@@ -26,12 +26,12 @@ use frame_support::{
     parameter_types,
     traits::{
         Currency, FindAuthor, Get, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
-        OneSessionHandler,
+        OneSessionHandler, GenesisBuild,
     },
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureRoot;
-use pallet_staking::{ConvertCurve, EraIndex, Exposure, ExposureOf, StashOf};
+use pallet_staking::{ConvertCurve, EraIndex, Exposure, ExposureOf, StashOf, StakerStatus};
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
@@ -43,8 +43,6 @@ use sp_runtime::{
 use sp_staking::SessionIndex;
 use std::{cell::RefCell, collections::HashSet};
 
-pub(crate) const ERA_DURATION_IN_SESSIONS: u32 = 3;
-
 pub(crate) const INIT_TIMESTAMP: u64 = 30_000;
 pub(crate) const BLOCK_TIME: u64 = 1000;
 
@@ -53,10 +51,6 @@ pub(crate) type AccountId = u64;
 pub(crate) type AccountIndex = u64;
 pub(crate) type BlockNumber = u64;
 pub(crate) type Balance = u128;
-
-thread_local! {
-    static SESSION: RefCell<(Vec<AccountId>, HashSet<AccountId>)> = RefCell::new(Default::default());
-}
 
 /// Another session handler struct to test on_disabled.
 pub struct OtherSessionHandler;
@@ -70,23 +64,14 @@ impl OneSessionHandler<AccountId> for OtherSessionHandler {
     {
     }
 
-    fn on_new_session<'a, I: 'a>(_: bool, validators: I, _: I)
+	fn on_new_session<'a, I: 'a>(_: bool, _: I, _: I)
     where
         I: Iterator<Item = (&'a AccountId, Self::Key)>,
         AccountId: 'a,
     {
-        SESSION.with(|x| {
-            *x.borrow_mut() = (validators.map(|x| x.0.clone()).collect(), HashSet::new())
-        });
     }
 
-    fn on_disabled(validator_index: usize) {
-        SESSION.with(|d| {
-            let mut d = d.borrow_mut();
-            let value = d.0[validator_index];
-            d.1.insert(value);
-        })
-    }
+    fn on_disabled(_validator_index: u32) {}
 }
 
 impl sp_runtime::BoundToRuntimeAppPublic for OtherSessionHandler {
@@ -130,7 +115,7 @@ parameter_types! {
             frame_support::weights::constants::WEIGHT_PER_SECOND * 2
         );
     pub const MaxLocks: u32 = 1024;
-    pub static SessionsPerEra: SessionIndex = ERA_DURATION_IN_SESSIONS;
+    pub static SessionsPerEra: SessionIndex = 3;
     pub static ExistentialDeposit: Balance = 1;
     pub static SlashDeferDuration: EraIndex = 0;
     pub static Period: BlockNumber = 5;
@@ -138,7 +123,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-    type BaseCallFilter = frame_support::traits::AllowAll;
+    type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
@@ -175,7 +160,6 @@ impl pallet_balances::Config for Test {
 }
 parameter_types! {
     pub const UncleGenerations: u64 = 0;
-    pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(25);
 }
 sp_runtime::impl_opaque_keys! {
     pub struct SessionKeys {
@@ -190,7 +174,6 @@ impl pallet_session::Config for Test {
     type Event = Event;
     type ValidatorId = AccountId;
     type ValidatorIdOf = StashOf<Test>;
-    type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
     type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
     type WeightInfo = ();
 }
@@ -203,7 +186,7 @@ impl pallet_authorship::Config for Test {
     type FindAuthor = Author11;
     type UncleGenerations = UncleGenerations;
     type FilterUncle = ();
-    type EventHandler = pallet_staking::Module<Test>;
+    type EventHandler = pallet_staking::Pallet<Test>;
 }
 parameter_types! {
     pub const MinimumPeriod: u64 = 5;
@@ -228,6 +211,7 @@ parameter_types! {
     pub const BondingDuration: EraIndex = 3;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &I_NPOS;
     pub const MaxNominatorRewardedPerValidator: u32 = 64;
+    pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(75);
 }
 
 thread_local! {
@@ -249,9 +233,9 @@ impl OnUnbalanced<NegativeImbalanceOf<Test>> for RewardRemainderMock {
     }
 }
 
-pub struct CustodianHandlerMock;
+pub struct CustodyHandlerMock;
 
-impl pallet_staking::CustodianHandler<AccountId, Balance> for CustodianHandlerMock {
+impl pallet_staking::CustodyHandler<AccountId, Balance> for CustodyHandlerMock {
     fn is_custody_account(_account: &AccountId) -> bool {
         false
     }
@@ -266,9 +250,6 @@ thread_local! {
 }
 
 impl onchain::Config for Test {
-    type AccountId = AccountId;
-    type BlockNumber = BlockNumber;
-    type BlockWeights = BlockWeights;
     type Accuracy = Perbill;
     type DataProvider = Staking;
 }
@@ -285,7 +266,7 @@ impl pallet_staking::Config for Test {
     type SlashDeferDuration = SlashDeferDuration;
     type SlashCancelOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type BondingDuration = BondingDuration;
-    type SessionInterface = Test;
+    type SessionInterface = Self;
     type EraPayout = ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
@@ -293,7 +274,10 @@ impl pallet_staking::Config for Test {
     type WeightInfo = ();
     type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type CmixHandler = xx_cmix::Module<Test>; // connect up the staking and xx pallets
-    type CustodianHandler = CustodianHandlerMock;
+    type CustodyHandler = CustodyHandlerMock;
+    type GenesisElectionProvider = Self::ElectionProvider;
+    type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
+    type SortedListProvider = pallet_staking::UseNominatorsMap<Self>;
 }
 
 impl xx_cmix::Config for Test {
@@ -335,16 +319,43 @@ impl ExtBuilder {
         self
     }
 
-    pub fn with_scheduling_acccount(mut self, scheduling_account: AccountId) -> Self {
+    pub fn with_scheduling_account(mut self, scheduling_account: AccountId) -> Self {
         self.scheduling_account = Some(scheduling_account);
         self
     }
 
     pub fn build(self) -> sp_io::TestExternalities {
         sp_tracing::try_init_simple();
-        let mut storage = frame_system::GenesisConfig::default()
-            .build_storage::<Test>()
-            .unwrap();
+		let mut storage = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+
+        let _ = pallet_balances::GenesisConfig::<Test> {
+            balances: vec![
+                // controllers
+                (10, 100),
+                (20, 10),
+                // stashes
+                (11, 1000),
+                (21, 1000),
+            ],
+        }.assimilate_storage(&mut storage);
+
+        let _ = pallet_staking::GenesisConfig::<Test> {
+            stakers: vec![
+                // (stash, ctrl, stake, status)
+                // these two will be elected in the default test where we elect 2.
+                (11, 10, 1000,
+                    StakerStatus::<H256, AccountId>::Validator(Some(H256::repeat_byte(11u8)))),
+                (21, 20, 1000,
+                    StakerStatus::<H256, AccountId>::Validator(Some(H256::repeat_byte(21u8)))),
+            ],
+            validator_count: 2,
+            minimum_validator_count: 0,
+            invulnerables: vec![],
+            slash_reward_fraction: Perbill::from_percent(10),
+            min_nominator_bond: ExistentialDeposit::get(),
+            min_validator_bond: ExistentialDeposit::get(),
+            ..Default::default()
+        }.assimilate_storage(&mut storage);
 
         let _ = xx_cmix::GenesisConfig::<Test> {
             admin_permission: self.admin_permission,
@@ -352,6 +363,10 @@ impl ExtBuilder {
             ..Default::default()
         }
         .assimilate_storage(&mut storage);
+
+        let _ = pallet_session::GenesisConfig::<Test> {
+            keys: Default::default()
+        }.assimilate_storage(&mut storage);
 
         let mut ext = sp_io::TestExternalities::from(storage);
         if self.initialize_first_session {
@@ -426,10 +441,7 @@ pub(crate) fn start_session(session_index: SessionIndex) {
 
 /// Progress until the given era.
 pub(crate) fn start_active_era(era_index: EraIndex) {
-    // not sure why the below doesn't work and needs the extra +1
-    // This is not present in the staking pallet mock
-    //start_session((era_index * <SessionsPerEra as Get<u32>>::get()).into());
-    start_session(((era_index + 1) * <SessionsPerEra as Get<u32>>::get()).into());
+    start_session((era_index * <SessionsPerEra as Get<u32>>::get()).into());
     assert_eq!(active_era(), era_index);
     // One way or another, current_era must have changed before the active era, so they must match
     // at this point.

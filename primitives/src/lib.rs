@@ -18,7 +18,6 @@
 //! Low-level types used throughout the Substrate code.
 
 #![warn(missing_docs)]
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_runtime::{
@@ -53,7 +52,7 @@ pub type Hash = sp_core::H256;
 pub type Timestamp = u64;
 
 /// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
+pub type DigestItem = generic::DigestItem;
 /// Header type.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type.

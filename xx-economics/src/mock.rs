@@ -33,7 +33,7 @@ use frame_system::{EnsureSignedBy};
 use pallet_staking::{EraIndex};
 use sp_runtime::{
     testing::{Header, TestXt, H256},
-    traits::{IdentityLookup, Zero},
+    traits::IdentityLookup,
     Perbill,
 };
 
@@ -74,7 +74,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-    type BaseCallFilter = frame_support::traits::AllowAll;
+    type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
@@ -114,11 +114,13 @@ parameter_types! {
     pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(25);
 }
 
-pub struct MockCustodianHandler;
+pub struct MockCustodyHandler;
 
-impl pallet_staking::CustodianHandler<AccountId, Balance> for MockCustodianHandler {
+impl pallet_staking::CustodyHandler<AccountId, Balance> for MockCustodyHandler {
     fn is_custody_account(_: &AccountId) -> bool { false }
-    fn total_custody() -> Balance { Balance::zero() }
+    fn total_custody() -> Balance {
+        1000u128
+    }
 }
 
 pub const MOCK_TREASURY: &AccountId = &1337;
@@ -142,12 +144,21 @@ ord_parameter_types! {
     pub const AdminAccount: AccountId = 99;
 }
 
+pub struct MockPublicAccountsHandler;
+
+impl xx_public::PublicAccountsHandler<AccountId> for MockPublicAccountsHandler {
+    fn accounts() -> Vec<AccountId> {
+        return vec![42, 43]
+    }
+}
+
 pub type TestAdminOrigin = EnsureSignedBy<AdminAccount, AccountId>;
 
 impl xx_economics::Config for Test {
     type Event = Event;
     type Currency = Balances;
-    type CustodianHandler = MockCustodianHandler;
+    type CustodyHandler = MockCustodyHandler;
+    type PublicAccountsHandler = MockPublicAccountsHandler;
     type RewardsPoolId = RewardsPoolId;
     type RewardRemainder = MockTreasury<Test>;
     type EraDuration = EraDuration;
@@ -167,14 +178,18 @@ where
 
 pub struct ExtBuilder {
     rewards_balance: BalanceOf<Test>,
+    liquidity_balance: BalanceOf<Test>,
     interest_points: Vec<inflation::IdealInterestPoint<BlockNumber>>,
+    with_public: bool,
 }
 
 impl Default for ExtBuilder {
     fn default() -> Self {
         Self {
             rewards_balance: Default::default(),
+            liquidity_balance: Default::default(),
             interest_points: Default::default(),
+            with_public: false,
         }
     }
 }
@@ -186,8 +201,18 @@ impl ExtBuilder {
         self
     }
 
+    pub fn with_liquidity_balance(mut self, liquidity_balance: BalanceOf<Test>) -> Self {
+        self.liquidity_balance = liquidity_balance;
+        self
+    }
+
     pub fn with_interest_points(mut self, points: Vec<inflation::IdealInterestPoint<BlockNumber>>) -> Self {
         self.interest_points = points;
+        self
+    }
+
+    pub fn with_public_accounts(mut self) -> Self {
+        self.with_public = true;
         self
     }
 
@@ -199,11 +224,21 @@ impl ExtBuilder {
 
         xx_economics::GenesisConfig::<Test> {
             balance: self.rewards_balance,
+            liquidity_rewards: self.liquidity_balance,
             interest_points: self.interest_points,
             ..Default::default()
         }
         .assimilate_storage(&mut storage)
         .unwrap();
+
+        if self.with_public {
+            pallet_balances::GenesisConfig::<Test> {
+                balances: vec![
+                    (42, 1000),
+                    (43, 1000),
+                ]
+            }.assimilate_storage(&mut storage).unwrap();
+        }
 
 
         let ext = sp_io::TestExternalities::from(storage);

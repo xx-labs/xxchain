@@ -31,9 +31,8 @@ use sp_consensus_babe::{AuthorityId as BabeId};
 use pallet_im_online::sr25519::{AuthorityId as ImOnlineId};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
-use pallet_staking::ValidatorPrefs;
 
-pub use node_primitives::{AccountId, Balance, Block, Signature};
+pub use node_primitives::{AccountId, Balance, Block, Signature, Hash};
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -197,11 +196,11 @@ pub fn phoenixx_testnet_genesis(
 	});
 
 	// stakers: all validators and nominators.
-	let prefs = ValidatorPrefs::default();
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(prefs.clone())))
+		.enumerate()
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (phoenixx::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -224,7 +223,6 @@ pub fn phoenixx_testnet_genesis(
 	phoenixx::GenesisConfig {
 		system: phoenixx::SystemConfig {
 			code: phoenixx::wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: phoenixx::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()
@@ -313,7 +311,10 @@ pub fn phoenixx_testnet_genesis(
 		xx_custody: phoenixx::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
-		}
+		},
+		xx_betanet_rewards: Default::default(),
+		xx_public: Default::default(),
+		assets: Default::default(),
 	}
 }
 
@@ -379,11 +380,11 @@ pub fn protonet_testnet_genesis(
 	});
 
 	// stakers: all validators and nominators.
-	let prefs = ValidatorPrefs::default();
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(prefs.clone())))
+		.enumerate()
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (protonet::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -406,7 +407,6 @@ pub fn protonet_testnet_genesis(
 	protonet::GenesisConfig {
 		system: protonet::SystemConfig {
 			code: protonet::wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: protonet::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()
@@ -495,7 +495,10 @@ pub fn protonet_testnet_genesis(
 		xx_custody: protonet::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
-		}
+		},
+		xx_betanet_rewards: Default::default(),
+		xx_public: Default::default(),
+		assets: Default::default(),
 	}
 }
 
@@ -561,11 +564,11 @@ pub fn xxnetwork_testnet_genesis(
 	});
 
 	// stakers: all validators and nominators.
-	let prefs = ValidatorPrefs::default();
 	let mut rng = rand::thread_rng();
 	let stakers = initial_authorities
 		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(prefs.clone())))
+		.enumerate()
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
 			let limit = (xxnetwork::MAX_NOMINATIONS as usize).min(initial_authorities.len());
@@ -589,7 +592,6 @@ pub fn xxnetwork_testnet_genesis(
 	xxnetwork::GenesisConfig {
 		system: xxnetwork::SystemConfig {
 			code: xxnetwork::wasm_binary_unwrap().to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: xxnetwork::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()
@@ -683,7 +685,22 @@ pub fn xxnetwork_testnet_genesis(
 			custodians: vec![
 				(get_account_id_from_seed::<sr25519::Public>("Charlie"), ())
 			],
-		}
+		},
+		xx_betanet_rewards: xxnetwork::XXBetanetRewardsConfig {
+			accounts: vec![
+				(
+					get_account_id_from_seed::<sr25519::Public>("Charlie"),
+					Default::default()
+				)
+			]
+		},
+		xx_public: xxnetwork::XXPublicConfig {
+			testnet_manager: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			sale_manager: get_account_id_from_seed::<sr25519::Public>("Bob"),
+			testnet_balance: 1000000 * UNITS,
+			sale_balance: 1000000 * UNITS,
+		},
+		assets: Default::default(),
 	}
 }
 

@@ -10,13 +10,13 @@ members = [
     'executor',
     'primitives',
     'rpc',
-    'rpc-client',
     'runtime/phoenixx',
     'runtime/protonet',
     'runtime/xxnetwork',
-    'staking',
     'swap',
+    'xx-betanet-rewards',
     'xx-cmix',
     'xx-economics',
+    'xx-public',
     'xx-team-custody'
 ]

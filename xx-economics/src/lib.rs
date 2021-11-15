@@ -17,7 +17,7 @@ use frame_support::{
     decl_event, decl_module, decl_storage,
     PalletId, dispatch::DispatchResult,
 };
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 use sp_runtime::traits::{AccountIdConversion};
 use frame_system::{ensure_root};
 
@@ -41,8 +41,11 @@ pub trait Config: frame_system::Config {
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId>;
 
-    // Handler with which to retrieve total token custody
-    type CustodianHandler: pallet_staking::CustodianHandler<Self::AccountId, BalanceOf<Self>>;
+    /// Handler with which to retrieve total token custody
+    type CustodyHandler: pallet_staking::CustodyHandler<Self::AccountId, BalanceOf<Self>>;
+
+    /// Handler to retrieve public accounts
+    type PublicAccountsHandler: xx_public::PublicAccountsHandler<Self::AccountId>;
 
     //---------------- REWARDS POOL ----------------//
 

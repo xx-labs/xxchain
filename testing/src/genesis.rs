@@ -26,23 +26,19 @@ use xxnetwork_runtime::{
 	AccountId, StakerStatus, BabeConfig, BABE_GENESIS_EPOCH_CONFIG,
 };
 use xxnetwork_runtime::constants::currency::*;
-use sp_core::ChangesTrieConfiguration;
 use sp_runtime::Perbill;
-use pallet_staking::ValidatorPrefs;
 
 /// Create genesis runtime configuration for tests.
-pub fn config(support_changes_trie: bool, code: Option<&[u8]>) -> GenesisConfig {
-	config_endowed(support_changes_trie, code, Default::default())
+pub fn config(code: Option<&[u8]>) -> GenesisConfig {
+	config_endowed(code, Default::default())
 }
 
 /// Create genesis runtime configuration for tests with some extra
 /// endowed accounts.
 pub fn config_endowed(
-	support_changes_trie: bool,
 	code: Option<&[u8]>,
 	extra_endowed: Vec<AccountId>,
 ) -> GenesisConfig {
-
 	let mut endowed = vec![
 		(alice(), 111 * UNITS),
 		(bob(), 100 * UNITS),
@@ -56,14 +52,8 @@ pub fn config_endowed(
 		extra_endowed.into_iter().map(|endowed| (endowed, 100*UNITS))
 	);
 
-	let prefs = ValidatorPrefs::default();
-
 	GenesisConfig {
 		system: SystemConfig {
-			changes_trie_config: if support_changes_trie { Some(ChangesTrieConfiguration {
-				digest_interval: 2,
-				digest_levels: 2,
-			}) } else { None },
 			code: code.map(|x| x.to_vec()).unwrap_or_else(|| wasm_binary_unwrap().to_vec()),
 		},
 		babe: BabeConfig {
@@ -75,9 +65,9 @@ pub fn config_endowed(
 		},
 		staking: StakingConfig {
 			stakers: vec![
-				(dave(), alice(), 111 * UNITS, StakerStatus::Validator(prefs.clone())),
-				(eve(), bob(), 100 * UNITS, StakerStatus::Validator(prefs.clone())),
-				(ferdie(), charlie(), 100 * UNITS, StakerStatus::Validator(prefs.clone()))
+				(dave(), alice(), 111 * UNITS, StakerStatus::Validator(Default::default())),
+				(eve(), bob(), 100 * UNITS, StakerStatus::Validator(Default::default())),
+				(ferdie(), charlie(), 100 * UNITS, StakerStatus::Validator(Default::default()))
 			],
 			validator_count: 3,
 			minimum_validator_count: 0,
@@ -121,5 +111,8 @@ pub fn config_endowed(
 		xx_cmix: Default::default(),
 		xx_economics: Default::default(),
 		xx_custody: Default::default(),
+		xx_betanet_rewards: Default::default(),
+		xx_public: Default::default(),
+		assets: Default::default(),
 	}
 }
