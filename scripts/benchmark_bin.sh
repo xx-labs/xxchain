@@ -1,12 +1,10 @@
 #!/bin/bash
 
-args="--release --features=runtime-benchmarks"
-
-mkdir -p weights/xxnetwork
+mkdir -p weights
 
 echo "Running xx network Runtime benchmarks"
 
-cargo run $args benchmark \
+./xxnetwork-chain benchmark \
     --chain "xxnetwork-dev" \
     --list |\
   tail -n+2 |\
@@ -19,7 +17,7 @@ cargo run $args benchmark \
 while read -r line; do
   pallet="$(echo "$line" | cut -d' ' -f1)";
   echo "Runtime: xxnetwork. Pallet: $pallet";
-cargo run $args -- benchmark \
+./xxnetwork-chain benchmark \
   --chain="xxnetwork-dev" \
   --steps=50 \
   --repeat=20 \
@@ -28,8 +26,6 @@ cargo run $args -- benchmark \
   --execution=wasm \
   --wasm-execution=compiled \
   --heap-pages=4096 \
-  --output="./weights/xxnetwork/${pallet/::/_}.rs"
+  --output="./weights/${pallet/::/_}.rs"
 done < "xxnetwork_pallets"
 rm "xxnetwork_pallets"
-cp ./weights/xxnetwork/* ./runtime/xxnetwork/weights/*
-rm -r weights/xxnetwork
