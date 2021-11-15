@@ -87,6 +87,8 @@ use sp_runtime::generic::Era;
 
 use sp_io::hashing::sha2_256;
 
+mod weights;
+
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
@@ -240,7 +242,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
+	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 }
@@ -249,7 +251,7 @@ impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_utility::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -330,7 +332,7 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
-	type WeightInfo = pallet_proxy::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
 	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
@@ -351,7 +353,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
@@ -404,7 +406,7 @@ impl pallet_balances::Config for Runtime {
 	type Event = Event;
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Runtime>;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
@@ -437,7 +439,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = Moment;
 	type OnTimestampSet = Babe;
 	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = pallet_timestamp::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -527,7 +529,7 @@ impl xx_economics::Config for Runtime {
 	// Admin is technical committee unanimity
 	type AdminOrigin = EnsureTechnicalUnanimity;
 
-	type WeightInfo = xx_economics::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::xx_economics::WeightInfo<Runtime>;
 }
 
 impl xx_team_custody::Config for Runtime {
@@ -544,7 +546,7 @@ impl xx_team_custody::Config for Runtime {
 	// Admin is technical committee unanimity
 	type AdminOrigin = EnsureTechnicalUnanimity;
     // Weight information for extrinsics in this pallet.
-    type WeightInfo = xx_team_custody::weights::SubstrateWeight<Self>;
+    type WeightInfo = weights::xx_team_custody::WeightInfo<Self>;
 }
 
 impl xx_cmix::Config for Runtime {
@@ -555,7 +557,7 @@ impl xx_cmix::Config for Runtime {
 	// Admin is 2/3 technical committee
 	type AdminOrigin = EnsureTwoThirdsTechnical;
     // Weight information for extrinsics in this pallet.
-    type WeightInfo = xx_cmix::weights::SubstrateWeight<Self>;
+    type WeightInfo = weights::xx_cmix::WeightInfo<Self>;
 }
 
 impl xx_public::Config for Runtime {
@@ -566,7 +568,7 @@ impl xx_public::Config for Runtime {
 	// Admin is technical committee unanimity
 	type AdminOrigin = EnsureTechnicalUnanimity;
 	// Weight information for extrinsics in this pallet.
-	type WeightInfo = xx_public::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::xx_public::WeightInfo<Self>;
 }
 
 use frame_election_provider_support::onchain;
@@ -793,7 +795,7 @@ impl pallet_democracy::Config for Runtime {
 	type Scheduler = Scheduler;
 	type PalletsOrigin = OriginCaller;
 	type MaxVotes = MaxVotes;
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_democracy::WeightInfo<Runtime>;
 	type MaxProposals = MaxProposals;
 }
 
@@ -812,7 +814,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -847,7 +849,7 @@ impl pallet_elections_phragmen::Config for Runtime {
 	type DesiredMembers = DesiredMembers;
 	type DesiredRunnersUp = DesiredRunnersUp;
 	type TermDuration = TermDuration;
-	type WeightInfo = pallet_elections_phragmen::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_elections_phragmen::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -865,7 +867,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type MaxProposals = TechnicalMaxProposals;
 	type MaxMembers = TechnicalMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_collective::WeightInfo<Runtime>;
 }
 
 type EnsureRootOrHalfCouncil = EnsureOneOf<
@@ -884,7 +886,7 @@ impl pallet_membership::Config<pallet_membership::Instance1> for Runtime {
 	type MembershipInitialized = TechnicalCommittee;
 	type MembershipChanged = TechnicalCommittee;
 	type MaxMembers = TechnicalMaxMembers;
-	type WeightInfo = pallet_membership::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_membership::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -919,7 +921,7 @@ impl pallet_treasury::Config for Runtime {
 	type Burn = Burn;
 	type PalletId = TreasuryPalletId;
 	type BurnDestination = ();
-	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = Bounties;
 	type MaxApprovals = MaxApprovals;
 }
@@ -933,7 +935,7 @@ impl pallet_bounties::Config for Runtime {
 	type DataDepositPerByte = DataDepositPerByte;
 	type Event = Event;
 	type MaximumReasonLength = MaximumReasonLength;
-	type WeightInfo = pallet_bounties::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_bounties::WeightInfo<Runtime>;
 }
 
 impl pallet_tips::Config for Runtime {
@@ -944,7 +946,7 @@ impl pallet_tips::Config for Runtime {
 	type TipFindersFee = TipFindersFee;
 	type TipReportDepositBase = TipReportDepositBase;
 	type Tippers = Elections;
-	type WeightInfo = pallet_tips::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_tips::WeightInfo<Runtime>;
 }
 
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
@@ -1027,7 +1029,7 @@ impl pallet_im_online::Config for Runtime {
 	type NextSessionRotation = Babe;
 	type ReportUnresponsiveness = Offences;
 	type UnsignedPriority = ImOnlineUnsignedPriority;
-	type WeightInfo = pallet_im_online::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_im_online::WeightInfo<Runtime>;
 }
 
 impl pallet_offences::Config for Runtime {
@@ -1082,7 +1084,7 @@ impl pallet_identity::Config for Runtime {
 	type Slashed = Treasury;
 	type ForceOrigin = EnsureRootOrHalfCouncil;
 	type RegistrarOrigin = EnsureRootOrHalfCouncil;
-	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_identity::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1094,7 +1096,7 @@ impl pallet_vesting::Config for Runtime {
 	type Currency = Balances;
 	type BlockNumberToBalance = ConvertInto;
 	type MinVestedTransfer = MinVestedTransfer;
-	type WeightInfo = pallet_vesting::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_vesting::WeightInfo<Runtime>;
 	const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
@@ -1109,7 +1111,7 @@ impl claims::Config for Runtime {
 	/// Tech committee unanimity can move a claim
 	type MoveClaimOrigin = EnsureTwoThirdsTechnical;
 	type RewardHandler = XXBetanetRewards;
-	type WeightInfo = claims::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::claims::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1136,7 +1138,7 @@ impl swap::Config for Runtime {
 	type Currency = Balances;
 	type NativeTokenId = TokenID;
 	type AdminOrigin = EnsureTwoThirdsTechnical;
-	type WeightInfo = swap::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::swap::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1148,7 +1150,7 @@ impl xx_betanet_rewards::Config for Runtime {
 	type Event = Event;
 	type EnactmentBlock = BetanetStakingRewardsBlock;
 	type Reward = XXEconomics;
-	type WeightInfo = xx_betanet_rewards::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::xx_betanet_rewards::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1166,7 +1168,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1207,7 +1209,7 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = StringLimit;
 	type Freezer = ();
 	type Extra = ();
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1231,7 +1233,7 @@ impl pallet_uniques::Config for Runtime {
 	type StringLimit = StringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
-	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_uniques::WeightInfo<Runtime>;
 }
 
 construct_runtime!(

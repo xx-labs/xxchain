@@ -23,7 +23,7 @@ use sp_std::convert::TryFrom;
 use codec::{Encode, Decode};
 use claims::CurrencyOf;
 use claims::BalanceOf;
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 
 type PositiveImbalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::PositiveImbalance;
 

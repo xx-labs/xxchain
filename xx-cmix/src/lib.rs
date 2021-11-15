@@ -18,7 +18,7 @@ use frame_support::{
 };
 
 use frame_system::{ensure_root, ensure_signed};
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 use sp_std::prelude::*;
 
 pub trait Config: frame_system::Config + pallet_staking::Config {

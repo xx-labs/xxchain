@@ -25,7 +25,7 @@ use sp_runtime::{
 use frame_system::{ensure_root, ensure_signed};
 use codec::{Encode, Decode, HasCompact};
 use sp_std::prelude::*;
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 
 pub type CurrencyOf<T> = <<T as Config>::VestingSchedule as VestingSchedule<<T as frame_system::Config>::AccountId>>::Currency;
 pub type BalanceOf<T> = <CurrencyOf<T> as Currency<<T as frame_system::Config>::AccountId>>::Balance;

@@ -17,7 +17,7 @@ use frame_support::{
     decl_event, decl_module, decl_storage,
     PalletId, dispatch::DispatchResult,
 };
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 use sp_runtime::traits::{AccountIdConversion};
 use frame_system::{ensure_root};
 

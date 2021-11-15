@@ -6,7 +6,7 @@ use frame_support::{
 };
 use sp_runtime::traits::{Convert};
 use frame_system::{ensure_root, ensure_signed};
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 use sp_std::prelude::*;
 
 pub mod custody;
