@@ -100,9 +100,9 @@ impl StatementKind {
         match self {
             StatementKind::Regular =>
                 &b"I hereby agree to the terms of the statement whose SHA-256 hash is \
-                0x75b58335d343dcc339045a54a27b61c6bff3cfc4585e742cc438adc65a1838d6. \
+                0x3895c0d2a25a727b8eded6dcca37b2cb11bdfc94ae999da369d7bdc9eeca603c. \
                 (This may be found at the URL: \
-                https://docs.xx.network/xxNetworkDistributionContract.pdf)"[..],
+                https://docs.xx.network/xxNetworkDistributionContractV2.pdf)"[..],
             StatementKind::Saft =>
                 &b"xx network doesn't have a SAFT statement"[..],
         }

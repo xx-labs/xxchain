@@ -1107,7 +1107,7 @@ impl claims::Config for Runtime {
 	type VestingSchedule = Vesting;
 	type Prefix = Prefix;
 	/// Tech committee unanimity can move a claim
-	type MoveClaimOrigin = EnsureTechnicalUnanimity;
+	type MoveClaimOrigin = EnsureTwoThirdsTechnical;
 	type RewardHandler = XXBetanetRewards;
 	type WeightInfo = claims::weights::SubstrateWeight<Runtime>;
 }
