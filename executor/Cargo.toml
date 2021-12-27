@@ -13,7 +13,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "2.0.0" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 node-primitives = { version = "0.2.0", path = "../primitives" }
-xxnetwork-runtime = { version = "0.2.0", path = "../runtime/xxnetwork" }
+xxnetwork-runtime = { version = "0.2.1", path = "../runtime/xxnetwork" }
 protonet-runtime = { version = "0.2.0", path = "../runtime/protonet" }
 phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx" }
 sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }

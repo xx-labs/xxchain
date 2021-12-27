@@ -77,7 +77,7 @@ pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", bra
 pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 
 # node-specific dependencies
-xxnetwork-runtime = { version = "0.2.0", path = "../runtime/xxnetwork" }
+xxnetwork-runtime = { version = "0.2.1", path = "../runtime/xxnetwork" }
 protonet-runtime = { version = "0.2.0", path = "../runtime/protonet" }
 phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx" }
 node-rpc = { version = "0.2.0", path = "../rpc" }

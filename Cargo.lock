@@ -9728,7 +9728,7 @@ dependencies = [
 
 [[package]]
 name = "xxnetwork-runtime"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chainbridge",
  "claims",
