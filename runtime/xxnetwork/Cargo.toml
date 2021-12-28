@@ -102,6 +102,9 @@ xx-team-custody = {path = "../../xx-team-custody", default-features = false }
 xx-betanet-rewards = {path = "../../xx-betanet-rewards", default-features = false }
 xx-public = {path = "../../xx-public", default-features = false }
 
+# migrations
+migrations = {path = "../../migrations", default-features = false }
+
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 
@@ -246,4 +249,5 @@ try-runtime = [
 	"pallet-assets/try-runtime",
 	"pallet-recovery/try-runtime",
 	"pallet-uniques/try-runtime",
+	"migrations/try-runtime"
 ]

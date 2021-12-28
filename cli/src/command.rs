@@ -275,20 +275,41 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::TryRuntime(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			let chain_spec = &runner.config().chain_spec;
+			if chain_spec.is_phoenixx() {
+				return runner.async_run(|config| {
+					// we don't need any of the components of new_partial, just a runtime, or a task
+					// manager to do `async_run`.
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager = sc_service::TaskManager::new(
+						config.tokio_handle.clone(),
+						registry,
+					).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+
+					Ok((cmd.run::<chain_spec::phoenixx::Block, PhoenixxExecutorDispatch>(config), task_manager))
+				})
+			}
+			if chain_spec.is_protonet() {
+				return runner.async_run(|config| {
+					// we don't need any of the components of new_partial, just a runtime, or a task
+					// manager to do `async_run`.
+					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+					let task_manager = sc_service::TaskManager::new(
+						config.tokio_handle.clone(),
+						registry,
+					).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+
+					Ok((cmd.run::<chain_spec::protonet::Block, ProtonetExecutorDispatch>(config), task_manager))
+				})
+			}
 			runner.async_run(|config| {
 				// we don't need any of the components of new_partial, just a runtime, or a task
 				// manager to do `async_run`.
 				let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
 				let task_manager = sc_service::TaskManager::new(
-					config.task_executor.clone(),
+					config.tokio_handle.clone(),
 					registry,
 				).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
-				if chain_spec.is_phoenixx() {
-					return Ok((cmd.run::<chain_spec::phoenixx::Block, PhoenixxExecutorDispatch>(config), task_manager))
-				}
-				if chain_spec.is_protonet() {
-					return Ok((cmd.run::<chain_spec::protonet::Block, ProtonetExecutorDispatch>(config), task_manager))
-				}
+
 				Ok((cmd.run::<chain_spec::xxnetwork::Block, XXNetworkExecutorDispatch>(config), task_manager))
 			})
 		}
