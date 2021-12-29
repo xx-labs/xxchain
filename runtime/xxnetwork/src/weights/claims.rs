@@ -87,4 +87,9 @@ impl<T: frame_system::Config> claims::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
+	// Storage: Claims Vesting (r:0 w:1)
+	fn set_vesting() -> Weight {
+		(24_376_000 as Weight)
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 }

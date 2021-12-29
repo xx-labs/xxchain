@@ -25,6 +25,7 @@ pub trait WeightInfo {
     fn claim_attest() -> Weight;
     fn attest() -> Weight;
     fn move_claim() -> Weight;
+    fn set_vesting() -> Weight;
 }
 
 pub struct TestWeightInfo;
@@ -34,6 +35,7 @@ impl WeightInfo for TestWeightInfo {
     fn claim_attest() -> Weight { 0 }
     fn attest() -> Weight { 0 }
     fn move_claim() -> Weight { 0 }
+    fn set_vesting() -> Weight { 0 }
 }
 
 /// Weight functions for claims.
@@ -63,5 +65,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
         (39_612_000 as Weight)
             .saturating_add(T::DbWeight::get().reads(4 as Weight))
             .saturating_add(T::DbWeight::get().writes(7 as Weight))
+    }
+    fn set_vesting() -> Weight {
+        (24_376_000 as Weight)
+            .saturating_add(T::DbWeight::get().writes(1 as Weight))
     }
 }
