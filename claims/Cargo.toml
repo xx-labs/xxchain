@@ -1,7 +1,7 @@
 [package]
 name = "claims"
-version = "0.2.0"
-authors = ["Parity Technologies <admin@parity.io>"]
+version = "0.2.1"
+authors = ["Parity Technologies <admin@parity.io>", "xxlabs <admin@xx.network>"]
 edition = "2021"
 
 [dependencies]
