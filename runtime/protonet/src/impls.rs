@@ -17,15 +17,13 @@
 
 //! Some configurable implementations as associated type for the substrate runtime.
 
-use frame_support::traits::{OnUnbalanced, Currency, Imbalance};
-use crate::{Balances, Authorship, NegativeImbalance, Runtime};
+use frame_support::traits::{OnUnbalanced, Currency};
+use crate::{Balances, Authorship, NegativeImbalance};
 
 pub struct Author;
 impl OnUnbalanced<NegativeImbalance> for Author {
 	fn on_nonzero_unbalanced(amount: NegativeImbalance) {
-		let numeric_amount = amount.peek();
-		Balances::resolve_creating(&Authorship::author(), amount);
-		<frame_system::Pallet<Runtime>>::deposit_event(pallet_balances::Event::Deposit(Authorship::author(), numeric_amount))
+		Balances::resolve_creating(&Authorship::author(), amount)
 	}
 }
 
