@@ -1098,6 +1098,8 @@ impl pallet_vesting::Config for Runtime {
 	type MinVestedTransfer = MinVestedTransfer;
 	type WeightInfo = weights::pallet_vesting::WeightInfo<Runtime>;
 	const MAX_VESTING_SCHEDULES: u32 = 28;
+	// Admin is technical committee unanimity
+	type AdminOrigin = EnsureTechnicalUnanimity;
 }
 
 parameter_types! {
