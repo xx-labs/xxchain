@@ -1341,7 +1341,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPallets,
-	migrations::vesting::SaleVestingFixMigration<Runtime>,
+	(),
 >;
 
 impl_runtime_apis! {
