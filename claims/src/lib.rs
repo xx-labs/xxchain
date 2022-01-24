@@ -413,23 +413,6 @@ decl_module! {
 			));
 			Ok(Pays::No.into())
 		}
-
-        #[weight = (
-            T::WeightInfo::set_vesting(),
-            DispatchClass::Operational,
-            Pays::No
-        )]
-        fn set_vesting(origin,
-            who: EthereumAddress,
-            vesting_schedules: Option<Vec<(BalanceOf<T>, BalanceOf<T>, T::BlockNumber)>>,
-        ) {
-            T::MoveClaimOrigin::try_origin(origin).map(|_| ()).or_else(ensure_root)?;
-            if let Some(vs) = vesting_schedules {
-                <Vesting<T>>::insert(who, vs);
-            } else {
-                <Vesting<T>>::take(who);
-            }
-        }
 	}
 }
 
@@ -1258,30 +1241,6 @@ mod tests {
                 <Module<Test>>::validate_unsigned(source, &call),
                 InvalidTransaction::Custom(ValidityError::InvalidStatement.into()).into(),
             );
-        });
-    }
-
-    #[test]
-    fn set_vesting_works() {
-        new_test_ext().execute_with(|| {
-            // Add vesting to a claim that doesn't have one
-            assert_eq!(Claims::vesting(&eth(&eve())), None);
-            assert_ok!(Claims::set_vesting(Origin::signed(6), eth(&eve()), Some(vec![(300, 10, 0)])));
-            assert_eq!(Claims::vesting(&eth(&eve())), Some(vec![(300, 10, 0)]));
-            // Check that nothing bad happens when remove vesting from a claim that doesn't have one
-            assert_eq!(Claims::vesting(&eth(&bob())), None);
-            assert_ok!(Claims::set_vesting(Origin::signed(6), eth(&bob()), None));
-            assert_eq!(Claims::vesting(&eth(&bob())), None);
-            // Remove existing vesting from a claim
-            assert_eq!(Claims::vesting(&eth(&alice())), Some(vec![(50, 10, 1)]));
-            assert_ok!(Claims::set_vesting(Origin::signed(6), eth(&alice()), None));
-            assert_eq!(Claims::vesting(&eth(&alice())), None);
-            // Modify existing vesting
-            assert_eq!(Claims::vesting(&eth(&charlie())), Some(vec![(50, 10, 0), (450, 10, 0)]));
-            assert_ok!(Claims::set_vesting(Origin::signed(6), eth(&charlie()), Some(vec![(100, 10, 0), (400, 10, 0)])));
-            assert_eq!(Claims::vesting(&eth(&charlie())), Some(vec![(100, 10, 0), (400, 10, 0)]));
-            // Can't call set vesting from non privileged origin
-            assert_noop!(Claims::set_vesting(Origin::signed(42), eth(&alice()), None), BadOrigin);
         });
     }
 }
