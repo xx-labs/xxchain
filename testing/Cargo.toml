@@ -18,7 +18,7 @@ codec = { package = "parity-scale-codec", version = "2.0.0" }
 sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 node-executor = { version = "0.2.0", path = "../executor" }
 node-primitives = { version = "0.2.0", path = "../primitives" }
-xxnetwork-runtime = { version = "0.2.1", path = "../runtime/xxnetwork" }
+xxnetwork-runtime = { version = "0.2.2", path = "../runtime/xxnetwork" }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
