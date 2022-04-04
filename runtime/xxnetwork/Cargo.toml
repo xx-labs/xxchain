@@ -1,6 +1,6 @@
 [package]
 name = "xxnetwork-runtime"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["xxlabs <admin@xx.network>"]
 edition = "2021"
 build = "build.rs"
