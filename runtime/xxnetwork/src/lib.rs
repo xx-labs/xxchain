@@ -110,7 +110,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 202,
+	spec_version: 203,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -192,15 +192,13 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		// These modules are all allowed to be called by transactions
 		match call {
-			// Transfer freeze at genesis
-			Call::Balances(_) | Call::Vesting(pallet_vesting::Call::vested_transfer { .. }) |
 			// ChainBridge and Swap disabled at genesis
 			Call::ChainBridge(_) | Call::Swap(_) => false,
 
 			// System pallets
 			Call::System(_) | Call::Scheduler(_) |
-			// Block production
-			Call::Babe(_) | Call::Timestamp(_) |
+			// Block production and Balances
+			Call::Babe(_) | Call::Balances(_) | Call::Timestamp(_) |
 			// Consensus support
 			Call::Authorship(_) | Call::Staking(_) | Call::ElectionProviderMultiPhase(_) |
 			Call::Session(_) | Call::Grandpa(_) | Call::ImOnline(_) |
