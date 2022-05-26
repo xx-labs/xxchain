@@ -13,9 +13,9 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "2.0.0" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 node-primitives = { version = "0.2.0", path = "../primitives" }
-xxnetwork-runtime = { version = "0.2.3", path = "../runtime/xxnetwork" }
-protonet-runtime = { version = "0.2.0", path = "../runtime/protonet" }
-phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx" }
+xxnetwork-runtime = { version = "0.2.3", path = "../runtime/xxnetwork", optional=true }
+protonet-runtime = { version = "0.2.0", path = "../runtime/protonet", optional=true }
+phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx", optional=true }
 sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
@@ -40,6 +40,7 @@ wat = "1.0"
 futures = "0.3.9"
 
 [features]
+default = ["xxnetwork"]
 wasmtime = [
 	"sc-executor/wasmtime",
 ]
@@ -47,6 +48,9 @@ wasmi-errno = [
 	"sc-executor/wasmi-errno",
 ]
 stress-test = []
+xxnetwork = ["xxnetwork-runtime"]
+protonet = ["protonet-runtime"]
+phoenixx = ["phoenixx-runtime"]
 
 [[bench]]
 name = "bench"

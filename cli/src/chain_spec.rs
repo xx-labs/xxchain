@@ -21,10 +21,19 @@
 use sc_chain_spec::{ChainSpecExtension, ChainType, ChainSpec};
 use sp_core::{Pair, Public, sr25519};
 use serde::{Serialize, Deserialize};
+
+#[cfg(feature = "xxnetwork")]
 pub use xxnetwork_runtime as xxnetwork;
+#[cfg(feature = "protonet")]
 pub use protonet_runtime as protonet;
+#[cfg(feature = "phoenixx")]
 pub use phoenixx_runtime as phoenixx;
-use phoenixx::constants::currency::*;
+#[cfg(feature = "xxnetwork")]
+use xxnetwork::constants::currency::UNITS as XX;
+#[cfg(feature = "protonet")]
+use protonet::constants::currency::UNITS as PTC;
+#[cfg(feature = "phoenixx")]
+use phoenixx::constants::currency::UNITS as BUZ;
 use hex_literal::hex;
 use grandpa_primitives::{AuthorityId as GrandpaId};
 use sp_consensus_babe::{AuthorityId as BabeId};
@@ -51,26 +60,47 @@ pub struct Extensions {
 	pub light_sync_state: sc_sync_state_rpc::LightSyncStateExtension,
 }
 
+/// A dummy `ChainSpec` for when a given runtime feature is disabled.
+pub type DummyChainSpec = sc_service::GenericChainSpec<(), Extensions>;
+
 /// The `ChainSpec` parameterized for the `xxnetwork` runtime.
+#[cfg(feature = "xxnetwork")]
 pub type XXNetworkChainSpec = sc_service::GenericChainSpec<xxnetwork::GenesisConfig, Extensions>;
 
+/// A dummy `ChainSpec` parameterized for the `xxnetwork` runtime, for when the feature is disabled.
+#[cfg(not(feature = "xxnetwork"))]
+pub type XXNetworkChainSpec = DummyChainSpec;
+
 /// The `ChainSpec` parameterized for the `protonet` runtime.
+#[cfg(feature = "protonet")]
 pub type ProtonetChainSpec = sc_service::GenericChainSpec<protonet::GenesisConfig, Extensions>;
 
+/// A dummy `ChainSpec` parameterized for the `protonet` runtime, for when the feature is disabled.
+#[cfg(not(feature = "protonet"))]
+pub type ProtonetChainSpec = DummyChainSpec;
+
 /// The `ChainSpec` parameterized for the `phoenixx` runtime.
+#[cfg(feature = "phoenixx")]
 pub type PhoenixxChainSpec = sc_service::GenericChainSpec<phoenixx::GenesisConfig, Extensions>;
 
+/// A dummy `ChainSpec` parameterized for the `phoenixx` runtime, for when the feature is disabled.
+#[cfg(not(feature = "phoenixx"))]
+pub type PhoenixxChainSpec = DummyChainSpec;
+
 /// Genesis config for `xxnetwork` mainnet
+#[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_config() -> Result<XXNetworkChainSpec, String> {
 	XXNetworkChainSpec::from_json_bytes(&include_bytes!("../res/xxnetwork.json")[..])
 }
 
 /// Genesis config for `protonet` testnet
+#[cfg(feature = "protonet")]
 pub fn protonet_config() -> Result<ProtonetChainSpec, String> {
 	ProtonetChainSpec::from_json_bytes(&include_bytes!("../res/protonet.json")[..])
 }
 
 /// Genesis config for `phoenixx` testnet
+#[cfg(feature = "phoenixx")]
 pub fn phoenixx_config() -> Result<PhoenixxChainSpec, String> {
 	PhoenixxChainSpec::from_json_bytes(&include_bytes!("../res/phoenixx.json")[..])
 }
@@ -99,6 +129,7 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 	}
 }
 
+#[cfg(feature = "xxnetwork")]
 fn xxnetwork_session_keys(
 	grandpa: GrandpaId,
 	babe: BabeId,
@@ -108,6 +139,7 @@ fn xxnetwork_session_keys(
 	xxnetwork::SessionKeys { grandpa, babe, im_online, authority_discovery }
 }
 
+#[cfg(feature = "protonet")]
 fn protonet_session_keys(
 	grandpa: GrandpaId,
 	babe: BabeId,
@@ -117,6 +149,7 @@ fn protonet_session_keys(
 	protonet::SessionKeys { grandpa, babe, im_online, authority_discovery }
 }
 
+#[cfg(feature = "phoenixx")]
 fn phoenixx_session_keys(
 	grandpa: GrandpaId,
 	babe: BabeId,
@@ -160,6 +193,7 @@ pub fn authority_keys_from_seed(seed: &str) -> (
 }
 
 /// Helper function to create GenesisConfig for testing of the `phoenixx` network
+#[cfg(feature = "phoenixx")]
 pub fn phoenixx_testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
@@ -217,7 +251,7 @@ pub fn phoenixx_testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * UNITS;
+	const ENDOWMENT: Balance = 10_000_000 * BUZ;
 	const STASH: Balance = ENDOWMENT / 1000;
 
 	phoenixx::GenesisConfig {
@@ -281,7 +315,7 @@ pub fn phoenixx_testnet_genesis(
 		vesting: Default::default(),
 		claims: Default::default(),
 		swap: phoenixx::SwapConfig {
-			swap_fee: 1 * UNITS,
+			swap_fee: 1 * BUZ,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -292,7 +326,7 @@ pub fn phoenixx_testnet_genesis(
 				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
 			],
 			threshold: 1,
-			balance: 100 * UNITS,
+			balance: 100 * BUZ,
 		},
 		xx_cmix: phoenixx::XXCmixConfig {
 			admin_permission: 0,
@@ -302,11 +336,11 @@ pub fn phoenixx_testnet_genesis(
 			cmix_variables: Default::default(),
 		},
 		xx_economics: phoenixx::XXEconomicsConfig {
-			balance: 10 * UNITS,
+			balance: 10 * BUZ,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * UNITS,
-			liquidity_rewards: 100 * UNITS,
+			ideal_stake_rewards: 10 * BUZ,
+			liquidity_rewards: 100 * BUZ,
 		},
 		xx_custody: phoenixx::XXCustodyConfig {
 			team_allocations: vec![],
@@ -318,6 +352,7 @@ pub fn phoenixx_testnet_genesis(
 	}
 }
 
+#[cfg(feature = "phoenixx")]
 fn phoenixx_development_config_genesis() -> phoenixx::GenesisConfig {
 	phoenixx_testnet_genesis(
 		vec![
@@ -329,6 +364,7 @@ fn phoenixx_development_config_genesis() -> phoenixx::GenesisConfig {
 }
 
 /// `phoenixx` development config (single validator Alice)
+#[cfg(feature = "phoenixx")]
 pub fn phoenixx_development_config() -> PhoenixxChainSpec {
 	PhoenixxChainSpec::from_genesis(
 		"phoenixx Development",
@@ -344,6 +380,7 @@ pub fn phoenixx_development_config() -> PhoenixxChainSpec {
 }
 
 /// Helper function to create GenesisConfig for testing of the `protonet` network
+#[cfg(feature = "protonet")]
 pub fn protonet_testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
@@ -401,7 +438,7 @@ pub fn protonet_testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * UNITS;
+	const ENDOWMENT: Balance = 10_000_000 * PTC;
 	const STASH: Balance = ENDOWMENT / 1000;
 
 	protonet::GenesisConfig {
@@ -465,7 +502,7 @@ pub fn protonet_testnet_genesis(
 		vesting: Default::default(),
 		claims: Default::default(),
 		swap: protonet::SwapConfig {
-			swap_fee: 1 * UNITS,
+			swap_fee: 1 * PTC,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -476,7 +513,7 @@ pub fn protonet_testnet_genesis(
 				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
 			],
 			threshold: 1,
-			balance: 100 * UNITS,
+			balance: 100 * PTC,
 		},
 		xx_cmix: protonet::XXCmixConfig {
 			admin_permission: 0,
@@ -486,11 +523,11 @@ pub fn protonet_testnet_genesis(
 			cmix_variables: Default::default(),
 		},
 		xx_economics: protonet::XXEconomicsConfig {
-			balance: 10 * UNITS,
+			balance: 10 * PTC,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * UNITS,
-			liquidity_rewards: 100 * UNITS,
+			ideal_stake_rewards: 10 * PTC,
+			liquidity_rewards: 100 * PTC,
 		},
 		xx_custody: protonet::XXCustodyConfig {
 			team_allocations: vec![],
@@ -502,6 +539,7 @@ pub fn protonet_testnet_genesis(
 	}
 }
 
+#[cfg(feature = "protonet")]
 fn protonet_development_config_genesis() -> protonet::GenesisConfig {
 	protonet_testnet_genesis(
 		vec![
@@ -513,6 +551,7 @@ fn protonet_development_config_genesis() -> protonet::GenesisConfig {
 }
 
 /// `protonet` development config (single validator Alice)
+#[cfg(feature = "protonet")]
 pub fn protonet_development_config() -> ProtonetChainSpec {
 	ProtonetChainSpec::from_genesis(
 		"xx protonet Development",
@@ -528,6 +567,7 @@ pub fn protonet_development_config() -> ProtonetChainSpec {
 }
 
 /// Helper function to create GenesisConfig for testing of `xxnetwork`
+#[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
@@ -585,9 +625,9 @@ pub fn xxnetwork_testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * UNITS;
+	const ENDOWMENT: Balance = 10_000_000 * XX;
 	const STASH: Balance = ENDOWMENT / 1000;
-	const TEAM_ALLOCATION: Balance = 10_000_000 * UNITS;
+	const TEAM_ALLOCATION: Balance = 10_000_000 * XX;
 
 	xxnetwork::GenesisConfig {
 		system: xxnetwork::SystemConfig {
@@ -650,7 +690,7 @@ pub fn xxnetwork_testnet_genesis(
 		vesting: Default::default(),
 		claims: Default::default(),
 		swap: xxnetwork::SwapConfig {
-			swap_fee: 1 * UNITS,
+			swap_fee: 1 * XX,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -661,7 +701,7 @@ pub fn xxnetwork_testnet_genesis(
 				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
 			],
 			threshold: 1,
-			balance: 100 * UNITS,
+			balance: 100 * XX,
 		},
 		xx_cmix: xxnetwork::XXCmixConfig {
 			admin_permission: 0,
@@ -671,11 +711,11 @@ pub fn xxnetwork_testnet_genesis(
 			cmix_variables: Default::default(),
 		},
 		xx_economics: xxnetwork::XXEconomicsConfig {
-			balance: 10 * UNITS,
+			balance: 10 * XX,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * UNITS,
-			liquidity_rewards: 100 * UNITS,
+			ideal_stake_rewards: 10 * XX,
+			liquidity_rewards: 100 * XX,
 		},
 		xx_custody: xxnetwork::XXCustodyConfig {
 			team_allocations: vec![
@@ -697,13 +737,14 @@ pub fn xxnetwork_testnet_genesis(
 		xx_public: xxnetwork::XXPublicConfig {
 			testnet_manager: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			sale_manager: get_account_id_from_seed::<sr25519::Public>("Bob"),
-			testnet_balance: 1000000 * UNITS,
-			sale_balance: 1000000 * UNITS,
+			testnet_balance: 1000000 * XX,
+			sale_balance: 1000000 * XX,
 		},
 		assets: Default::default(),
 	}
 }
 
+#[cfg(feature = "xxnetwork")]
 fn xxnetwork_development_config_genesis() -> xxnetwork::GenesisConfig {
 	xxnetwork_testnet_genesis(
 		vec![
@@ -715,6 +756,7 @@ fn xxnetwork_development_config_genesis() -> xxnetwork::GenesisConfig {
 }
 
 /// `xxnetwork` development config (single validator Alice)
+#[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_development_config() -> XXNetworkChainSpec {
 	XXNetworkChainSpec::from_genesis(
 		"xx network Development",

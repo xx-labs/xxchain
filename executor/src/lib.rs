@@ -22,8 +22,10 @@ pub use sc_executor::NativeElseWasmExecutor;
 
 // Declare an instance of the native executor named `XXNetworkExecutorDispatch`.
 // Include the wasm binary as the equivalent wasm code.
+#[cfg(feature = "xxnetwork")]
 pub struct XXNetworkExecutorDispatch;
 
+#[cfg(feature = "xxnetwork")]
 impl sc_executor::NativeExecutionDispatch for XXNetworkExecutorDispatch {
     type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
@@ -38,8 +40,10 @@ impl sc_executor::NativeExecutionDispatch for XXNetworkExecutorDispatch {
 
 // Declare an instance of the native executor named `ProtonetExecutorDispatch`.
 // Include the wasm binary as the equivalent wasm code.
+#[cfg(feature = "protonet")]
 pub struct ProtonetExecutorDispatch;
 
+#[cfg(feature = "protonet")]
 impl sc_executor::NativeExecutionDispatch for ProtonetExecutorDispatch {
     type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
@@ -54,8 +58,10 @@ impl sc_executor::NativeExecutionDispatch for ProtonetExecutorDispatch {
 
 // Declare an instance of the native executor named `PhoenixxExecutorDispatch`.
 // Include the wasm binary as the equivalent wasm code.
+#[cfg(feature = "phoenixx")]
 pub struct PhoenixxExecutorDispatch;
 
+#[cfg(feature = "phoenixx")]
 impl sc_executor::NativeExecutionDispatch for PhoenixxExecutorDispatch {
     type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
