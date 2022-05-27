@@ -28,7 +28,7 @@ use frame_support::{
     parameter_types,
     traits::{
         Currency, FindAuthor, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
-        OneSessionHandler, InstanceFilter, LockIdentifier
+        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly
     },
     weights::constants::RocksDbWeight,
     RuntimeDebug,
@@ -285,6 +285,7 @@ impl pallet_scheduler::Config for Test {
     type ScheduleOrigin = EnsureRoot<Self::AccountId>;
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
     type WeightInfo = ();
+    type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 impl pallet_staking::Config for Test {

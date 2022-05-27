@@ -1012,7 +1012,8 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
                 proxy_events(),
                 vec![
                     pallet_proxy::Event::ProxyAdded(7793787273482591193, 3, ProxyType::Voting, 0),
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::BadOrigin)),
+                    // Proxy calls without enough permissions fail with the error System::CallFiltered
+                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 0, error: 5, message: None })),
                 ]
             );
         });
@@ -1100,9 +1101,9 @@ fn custody_set_proxy_only_allowed_to_vote() {
                 vec![
                     pallet_proxy::Event::ProxyAdded(7793787273482591193, 3, ProxyType::Voting, 0),
                     // Elections::submit_candidacy not allowed
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::BadOrigin)),
+                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 0, error: 5, message: None })),
                     // Democracy::propose not allowed
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::BadOrigin)),
+                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 0, error: 5, message: None })),
                     // Elections::vote is allowed, but fails with UnableToVote (no candidates)
                     // Elections has module index 9 in mock, and UnableToVote is error number 0
                     pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 9, error: 0, message: None })),
