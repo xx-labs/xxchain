@@ -5124,6 +5124,7 @@ dependencies = [
  "pallet-utility",
  "pallet-vesting",
  "parity-scale-codec",
+ "runtime-common",
  "scale-info",
  "smallvec",
  "sp-api",
@@ -5951,6 +5952,23 @@ dependencies = [
  "linux-raw-sys",
  "once_cell",
  "rustc_version 0.4.0",
+]
+
+[[package]]
+name = "runtime-common"
+version = "0.2.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "node-primitives",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-transaction-payment",
+ "pallet-treasury",
+ "smallvec",
+ "sp-runtime",
+ "sp-std",
+ "static_assertions",
 ]
 
 [[package]]

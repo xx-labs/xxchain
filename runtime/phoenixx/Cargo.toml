@@ -29,6 +29,7 @@ sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx
 sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 node-primitives = { version = "0.2.0", default-features = false, path = "../../primitives" }
+runtime-common = { version = "0.2.0", default-features = false, path = "../common" }
 sp-offchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
@@ -130,6 +131,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-scheduler/std",
 	"node-primitives/std",
+	"runtime-common/std",
 	"sp-offchain/std",
 	"pallet-offences/std",
 	"pallet-proxy/std",

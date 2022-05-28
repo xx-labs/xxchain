@@ -11,6 +11,7 @@ members = [
     'migrations',
     'primitives',
     'rpc',
+    'runtime/common',
     'runtime/phoenixx',
     'runtime/protonet',
     'runtime/xxnetwork',

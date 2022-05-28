@@ -15,7 +15,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! A set of constant values used in substrate runtime.
+//! A set of constant values used in xxnetwork and canarynet runtimes.
+
+/// Macro to set a value (e.g. when using the `parameter_types` macro) to either a production value
+/// or to an environment variable or testing value (in case the `fast-runtime` feature is selected).
+/// Note that the environment variable is evaluated _at compile time_.
+///
+/// Usage:
+/// ```Rust
+/// parameter_types! {
+/// 	// Note that the env variable version parameter cannot be const.
+/// 	pub LaunchPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1, "KSM_LAUNCH_PERIOD");
+/// 	pub const VotingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1 * MINUTES);
+/// }
+/// ```
+#[macro_export]
+macro_rules! prod_or_fast {
+	($prod:expr, $test:expr) => {
+		if cfg!(feature = "fast-runtime") {
+			$test
+		} else {
+			$prod
+		}
+	};
+}
 
 /// Money matters.
 pub mod currency {
@@ -59,22 +82,9 @@ pub mod time {
 	// 1 in 4 blocks (on average, not counting collisions) will be primary BABE blocks.
 	pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
-	pub const ERA_DURATION_IN_SESSIONS: u32 = 3;
-
-	// NOTE: Phoenixx runtime runs 120x faster than the xxnetwork one (and 15x faster than protonet)
-	// This means that a session/epoch is 4 minutes instead of 8 hours
-	// and that the era is 12 minutes instead of 1 day
-	pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 4 * MINUTES;
-	pub const EPOCH_DURATION_IN_SLOTS: u64 = {
-		const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
-
-		(EPOCH_DURATION_IN_BLOCKS as f64 * SLOT_FILL_RATE) as u64
-	};
-
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
-	// 1 Hour is 600 blocks, which at 120x speed is 5 blocks
-	pub const HOURS: BlockNumber = 5;
+	pub const HOURS: BlockNumber = MINUTES * 60;
 	pub const DAYS: BlockNumber = HOURS * 24;
 	pub const WEEKS: BlockNumber = 7 * DAYS;
 	pub const YEARS: BlockNumber = 365 * DAYS + 6*HOURS;

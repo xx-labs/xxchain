@@ -1,5 +1,10 @@
-build:
-	@cargo build --release
+build: build-dev
+
+build-dev:
+	@cargo build --release --features phoenixx,protonet
+
+build-prod:
+	@cargo build -p xxnetwork-cli --release
 
 build-phoenixx-runtime:
 	@srtool build --package phoenixx-runtime
