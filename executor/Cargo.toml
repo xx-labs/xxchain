@@ -13,6 +13,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "2.0.0" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 node-primitives = { version = "0.2.0", path = "../primitives" }
+runtime-common = { version = "0.2.0", path = "../runtime/common" }
 xxnetwork-runtime = { version = "0.2.3", path = "../runtime/xxnetwork", optional=true }
 protonet-runtime = { version = "0.2.0", path = "../runtime/protonet", optional=true }
 phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx", optional=true }

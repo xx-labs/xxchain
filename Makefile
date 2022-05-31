@@ -21,8 +21,12 @@ build-linux-from-mac:
 	@echo -e "Before proceeding make sure you check README\n"
 	@CC_x86_64_unknown_linux_gnu="x86_64-unknown-linux-gnu-gcc" CXX_x86_64_unknown_linux_gnu="x86_64-unknown-linux-gnu-g++" CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="x86_64-unknown-linux-gnu-gcc" cargo build --release --target=x86_64-unknown-linux-gnu
 
+all-tests:
+	@echo "Running all unit tests\n"
+	@cargo test
+
 test-pallets:
-	@echo -e "Running unit tests for all pallets\n"
+	@echo "Running unit tests for all pallets\n"
 	@cd chainbridge; cargo test; cd ../
 	@cd claims; cargo test; cd ../
 	@cd swap; cargo test; cd ../

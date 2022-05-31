@@ -54,7 +54,7 @@ impl SubstrateCli for Cli {
 			#[cfg(feature = "xxnetwork")]
 			"xxnetwork" => Box::new(chain_spec::xxnetwork_config()?),
 			#[cfg(feature = "xxnetwork")]
-			"xxnetwork-dev" => Box::new(chain_spec::xxnetwork_development_config()),
+			"xxnetwork-dev" | "dev" => Box::new(chain_spec::xxnetwork_development_config()),
 			#[cfg(feature = "protonet")]
 			"protonet" => Box::new(chain_spec::protonet_config()?),
 			#[cfg(feature = "protonet")]

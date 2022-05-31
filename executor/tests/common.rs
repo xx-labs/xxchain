@@ -34,14 +34,14 @@ use sp_runtime::{
 	DigestItem,
 	traits::{Header as HeaderT, BlakeTwo256},
 };
-use sc_executor::{NativeExecutor, WasmExecutionMethod};
+use sc_executor::{NativeElseWasmExecutor, WasmExecutionMethod};
 use sc_executor::error::Result;
 
-use node_executor::XXNetworkExecutor;
+use node_executor::XXNetworkExecutorDispatch;
 use xxnetwork_runtime::{
 	Header, Block, UncheckedExtrinsic, CheckedExtrinsic, Runtime, BuildStorage,
-	constants::currency::*,
 };
+use runtime_common::constants::currency::*;
 use node_primitives::{Hash, BlockNumber};
 use node_testing::keyring::*;
 use sp_externalities::Externalities;
@@ -82,22 +82,22 @@ pub const SPEC_VERSION: u32 = xxnetwork_runtime::VERSION.spec_version;
 
 pub const TRANSACTION_VERSION: u32 = xxnetwork_runtime::VERSION.transaction_version;
 
-pub type TestExternalities<H> = CoreTestExternalities<H, u64>;
+pub type TestExternalities<H> = CoreTestExternalities<H>;
 
 pub fn sign(xt: CheckedExtrinsic) -> UncheckedExtrinsic {
 	node_testing::keyring::sign(xt, SPEC_VERSION, TRANSACTION_VERSION, GENESIS_HASH)
 }
 
 pub fn default_transfer_call() -> pallet_balances::Call<Runtime> {
-	pallet_balances::Call::transfer::<Runtime>(bob().into(), 69 * UNITS)
+	pallet_balances::Call::transfer::<Runtime> { dest: bob().into(), value: 69 * UNITS }
 }
 
 pub fn from_block_number(n: u32) -> Header {
 	Header::new(n, Default::default(), Default::default(), [69; 32].into(), Default::default())
 }
 
-pub fn executor() -> NativeExecutor<XXNetworkExecutor> {
-	NativeExecutor::new(WasmExecutionMethod::Interpreted, None, 8)
+pub fn executor() -> NativeElseWasmExecutor<XXNetworkExecutorDispatch> {
+	NativeElseWasmExecutor::new(WasmExecutionMethod::Interpreted, None, 8)
 }
 
 pub fn executor_call<
@@ -130,13 +130,11 @@ pub fn executor_call<
 	)
 }
 
-pub fn new_test_ext(code: &[u8], support_changes_trie: bool) -> TestExternalities<BlakeTwo256> {
-	let mut ext = TestExternalities::new_with_code(
+pub fn new_test_ext(code: &[u8]) -> TestExternalities<BlakeTwo256> {
+	TestExternalities::new_with_code(
 		code,
-		node_testing::genesis::config(support_changes_trie, Some(code)).build_storage().unwrap(),
-	);
-	ext.changes_trie_storage().insert(0, GENESIS_HASH.into(), Default::default());
-	ext
+		node_testing::genesis::config(Some(code)).build_storage().unwrap(),
+	)
 }
 
 /// Construct a fake block.

@@ -25,7 +25,8 @@ use xxnetwork_runtime::{
 	GrandpaConfig, SwapConfig, wasm_binary_unwrap,
 	AccountId, StakerStatus, BabeConfig, BABE_GENESIS_EPOCH_CONFIG,
 };
-use runtime_common::constants::currency::*;
+use runtime_common::constants::currency::UNITS;
+use node_primitives::Hash;
 use sp_runtime::Perbill;
 
 /// Create genesis runtime configuration for tests.
@@ -65,9 +66,9 @@ pub fn config_endowed(
 		},
 		staking: StakingConfig {
 			stakers: vec![
-				(dave(), alice(), 111 * UNITS, StakerStatus::Validator(Default::default())),
-				(eve(), bob(), 100 * UNITS, StakerStatus::Validator(Default::default())),
-				(ferdie(), charlie(), 100 * UNITS, StakerStatus::Validator(Default::default()))
+				(dave(), alice(), 111 * UNITS, StakerStatus::Validator(Some(Hash::repeat_byte(1u8)))),
+				(eve(), bob(), 100 * UNITS, StakerStatus::Validator(Some(Hash::repeat_byte(2u8)))),
+				(ferdie(), charlie(), 100 * UNITS, StakerStatus::Validator(Some(Hash::repeat_byte(3u8))))
 			],
 			validator_count: 3,
 			minimum_validator_count: 0,
