@@ -9688,6 +9688,7 @@ dependencies = [
  "rand 0.7.3",
  "regex",
  "remote-externalities",
+ "runtime-common",
  "sc-authority-discovery",
  "sc-basic-authorship",
  "sc-chain-spec",

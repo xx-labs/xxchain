@@ -87,6 +87,7 @@ phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx", optional =
 node-rpc = { version = "0.2.0", path = "../rpc" }
 node-primitives = { version = "0.2.0", path = "../primitives" }
 node-executor = { version = "0.2.0", path = "../executor" }
+runtime-common = { version = "0.2.0", path = "../runtime/common" }
 
 # CLI-specific dependencies
 sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", optional = true }

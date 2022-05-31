@@ -28,12 +28,7 @@ pub use xxnetwork_runtime as xxnetwork;
 pub use protonet_runtime as protonet;
 #[cfg(feature = "phoenixx")]
 pub use phoenixx_runtime as phoenixx;
-#[cfg(feature = "xxnetwork")]
-use xxnetwork::constants::currency::UNITS as XX;
-#[cfg(feature = "protonet")]
-use protonet::constants::currency::UNITS as PTC;
-#[cfg(feature = "phoenixx")]
-use phoenixx::constants::currency::UNITS as BUZ;
+use runtime_common::constants::currency::UNITS;
 use hex_literal::hex;
 use grandpa_primitives::{AuthorityId as GrandpaId};
 use sp_consensus_babe::{AuthorityId as BabeId};
@@ -251,7 +246,7 @@ pub fn phoenixx_testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * BUZ;
+	const ENDOWMENT: Balance = 10_000_000 * UNITS;
 	const STASH: Balance = ENDOWMENT / 1000;
 
 	phoenixx::GenesisConfig {
@@ -315,7 +310,7 @@ pub fn phoenixx_testnet_genesis(
 		vesting: Default::default(),
 		claims: Default::default(),
 		swap: phoenixx::SwapConfig {
-			swap_fee: 1 * BUZ,
+			swap_fee: 1 * UNITS,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -326,7 +321,7 @@ pub fn phoenixx_testnet_genesis(
 				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
 			],
 			threshold: 1,
-			balance: 100 * BUZ,
+			balance: 100 * UNITS,
 		},
 		xx_cmix: phoenixx::XXCmixConfig {
 			admin_permission: 0,
@@ -336,11 +331,11 @@ pub fn phoenixx_testnet_genesis(
 			cmix_variables: Default::default(),
 		},
 		xx_economics: phoenixx::XXEconomicsConfig {
-			balance: 10 * BUZ,
+			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * BUZ,
-			liquidity_rewards: 100 * BUZ,
+			ideal_stake_rewards: 10 * UNITS,
+			liquidity_rewards: 100 * UNITS,
 		},
 		xx_custody: phoenixx::XXCustodyConfig {
 			team_allocations: vec![],
@@ -438,7 +433,7 @@ pub fn protonet_testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * PTC;
+	const ENDOWMENT: Balance = 10_000_000 * UNITS;
 	const STASH: Balance = ENDOWMENT / 1000;
 
 	protonet::GenesisConfig {
@@ -502,7 +497,7 @@ pub fn protonet_testnet_genesis(
 		vesting: Default::default(),
 		claims: Default::default(),
 		swap: protonet::SwapConfig {
-			swap_fee: 1 * PTC,
+			swap_fee: 1 * UNITS,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -513,7 +508,7 @@ pub fn protonet_testnet_genesis(
 				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
 			],
 			threshold: 1,
-			balance: 100 * PTC,
+			balance: 100 * UNITS,
 		},
 		xx_cmix: protonet::XXCmixConfig {
 			admin_permission: 0,
@@ -523,11 +518,11 @@ pub fn protonet_testnet_genesis(
 			cmix_variables: Default::default(),
 		},
 		xx_economics: protonet::XXEconomicsConfig {
-			balance: 10 * PTC,
+			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * PTC,
-			liquidity_rewards: 100 * PTC,
+			ideal_stake_rewards: 10 * UNITS,
+			liquidity_rewards: 100 * UNITS,
 		},
 		xx_custody: protonet::XXCustodyConfig {
 			team_allocations: vec![],
@@ -625,9 +620,9 @@ pub fn xxnetwork_testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * XX;
+	const ENDOWMENT: Balance = 10_000_000 * UNITS;
 	const STASH: Balance = ENDOWMENT / 1000;
-	const TEAM_ALLOCATION: Balance = 10_000_000 * XX;
+	const TEAM_ALLOCATION: Balance = 10_000_000 * UNITS;
 
 	xxnetwork::GenesisConfig {
 		system: xxnetwork::SystemConfig {
@@ -690,7 +685,7 @@ pub fn xxnetwork_testnet_genesis(
 		vesting: Default::default(),
 		claims: Default::default(),
 		swap: xxnetwork::SwapConfig {
-			swap_fee: 1 * XX,
+			swap_fee: 1 * UNITS,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -701,7 +696,7 @@ pub fn xxnetwork_testnet_genesis(
 				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
 			],
 			threshold: 1,
-			balance: 100 * XX,
+			balance: 100 * UNITS,
 		},
 		xx_cmix: xxnetwork::XXCmixConfig {
 			admin_permission: 0,
@@ -711,11 +706,11 @@ pub fn xxnetwork_testnet_genesis(
 			cmix_variables: Default::default(),
 		},
 		xx_economics: xxnetwork::XXEconomicsConfig {
-			balance: 10 * XX,
+			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * XX,
-			liquidity_rewards: 100 * XX,
+			ideal_stake_rewards: 10 * UNITS,
+			liquidity_rewards: 100 * UNITS,
 		},
 		xx_custody: xxnetwork::XXCustodyConfig {
 			team_allocations: vec![
@@ -737,8 +732,8 @@ pub fn xxnetwork_testnet_genesis(
 		xx_public: xxnetwork::XXPublicConfig {
 			testnet_manager: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			sale_manager: get_account_id_from_seed::<sr25519::Public>("Bob"),
-			testnet_balance: 1000000 * XX,
-			sale_balance: 1000000 * XX,
+			testnet_balance: 1000000 * UNITS,
+			sale_balance: 1000000 * UNITS,
 		},
 		assets: Default::default(),
 	}
