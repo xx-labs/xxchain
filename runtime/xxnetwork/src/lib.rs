@@ -28,15 +28,15 @@ use frame_support::{
 	construct_runtime, parameter_types, RuntimeDebug,
 	weights::{
 		Weight,
-		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
+		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass,
 	},
 	traits::{
-		Currency, Imbalance, KeyOwnerProofSystem, OnUnbalanced, LockIdentifier,
+		KeyOwnerProofSystem, LockIdentifier,
 		U128CurrencyToVote, EqualPrivilegeOnly,
 	},
 };
-use frame_system::{EnsureRoot, EnsureOneOf, limits::{BlockWeights, BlockLength}};
+use frame_system::{EnsureRoot, EnsureOneOf};
 use frame_support::{traits::{InstanceFilter, Contains}, PalletId};
 use codec::{Encode, Decode, MaxEncodedLen};
 use sp_core::{
@@ -48,8 +48,8 @@ pub use node_primitives::{AccountId, Signature};
 use node_primitives::{Balance, BlockNumber, Hash, Index, Moment};
 use sp_api::impl_runtime_apis;
 use sp_runtime::{
-	Permill, Perbill, Perquintill, Percent, ApplyExtrinsicResult, impl_opaque_keys, generic,
-	create_runtime_str, FixedPointNumber,
+	Permill, Perbill, Percent, ApplyExtrinsicResult, impl_opaque_keys, generic,
+	create_runtime_str,
 };
 
 use sp_runtime::transaction_validity::{TransactionValidity, TransactionSource, TransactionPriority};
@@ -76,13 +76,10 @@ pub use frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 
-/// Implementations of some helper traits passed into runtime modules as associated types.
-pub mod impls;
-use impls::Author;
-
-/// Constant values used within the runtime.
-pub mod constants;
-use constants::{time::*, currency::*, fee::*};
+// Runtime common stuff
+use runtime_common::*;
+use runtime_common::impls::*;
+use runtime_common::constants::{time::*, currency::*, fee::*};
 use sp_runtime::generic::Era;
 
 use sp_io::hashing::sha2_256;
@@ -132,60 +129,10 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
-
-pub struct DealWithFees;
-impl OnUnbalanced<NegativeImbalance> for DealWithFees {
-	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item=NegativeImbalance>) {
-		if let Some(fees) = fees_then_tips.next() {
-			// for fees, 80% to treasury, 20% to author
-			let mut split = fees.ration(80, 20);
-			if let Some(tips) = fees_then_tips.next() {
-				// for tips, if any, 100% to author
-				tips.merge_into(&mut split.1);
-			}
-			Treasury::on_unbalanced(split.0);
-			Author::on_unbalanced(split.1);
-		}
-	}
-}
-
-/// We assume that ~1% of the block weight is consumed by `on_initialize` handlers.
-/// This is used to limit the maximal weight of a single extrinsic.
-const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(1);
-/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
-/// by  Operational  extrinsics.
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-/// We allow for 2 seconds of compute with a 6 second average block time.
-const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
-
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 2400;
 	pub const Version: RuntimeVersion = VERSION;
-	pub RuntimeBlockLength: BlockLength =
-		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
-		.base_block(BlockExecutionWeight::get())
-		.for_class(DispatchClass::all(), |weights| {
-			weights.base_extrinsic = ExtrinsicBaseWeight::get();
-		})
-		.for_class(DispatchClass::Normal, |weights| {
-			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
-		})
-		.for_class(DispatchClass::Operational, |weights| {
-			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
-			// Operational transactions have some extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
-			weights.reserved = Some(
-				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT
-			);
-		})
-		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
-		.build_or_panic();
 	pub const SS58Prefix: u8 = 55;
 }
-
-const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
 pub struct BaseFilter;
 impl Contains<Call> for BaseFilter {
@@ -221,8 +168,8 @@ impl Contains<Call> for BaseFilter {
 
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = BaseFilter;
-	type BlockWeights = RuntimeBlockWeights;
-	type BlockLength = RuntimeBlockLength;
+	type BlockWeights = BlockWeights;
+	type BlockLength = BlockLength;
 	type Origin = Origin;
 	type Call = Call;
 	type Index = Index;
@@ -337,12 +284,6 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
-parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) *
-		RuntimeBlockWeights::get().max_block;
-	pub const MaxScheduledPerBlock: u32 = 50;
-}
-
 impl pallet_scheduler::Config for Runtime {
 	type Event = Event;
 	type Origin = Origin;
@@ -355,10 +296,13 @@ impl pallet_scheduler::Config for Runtime {
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
+// Epoch duration is 8 hours in prod, 4 minutes in dev (fast-runtime)
+const EPOCH_DURATION_IN_BLOCKS: BlockNumber = prod_or_fast!(8*HOURS, 4*MINUTES);
+
 parameter_types! {
 	// NOTE: Currently it is not possible to change the epoch duration after the chain has started.
 	//       Attempting to do so will brick block production.
-	pub const EpochDuration: u64 = EPOCH_DURATION_IN_SLOTS;
+	pub const EpochDuration: u64 = EPOCH_DURATION_IN_BLOCKS as u64;
 	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
 	pub const ReportLongevity: u64 =
 		BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
@@ -410,18 +354,8 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 }
 
-parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(50);
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128);
-	/// This value increases the priority of `Operational` transactions by adding
-	/// a "virtual tip" that's equal to the `OperationalFeeMultiplier * final_fee`.
-	pub const OperationalFeeMultiplier: u8 = 5;
-}
-
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees>;
+	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = WeightToFee;
@@ -478,7 +412,7 @@ impl pallet_session::historical::Config for Runtime {
 }
 
 parameter_types! {
-	pub const SessionsPerEra: sp_staking::SessionIndex = ERA_DURATION_IN_SESSIONS;
+	pub const SessionsPerEra: sp_staking::SessionIndex = 3;
 	pub const BondingDuration: pallet_staking::EraIndex = 28;
 	pub const SlashDeferDuration: pallet_staking::EraIndex = 27;
 	pub const MaxNominatorRewardedPerValidator: u32 = 256;
@@ -487,7 +421,7 @@ parameter_types! {
 
 parameter_types! {
 	pub const RewardsPoolId: PalletId = PalletId(*b"xx/rwrds");
-	pub const EraDuration: BlockNumber = ERA_DURATION_IN_SESSIONS * EPOCH_DURATION_IN_BLOCKS;
+	pub const EraDuration: BlockNumber = SessionsPerEra::get() * EPOCH_DURATION_IN_BLOCKS;
 	pub const PayoutFrequency: BlockNumber = 1 * WEEKS;
 	pub const CustodyDuration: BlockNumber = 3 * YEARS;
 	pub const GovernanceCustodyDuration: BlockNumber = 1 * YEARS;
@@ -628,13 +562,13 @@ parameter_types! {
 	pub MultiPhaseUnsignedPriority: TransactionPriority =
 		Perbill::from_percent(90) * TransactionPriority::max_value();
 	pub const MinerMaxIterations: u32 = 10;
-	pub MinerMaxWeight: Weight = RuntimeBlockWeights::get()
+	pub MinerMaxWeight: Weight = BlockWeights::get()
 		.get(DispatchClass::Normal)
 		.max_extrinsic.expect("Normal extrinsics have a weight limit configured; qed")
 		.saturating_sub(BlockExecutionWeight::get());
 	// Solution can occupy 90% of normal block size
 	pub MinerMaxLength: u32 = Perbill::from_rational(90u32, 100) *
-		*RuntimeBlockLength::get()
+		*BlockLength::get()
 		.max
 		.get(DispatchClass::Normal);
 	pub OffchainRepeat: BlockNumber = UnsignedPhase::get() / 32;

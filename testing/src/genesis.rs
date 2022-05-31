@@ -25,7 +25,7 @@ use xxnetwork_runtime::{
 	GrandpaConfig, SwapConfig, wasm_binary_unwrap,
 	AccountId, StakerStatus, BabeConfig, BABE_GENESIS_EPOCH_CONFIG,
 };
-use xxnetwork_runtime::constants::currency::*;
+use runtime_common::constants::currency::*;
 use sp_runtime::Perbill;
 
 /// Create genesis runtime configuration for tests.

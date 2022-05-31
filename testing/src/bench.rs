@@ -35,10 +35,10 @@ use crate::{
 use codec::{Decode, Encode};
 use futures::executor;
 use node_primitives::Block;
+use runtime_common::constants::currency::UNITS;
 use xxnetwork_runtime::{
 	Call,
 	CheckedExtrinsic,
-	constants::currency::UNITS,
 	UncheckedExtrinsic,
 	MinimumPeriod,
 	SystemCall,
