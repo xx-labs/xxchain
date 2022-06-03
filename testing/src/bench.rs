@@ -35,7 +35,7 @@ use crate::{
 use codec::{Decode, Encode};
 use futures::executor;
 use node_primitives::Block;
-use runtime_common::constants::currency::UNITS;
+use runtime_common::{constants::currency::UNITS, ExistentialDeposit};
 use xxnetwork_runtime::{
 	Call,
 	CheckedExtrinsic,
@@ -312,20 +312,20 @@ impl<'a> Iterator for BlockContentIterator<'a> {
 			CheckedExtrinsic {
 				signed: Some((
 					sender,
-					signed_extra(0, xxnetwork_runtime::ExistentialDeposit::get() + 1),
+					signed_extra(0, ExistentialDeposit::get() + 1),
 				)),
 				function: match self.content.block_type {
 					BlockType::RandomTransfersKeepAlive =>
 						Call::Balances(BalancesCall::transfer_keep_alive {
 							dest: sp_runtime::MultiAddress::Id(receiver),
-							value: xxnetwork_runtime::ExistentialDeposit::get() + 1,
+							value: ExistentialDeposit::get() + 1,
 						}),
 					BlockType::RandomTransfersReaping => {
 						Call::Balances(BalancesCall::transfer {
 							dest: sp_runtime::MultiAddress::Id(receiver),
 							// Transfer so that ending balance would be 1 less than existential
 							// deposit so that we kill the sender account.
-							value: 100 * UNITS - (xxnetwork_runtime::ExistentialDeposit::get() - 1),
+							value: 100 * UNITS - (ExistentialDeposit::get() - 1),
 						})
 					},
 					BlockType::Noop => Call::System(SystemCall::remark { remark: Vec::new() }),

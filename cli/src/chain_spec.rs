@@ -606,7 +606,7 @@ pub fn xxnetwork_testnet_genesis(
 		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
-			let limit = (xxnetwork::MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let limit = (runtime_common::MAX_NOMINATIONS as usize).min(initial_authorities.len());
 			let count = rng.gen::<usize>() % limit;
 			let nominations = initial_authorities
 				.as_slice()

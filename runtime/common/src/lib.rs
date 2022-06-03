@@ -23,6 +23,7 @@
 pub mod constants;
 pub mod impls;
 
+use sp_std::prelude::*;
 use frame_support::{
 	parameter_types,
 	weights::{
@@ -30,13 +31,16 @@ use frame_support::{
 		DispatchClass,
 		Weight,
 	},
-	traits::Currency,
+	traits::{Currency, LockIdentifier},
+	PalletId,
 };
 use frame_system::limits;
 use node_primitives::{Balance, BlockNumber};
-use sp_runtime::{FixedPointNumber, Perbill, Perquintill};
+use sp_runtime::{FixedPointNumber, Percent, Permill, Perbill, Perquintill, transaction_validity::TransactionPriority};
 use pallet_transaction_payment::Multiplier;
 use static_assertions::const_assert;
+use constants::{currency::{deposit, CENTS, UNITS}, time::DAYS};
+use codec::Decode;
 
 pub type NegativeImbalance<T> =
 <pallet_balances::Pallet<T> as Currency<<T as frame_system::Config>::AccountId>>::NegativeImbalance;
@@ -53,7 +57,12 @@ const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
 parameter_types! {
+	/// Block hash count
 	pub const BlockHashCount: BlockNumber = 2400;
+
+	////////////////////////////////////////////
+	/// Transaction fees constants
+	/// 
 	pub const TransactionByteFee: Balance = 10 * crate::constants::currency::MILLICENTS;
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
@@ -69,6 +78,9 @@ parameter_types! {
 	/// a "virtual tip" that's equal to the `OperationalFeeMultiplier * final_fee`.
 	pub const OperationalFeeMultiplier: u8 = 5;
 
+	////////////////////////////////////////////
+	/// Block weigth and scheduler constants
+	/// 
 	/// Maximum length of block. Up to 5MB.
 	pub BlockLength: limits::BlockLength = limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub BlockWeights: limits::BlockWeights = limits::BlockWeights::builder()
@@ -91,4 +103,207 @@ parameter_types! {
 		.build_or_panic();
 	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
 	pub const MaxScheduledPerBlock: u32 = 50;
+
+	////////////////////////////////////////////
+	/// Proxy constants
+	// One storage item; key size 32, value size 8; .
+	pub const ProxyDepositBase: Balance = deposit(1, 8);
+	// Additional storage item size of 33 bytes.
+	pub const ProxyDepositFactor: Balance = deposit(0, 33);
+	pub const MaxProxies: u16 = 32;
+	pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+
+	////////////////////////////////////////////
+	/// Balances constants
+	pub const ExistentialDeposit: Balance = 1 * UNITS;
+	// For weight estimation, we assume that the most locks on an individual account will be 50.
+	// This number may need to be adjusted in the future if this assumption no longer holds true.
+	pub const MaxReserves: u32 = 50;
+	pub const MaxLocks: u32 = 50;
+
+	////////////////////////////////////////////
+	/// Staking constants
+	pub const SessionsPerEra: sp_staking::SessionIndex = 3;
+	pub const BondingDuration: pallet_staking::EraIndex = 28;
+	pub const SlashDeferDuration: pallet_staking::EraIndex = 27;
+	pub const MaxNominatorRewardedPerValidator: u32 = 256;
+	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
+
+	////////////////////////////////////////////
+	/// Election provider constants
+	// signed config
+	pub const SignedMaxSubmissions: u32 = 16;
+	pub const SignedDepositBase: Balance = deposit(1, 0);
+	// A typical solution occupies within an order of magnitude of 50kb.
+	// This formula is currently adjusted such that a typical solution will spend an amount equal
+	// to the base deposit for every 50 kb.
+	pub const SignedDepositByte: Balance = deposit(1, 0) / (50 * 1024);
+	// Each good submission will get 1 UNIT as reward
+	pub SignedRewardBase: Balance = 1 * UNITS;
+	pub SolutionImprovementThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
+
+	// miner configs
+	pub MultiPhaseUnsignedPriority: TransactionPriority =
+		Perbill::from_percent(90) * TransactionPriority::max_value();
+	pub const MinerMaxIterations: u32 = 10;
+	pub MinerMaxWeight: Weight = BlockWeights::get()
+		.get(DispatchClass::Normal)
+		.max_extrinsic.expect("Normal extrinsics have a weight limit configured; qed")
+		.saturating_sub(BlockExecutionWeight::get());
+	// Solution can occupy 90% of normal block size
+	pub MinerMaxLength: u32 = Perbill::from_rational(90u32, 100) *
+		*BlockLength::get()
+		.max
+		.get(DispatchClass::Normal);
+	pub const VoterSnapshotPerBlock: u32 = 22_500;
+
+	////////////////////////////////////////////
+	/// Democracy constants
+	pub const MinimumDeposit: Balance = 100 * UNITS;
+	// One cent: $10,000 / MB
+	pub const PreimageByteDeposit: Balance = 1 * CENTS;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+
+	////////////////////////////////////////////
+	/// Council constants
+	pub const CouncilMotionDuration: BlockNumber = 7 * DAYS;
+	pub const CouncilMaxProposals: u32 = 100;
+	pub const CouncilMaxMembers: u32 = 100;
+	pub const CandidacyBond: Balance = 100 * UNITS;
+	// 1 storage item created, key size is 32 bytes, value size is 16+16.
+	pub const VotingBondBase: Balance = deposit(1, 64);
+	// additional data per vote is 32 bytes (account id).
+	pub const VotingBondFactor: Balance = deposit(0, 32);
+	pub const TermDuration: BlockNumber = 7 * DAYS;
+	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
+
+	////////////////////////////////////////////
+	/// Tech Committee constants
+	pub const TechnicalMotionDuration: BlockNumber = 7 * DAYS;
+	pub const TechnicalMaxProposals: u32 = 100;
+	pub const TechnicalMaxMembers: u32 = 10;
+
+	////////////////////////////////////////////
+	/// Treasury / Bounties / Tips constants
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 100 * UNITS;
+	pub const SpendPeriod: BlockNumber = 24 * DAYS;
+	pub const Burn: Permill = Permill::from_percent(1);
+	pub const TreasuryPalletId: PalletId = PalletId(*b"xx/trsry");
+	pub const TipCountdown: BlockNumber = 1 * DAYS;
+	pub const TipFindersFee: Percent = Percent::from_percent(20);
+	pub const TipReportDepositBase: Balance = 1 * UNITS;
+	pub const DataDepositPerByte: Balance = 1 * CENTS;
+	pub const BountyDepositBase: Balance = 1 * UNITS;
+	pub const BountyDepositPayoutDelay: BlockNumber = 8 * DAYS;
+	pub const BountyUpdatePeriod: BlockNumber = 90 * DAYS;
+	pub const MaximumReasonLength: u32 = 16384;
+	pub const BountyCuratorDeposit: Permill = Permill::from_percent(50);
+	pub const BountyValueMinimum: Balance = 10 * UNITS;
+	pub const MaxApprovals: u32 = 100;
+
+	////////////////////////////////////////////
+	/// Consensus support constants
+	pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+	pub const MaxAuthorities: u32 = 100_000;
+	pub const MaxKeys: u32 = 10_000;
+	pub const MaxPeerInHeartbeats: u32 = 10_000;
+	pub const MaxPeerDataEncodingSize: u32 = 1_000;
+
+	///////////////////////////////////////////
+	/// Identity constants
+	pub const BasicDeposit: Balance = deposit(1, 258);
+	pub const FieldDeposit: Balance = deposit(0, 66);
+	pub const SubAccountDeposit: Balance = deposit(1, 53);
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+
+	///////////////////////////////////////////
+	/// Vesting constants
+	pub const MinVestedTransfer: Balance = 1 * UNITS;
+
+	///////////////////////////////////////////
+	/// Multisig constants
+	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+	pub const DepositBase: Balance = deposit(1, 88);
+	// Additional storage item size of 32 bytes.
+	pub const DepositFactor: Balance = deposit(0, 32);
+	pub const MaxSignatories: u16 = 100;
+
+	///////////////////////////////////////////
+	/// Recovery constants
+	pub const ConfigDepositBase: Balance = 5 * UNITS;
+	pub const FriendDepositFactor: Balance = 50 * CENTS;
+	pub const MaxFriends: u16 = 9;
+	pub const RecoveryDeposit: Balance = 5 * UNITS;
+
+	///////////////////////////////////////////
+	/// Assets constants
+	pub const AssetDeposit: Balance = 100 * UNITS;
+	pub const ApprovalDeposit: Balance = 1 * UNITS;
+	pub const StringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = 10 * UNITS;
+	pub const MetadataDepositPerByte: Balance = 1 * UNITS;
+
+	///////////////////////////////////////////
+	/// Uniques constants
+	pub const ClassDeposit: Balance = 100 * UNITS;
+	pub const InstanceDeposit: Balance = 1 * UNITS;
+	pub const KeyLimit: u32 = 32;
+	pub const ValueLimit: u32 = 256;
+}
+
+sp_npos_elections::generate_solution_type!(
+	#[compact]
+	pub struct NposSolution16::<
+		VoterIndex = u32,
+		TargetIndex = u16,
+		Accuracy = sp_runtime::PerU16,
+	>(16)
+);
+
+pub const MAX_NOMINATIONS: u32 = <NposSolution16 as sp_npos_elections::NposSolution>::LIMIT as u32;
+
+/// The numbers configured here could always be more than the the maximum limits of staking pallet
+/// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
+/// since the staking is bounded and the weight pipeline takes hours for this single pallet.
+pub struct BenchmarkConfig;
+impl pallet_election_provider_multi_phase::BenchmarkingConfig for BenchmarkConfig {
+	const VOTERS: [u32; 2] = [1000, 2000];
+	const TARGETS: [u32; 2] = [500, 1000];
+	const ACTIVE_VOTERS: [u32; 2] = [500, 800];
+	const DESIRED_TARGETS: [u32; 2] = [200, 400];
+	const SNAPSHOT_MAXIMUM_VOTERS: u32 = 1000;
+	const MINER_MAXIMUM_VOTERS: u32 = 1000;
+	const MAXIMUM_TARGETS: u32 = 300;
+}
+
+/// Maximum number of iterations for balancing that will be executed in the embedded OCW
+/// miner of election provider multi phase.
+pub const MINER_MAX_ITERATIONS: u32 = 10;
+
+/// A source of random balance for NposSolver, which is meant to be run by the OCW election miner.
+pub struct OffchainRandomBalancing;
+impl frame_support::pallet_prelude::Get<Option<(usize, sp_npos_elections::ExtendedBalance)>>
+for OffchainRandomBalancing
+{
+	fn get() -> Option<(usize, sp_npos_elections::ExtendedBalance)> {
+		use sp_runtime::traits::TrailingZeroInput;
+		let iters = match MINER_MAX_ITERATIONS {
+			0 => 0,
+			max @ _ => {
+				let seed = sp_io::offchain::random_seed();
+				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
+					.expect("input is padded with zeroes; qed") %
+					max.saturating_add(1);
+				random as usize
+			},
+		};
+
+		Some((iters, 0))
+	}
 }

@@ -62,7 +62,7 @@ impl SubstrateCli for Cli {
 			#[cfg(feature = "phoenixx")]
 			"phoenixx" => Box::new(chain_spec::phoenixx_config()?),
 			#[cfg(feature = "phoenixx")]
-			"phoenixx-dev" | "dev" => Box::new(chain_spec::phoenixx_development_config()),
+			"phoenixx-dev" => Box::new(chain_spec::phoenixx_development_config()),
 			path => {
 				let path = std::path::PathBuf::from(path);
 
