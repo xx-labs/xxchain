@@ -55,3 +55,4 @@ std = [
 	"pallet-staking/std",
 	"pallet-election-provider-multi-phase/std",
 ]
+fast-runtime = []

@@ -56,6 +56,7 @@ pub mod currency {
 /// Time.
 pub mod time {
 	use node_primitives::{Moment, BlockNumber};
+	use crate::prod_or_fast;
 
 	/// Since BABE is probabilistic this is the average expected block time that
 	/// we are targeting. Blocks will be produced at a minimum duration defined
@@ -84,7 +85,9 @@ pub mod time {
 
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
-	pub const HOURS: BlockNumber = MINUTES * 60;
+	// For fast runtimes, redefine the hours constanst to be 120x faster (5 blocks instead of 600)
+	// This will propragate to other time constants
+	pub const HOURS: BlockNumber = prod_or_fast!(MINUTES * 60, 5);
 	pub const DAYS: BlockNumber = HOURS * 24;
 	pub const WEEKS: BlockNumber = 7 * DAYS;
 	pub const YEARS: BlockNumber = 365 * DAYS + 6*HOURS;

@@ -165,3 +165,7 @@ try-runtime = [
 xxnetwork = ["xxnetwork-runtime", "node-executor/xxnetwork"]
 protonet = ["protonet-runtime", "node-executor/protonet"]
 phoenixx = ["phoenixx-runtime", "node-executor/phoenixx"]
+
+fast-runtime = [
+	"xxnetwork-runtime/fast-runtime",
+]

@@ -251,3 +251,4 @@ try-runtime = [
 	"pallet-uniques/try-runtime",
 	"migrations/try-runtime"
 ]
+fast-runtime = ["runtime-common/fast-runtime"]
