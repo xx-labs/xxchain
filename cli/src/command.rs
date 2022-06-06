@@ -55,14 +55,10 @@ impl SubstrateCli for Cli {
 			"xxnetwork" => Box::new(chain_spec::xxnetwork_config()?),
 			#[cfg(feature = "xxnetwork")]
 			"xxnetwork-dev" | "dev" => Box::new(chain_spec::xxnetwork_development_config()),
-			#[cfg(feature = "protonet")]
-			"protonet" => Box::new(chain_spec::protonet_config()?),
-			#[cfg(feature = "protonet")]
-			"protonet-dev" => Box::new(chain_spec::protonet_development_config()),
-			#[cfg(feature = "phoenixx")]
-			"phoenixx" => Box::new(chain_spec::phoenixx_config()?),
-			#[cfg(feature = "phoenixx")]
-			"phoenixx-dev" => Box::new(chain_spec::phoenixx_development_config()),
+			#[cfg(feature = "canary")]
+			"canary" => Box::new(chain_spec::canary_config()?),
+			#[cfg(feature = "canary")]
+			"canary-dev" => Box::new(chain_spec::canary_development_config()),
 			path => {
 				let path = std::path::PathBuf::from(path);
 
@@ -70,10 +66,8 @@ impl SubstrateCli for Cli {
 
 				// When the file name starts with the name of one of the known chains,
 				// we use the chain spec for the specific chain.
-				if chain_spec.is_phoenixx() {
-					Box::new(chain_spec::PhoenixxChainSpec::from_json_file(path)?)
-				} else if chain_spec.is_protonet() {
-					Box::new(chain_spec::ProtonetChainSpec::from_json_file(path)?)
+				if chain_spec.is_canary() {
+					Box::new(chain_spec::CanaryChainSpec::from_json_file(path)?)
 				} else {
 					chain_spec
 				}
@@ -82,20 +76,12 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		#[cfg(feature = "phoenixx")]
-		if spec.is_phoenixx() {
-			return &chain_spec::phoenixx::VERSION
+		#[cfg(feature = "canary")]
+		if spec.is_canary() {
+			return &chain_spec::canary::VERSION
 		}
 
-		#[cfg(feature = "protonet")]
-		if spec.is_protonet() {
-			return &chain_spec::protonet::VERSION
-		}
-
-		#[cfg(not(all(
-			feature = "phoenixx",
-			feature = "protonet"
-		)))]
+		#[cfg(not(feature = "canary"))]
 		let _ = spec;
 
 		#[cfg(feature = "xxnetwork")]
@@ -104,7 +90,7 @@ impl SubstrateCli for Cli {
 		}
 
 		#[cfg(not(feature = "xxnetwork"))]
-		panic!("No runtime feature (xxnetwork, protonet, phoenixx) is enabled")
+		panic!("No runtime feature (xxnetwork, canary) is enabled")
 	}
 }
 
@@ -121,28 +107,19 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::Inspect(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.sync_run(|config|
-					cmd.run::<
-						chain_spec::phoenixx::Block,
-						chain_spec::phoenixx::RuntimeApi,
-						service::PhoenixxExecutorDispatch>(config)
-				)
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.sync_run(|config|
-					cmd.run::<
-						chain_spec::protonet::Block,
-						chain_spec::protonet::RuntimeApi,
-						service::ProtonetExecutorDispatch>(config)
-				)
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.sync_run(|config|
+						cmd.run::<
+							chain_spec::canary::Block,
+							chain_spec::canary::RuntimeApi,
+							service::CanaryExecutorDispatch>(config)
+					)
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{
@@ -157,26 +134,18 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
-				#[cfg(any(
-					feature = "phoenixx",
-					feature = "protonet"
-				))]
-				let chain_spec = &runner.config().chain_spec;
-				#[cfg(feature = "phoenixx")]
-				if chain_spec.is_phoenixx() {
-					return runner.sync_run(|config|
-						cmd.run::<
-							chain_spec::phoenixx::Block,
-							service::PhoenixxExecutorDispatch
-						>(config))
-				}
-				#[cfg(feature = "protonet")]
-				if chain_spec.is_protonet() {
-					return runner.sync_run(|config|
-						cmd.run::<
-							chain_spec::protonet::Block,
-							service::ProtonetExecutorDispatch
-						>(config))
+				#[cfg(feature = "canary")]
+				{
+					let chain_spec = &runner.config().chain_spec;
+					if chain_spec.is_canary() {
+						return runner.sync_run(|config|
+							cmd.run::<
+								chain_spec::canary::Block,
+								service::CanaryExecutorDispatch>(config)
+						)
+					};
+					#[cfg(not(feature = "xxnetwork"))]
+					return Err("Chain spec doesn't match canary runtime!".into())
 				}
 				#[cfg(feature = "xxnetwork")]
 				{
@@ -201,26 +170,18 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, import_queue, ..}
-						= service::new_partial::<service::PhoenixxRuntimeApi, service::PhoenixxExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, import_queue), task_manager))
-				})
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, import_queue, ..}
-						= service::new_partial::<service::ProtonetRuntimeApi, service::ProtonetExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, import_queue), task_manager))
-				})
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.async_run(|config| {
+						let PartialComponents { client, task_manager, import_queue, ..}
+							= service::new_partial::<service::CanaryRuntimeApi, service::CanaryExecutorDispatch>(&config)?;
+						Ok((cmd.run(client, import_queue), task_manager))
+					})
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{
@@ -233,26 +194,18 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, ..}
-						= service::new_partial::<service::PhoenixxRuntimeApi, service::PhoenixxExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, config.database), task_manager))
-				})
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, ..}
-						= service::new_partial::<service::ProtonetRuntimeApi, service::ProtonetExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, config.database), task_manager))
-				})
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.async_run(|config| {
+						let PartialComponents { client, task_manager, ..}
+							= service::new_partial::<service::CanaryRuntimeApi, service::CanaryExecutorDispatch>(&config)?;
+						Ok((cmd.run(client, config.database), task_manager))
+					})
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{
@@ -265,26 +218,18 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, ..}
-						= service::new_partial::<service::PhoenixxRuntimeApi, service::PhoenixxExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, config.chain_spec), task_manager))
-				})
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, ..}
-						= service::new_partial::<service::ProtonetRuntimeApi, service::ProtonetExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, config.chain_spec), task_manager))
-				})
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.async_run(|config| {
+						let PartialComponents { client, task_manager, ..}
+							= service::new_partial::<service::CanaryRuntimeApi, service::CanaryExecutorDispatch>(&config)?;
+						Ok((cmd.run(client, config.chain_spec), task_manager))
+					})
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{
@@ -297,26 +242,18 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, import_queue, ..}
-						= service::new_partial::<service::PhoenixxRuntimeApi, service::PhoenixxExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, import_queue), task_manager))
-				})
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, import_queue, ..}
-						= service::new_partial::<service::ProtonetRuntimeApi, service::ProtonetExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, import_queue), task_manager))
-				})
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.async_run(|config| {
+						let PartialComponents { client, task_manager, import_queue, ..}
+							= service::new_partial::<service::CanaryRuntimeApi, service::CanaryExecutorDispatch>(&config)?;
+						Ok((cmd.run(client, import_queue), task_manager))
+					})
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{
@@ -333,26 +270,18 @@ pub fn run() -> Result<()> {
 		},
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, backend, ..}
-						= service::new_partial::<service::PhoenixxRuntimeApi, service::PhoenixxExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, backend), task_manager))
-				})
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.async_run(|config| {
-					let PartialComponents { client, task_manager, backend, ..}
-						= service::new_partial::<service::ProtonetRuntimeApi, service::ProtonetExecutorDispatch>(&config)?;
-					Ok((cmd.run(client, backend), task_manager))
-				})
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.async_run(|config| {
+						let PartialComponents { client, task_manager, backend, ..}
+							= service::new_partial::<service::CanaryRuntimeApi, service::CanaryExecutorDispatch>(&config)?;
+						Ok((cmd.run(client, backend), task_manager))
+					})
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{
@@ -366,38 +295,24 @@ pub fn run() -> Result<()> {
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			#[cfg(any(
-				feature = "phoenixx",
-				feature = "protonet"
-			))]
-			let chain_spec = &runner.config().chain_spec;
-			#[cfg(feature = "phoenixx")]
-			if chain_spec.is_phoenixx() {
-				return runner.async_run(|config| {
-					// we don't need any of the components of new_partial, just a runtime, or a task
-					// manager to do `async_run`.
-					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-					let task_manager = sc_service::TaskManager::new(
-						config.tokio_handle.clone(),
-						registry,
-					).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+			#[cfg(feature = "canary")]
+			{
+				let chain_spec = &runner.config().chain_spec;
+				if chain_spec.is_canary() {
+					return runner.async_run(|config| {
+						// we don't need any of the components of new_partial, just a runtime, or a task
+						// manager to do `async_run`.
+						let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+						let task_manager = sc_service::TaskManager::new(
+							config.tokio_handle.clone(),
+							registry,
+						).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
-					Ok((cmd.run::<chain_spec::phoenixx::Block, service::PhoenixxExecutorDispatch>(config), task_manager))
-				})
-			}
-			#[cfg(feature = "protonet")]
-			if chain_spec.is_protonet() {
-				return runner.async_run(|config| {
-					// we don't need any of the components of new_partial, just a runtime, or a task
-					// manager to do `async_run`.
-					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-					let task_manager = sc_service::TaskManager::new(
-						config.tokio_handle.clone(),
-						registry,
-					).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
-
-					Ok((cmd.run::<chain_spec::protonet::Block, service::ProtonetExecutorDispatch>(config), task_manager))
-				})
+						Ok((cmd.run::<chain_spec::canary::Block, service::CanaryExecutorDispatch>(config), task_manager))
+					})
+				};
+				#[cfg(not(feature = "xxnetwork"))]
+				return Err("Chain spec doesn't match canary runtime!".into())
 			}
 			#[cfg(feature = "xxnetwork")]
 			{

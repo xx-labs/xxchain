@@ -134,6 +134,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-scheduler/std",
 	"node-primitives/std",
+	"runtime-common/std",
 	"sp-offchain/std",
 	"pallet-offences/std",
 	"pallet-proxy/std",

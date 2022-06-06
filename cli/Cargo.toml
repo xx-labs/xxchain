@@ -82,8 +82,7 @@ pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-
 
 # node-specific dependencies
 xxnetwork-runtime = { version = "0.2.3", path = "../runtime/xxnetwork", optional = true }
-protonet-runtime = { version = "0.2.0", path = "../runtime/protonet", optional = true }
-phoenixx-runtime = { version = "0.2.0", path = "../runtime/phoenixx", optional = true }
+canary-runtime = { version = "0.2.0", path = "../runtime/canary", optional = true }
 node-rpc = { version = "0.2.0", path = "../rpc" }
 node-primitives = { version = "0.2.0", path = "../primitives" }
 node-executor = { version = "0.2.0", path = "../executor" }
@@ -149,23 +148,21 @@ cli = [
 ]
 runtime-benchmarks = [
 	"xxnetwork-runtime/runtime-benchmarks",
-	# "protonet-runtime/runtime-benchmarks",
-	# "phoenixx-runtime/runtime-benchmarks",
+	"canary-runtime/runtime-benchmarks",
 	"frame-benchmarking-cli",
 ]
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
 try-runtime = [
 	"xxnetwork-runtime/try-runtime",
-	"protonet-runtime/try-runtime",
-	"phoenixx-runtime/try-runtime",
+	"canary-runtime/try-runtime",
 	"try-runtime-cli",
 ]
 
 xxnetwork = ["xxnetwork-runtime", "node-executor/xxnetwork"]
-protonet = ["protonet-runtime", "node-executor/protonet"]
-phoenixx = ["phoenixx-runtime", "node-executor/phoenixx"]
+canary = ["canary-runtime", "node-executor/canary"]
 
 fast-runtime = [
 	"xxnetwork-runtime/fast-runtime",
+	"canary-runtime/fast-runtime",
 ]

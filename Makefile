@@ -1,25 +1,55 @@
-build: build-dev
+#######################
+### xx network only ###
+#######################
 
-build-dev:
-	@cargo build --release --features phoenixx,protonet
-
-build-prod:
+# Builds xxnetwork-chain binary containing only xxnetwork runtime
+build-release:
 	@cargo build -p xxnetwork-cli --release
 
-build-phoenixx-runtime:
-	@srtool build --package phoenixx-runtime
+# TODO: add build optimizations for production binary
 
-build-protonet-runtime:
-	@srtool build --package protonet-runtime
+#######################
+###  xx canary only ###
+#######################
+
+# Builds xxnetwork-chain binary containing only canary runtime
+build-canary-release:
+	@cargo build -p xxnetwork-cli --release --no-default-features --features cli,canary
+
+# TODO: add build optimizations for production binary
+
+#######################
+###  both runtimes  ###
+#######################
+
+# Build all packages
+build:
+	@cargo build --release --features canary
+
+# Builds xxnetwork-chain binary containing accelerated xxnetwork and canary runtime
+build-dev:
+	@cargo build -p xxnetwork-cli --release --features canary,fast-runtime
+
+#######################
+###  build runtimes ###
+#######################
+
+build-canary-runtime:
+	@srtool build --package canary-runtime
 
 build-xxnetwork-runtime:
 	@srtool build --package xxnetwork-runtime
 
-build-runtimes: build-phoenixx-runtime build-protonet-runtime build-xxnetwork-runtime
+build-runtimes: build-canary-runtime build-xxnetwork-runtime
+
 
 build-linux-from-mac:
 	@echo -e "Before proceeding make sure you check README\n"
 	@CC_x86_64_unknown_linux_gnu="x86_64-unknown-linux-gnu-gcc" CXX_x86_64_unknown_linux_gnu="x86_64-unknown-linux-gnu-g++" CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="x86_64-unknown-linux-gnu-gcc" cargo build --release --target=x86_64-unknown-linux-gnu
+
+#######################
+###      tests      ###
+#######################
 
 all-tests:
 	@echo "Running all unit tests\n"

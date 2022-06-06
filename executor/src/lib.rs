@@ -38,38 +38,20 @@ impl sc_executor::NativeExecutionDispatch for XXNetworkExecutorDispatch {
     }
 }
 
-// Declare an instance of the native executor named `ProtonetExecutorDispatch`.
+// Declare an instance of the native executor named `CanaryExecutorDispatch`.
 // Include the wasm binary as the equivalent wasm code.
-#[cfg(feature = "protonet")]
-pub struct ProtonetExecutorDispatch;
+#[cfg(feature = "canary")]
+pub struct CanaryExecutorDispatch;
 
-#[cfg(feature = "protonet")]
-impl sc_executor::NativeExecutionDispatch for ProtonetExecutorDispatch {
+#[cfg(feature = "canary")]
+impl sc_executor::NativeExecutionDispatch for CanaryExecutorDispatch {
     type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
     fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        protonet_runtime::api::dispatch(method, data)
+        canary_runtime::api::dispatch(method, data)
     }
 
     fn native_version() -> sc_executor::NativeVersion {
-        protonet_runtime::native_version()
-    }
-}
-
-// Declare an instance of the native executor named `PhoenixxExecutorDispatch`.
-// Include the wasm binary as the equivalent wasm code.
-#[cfg(feature = "phoenixx")]
-pub struct PhoenixxExecutorDispatch;
-
-#[cfg(feature = "phoenixx")]
-impl sc_executor::NativeExecutionDispatch for PhoenixxExecutorDispatch {
-    type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
-
-    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        phoenixx_runtime::api::dispatch(method, data)
-    }
-
-    fn native_version() -> sc_executor::NativeVersion {
-        phoenixx_runtime::native_version()
+        canary_runtime::native_version()
     }
 }

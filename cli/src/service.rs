@@ -32,26 +32,19 @@ use sc_service::{
 use sp_api::{ConstructRuntimeApi, StateBackend};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_runtime::traits::{Block as BlockT, BlakeTwo256};
-#[cfg(any(
-	feature = "phoenixx",
-	feature = "protonet"
-))]
+#[cfg(feature = "canary")]
 use crate::chain_spec::IdentifyVariant;
 use std::sync::Arc;
 
 #[cfg(feature = "xxnetwork")]
 pub use node_executor::XXNetworkExecutorDispatch;
-#[cfg(feature = "protonet")]
-pub use node_executor::ProtonetExecutorDispatch;
-#[cfg(feature = "phoenixx")]
-pub use node_executor::PhoenixxExecutorDispatch;
+#[cfg(feature = "canary")]
+pub use node_executor::CanaryExecutorDispatch;
 
 #[cfg(feature = "xxnetwork")]
 pub use xxnetwork_runtime::RuntimeApi as XXNetworkRuntimeApi;
-#[cfg(feature = "protonet")]
-pub use protonet_runtime::RuntimeApi as ProtonetRuntimeApi;
-#[cfg(feature = "phoenixx")]
-pub use phoenixx_runtime::RuntimeApi as PhoenixxRuntimeApi;
+#[cfg(feature = "canary")]
+pub use canary_runtime::RuntimeApi as CanaryRuntimeApi;
 
 // Common types
 type FullBackend = sc_service::TFullBackend<Block>;
@@ -502,19 +495,16 @@ where
 pub fn new_full(
 	config: Configuration,
 ) -> Result<TaskManager, ServiceError> {
-	#[cfg(feature = "phoenixx")]
-	if config.chain_spec.is_phoenixx() {
-		return new_full_base::<PhoenixxRuntimeApi, PhoenixxExecutorDispatch>(config)
+	#[cfg(feature = "canary")]
+	if config.chain_spec.is_canary() {
+		return new_full_base::<CanaryRuntimeApi, CanaryExecutorDispatch>(config)
 	}
-	#[cfg(feature = "protonet")]
-	if config.chain_spec.is_protonet() {
-		return new_full_base::<ProtonetRuntimeApi, ProtonetExecutorDispatch>(config)
-	}
+
 	#[cfg(feature = "xxnetwork")]
 	{
 		return new_full_base::<XXNetworkRuntimeApi, XXNetworkExecutorDispatch>(config)
 	}
 
 	#[cfg(not(feature = "xxnetwork"))]
-	Err("No runtime feature enabled")
+	return Err(ServiceError::Other("Chain spec doesn't match canary runtime!".into()))
 }
