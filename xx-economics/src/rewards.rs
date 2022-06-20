@@ -9,7 +9,7 @@ use sp_runtime::traits::{Zero, AccountIdConversion};
 impl<T: Config> Module<T> {
     /// Get the AccountId for the Rewards pool
     pub fn rewards_account_id() -> T::AccountId {
-        T::RewardsPoolId::get().into_account()
+        T::RewardsPoolId::get().into_account_truncating()
     }
 
     /// Get current balance of Rewards pool account

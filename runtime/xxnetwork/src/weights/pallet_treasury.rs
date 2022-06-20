@@ -31,6 +31,13 @@ pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_treasury::WeightInfo for WeightInfo<T> {
 	// Storage: Treasury ProposalCount (r:1 w:1)
 	// Storage: Treasury Proposals (r:0 w:1)
+	fn spend() -> Weight {
+		(22_063_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+	}
+	// Storage: Treasury ProposalCount (r:1 w:1)
+	// Storage: Treasury Proposals (r:0 w:1)
 	fn propose_spend() -> Weight {
 		(37_120_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -50,6 +57,12 @@ impl<T: frame_system::Config> pallet_treasury::WeightInfo for WeightInfo<T> {
 			// Standard Error: 0
 			.saturating_add((80_000 as Weight).saturating_mul(p as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	// Storage: Treasury Approvals (r:1 w:1)
+	fn remove_approval() -> Weight {
+		(6_647_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: System Account (r:1 w:1)

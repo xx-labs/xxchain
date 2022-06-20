@@ -9,7 +9,7 @@ repository = "https://github.com/xx-labs/xxchain/"
 [dependencies]
 
 # third-party dependencies
-codec = { package = "parity-scale-codec", version = "2.2.0", default-features = false, features = [
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [
 	"derive",
 	"max-encoded-len",
 ] }
@@ -17,24 +17,24 @@ static_assertions = "1.1.0"
 smallvec = "1.7.0"
 
 # primitives
-sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 node-primitives = { version = "0.2.0", default-features = false, path = "../../primitives" }
-sp-staking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-npos-elections = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+sp-staking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
 # frame dependencies
-frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-election-provider-support = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
 # pallets
-pallet-authorship = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-pallet-treasury = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-pallet-staking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-pallet-election-provider-multi-phase = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+pallet-authorship = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-treasury = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-staking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-election-provider-multi-phase = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
 [features]
 default = ["std"]
@@ -45,11 +45,11 @@ std = [
 	"pallet-balances/std",
 	"node-primitives/std",
 	"sp-staking/std",
-	"sp-npos-elections/std",
 	"sp-io/std",
 	"sp-runtime/std",
 	"frame-support/std",
 	"frame-system/std",
+	"frame-election-provider-support/std",
 	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-staking/std",

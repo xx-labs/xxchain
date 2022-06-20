@@ -18,7 +18,7 @@ use sp_runtime::traits::{
 use frame_support::{StorageValue, StorageMap, dispatch::DispatchResult};
 
 /// Custody Info
-#[derive(PartialEq, Eq, Clone, Encode, Decode, Default, RuntimeDebug, scale_info::TypeInfo)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, scale_info::TypeInfo)]
 pub struct CustodyInfo<AccountId, Balance: HasCompact> {
     /// Allocation
     #[codec(compact)]
@@ -33,7 +33,6 @@ pub struct CustodyInfo<AccountId, Balance: HasCompact> {
 }
 
 impl<AccountId, Balance> CustodyInfo<AccountId, Balance> where
-    AccountId: Default,
     Balance: AtLeast32BitUnsigned + Saturating + Copy,
 {
     /// Increase vested amount in self
@@ -166,7 +165,7 @@ impl<T: Config> Module<T> {
 
         // 2. Get custody info for team member
         // (can't fail because team member existing is checked before)
-        let info = <TeamAccounts<T>>::get(&who);
+        let info = <TeamAccounts<T>>::get(&who).unwrap();
 
         // 3. If custody is over, payout full remaining amount
         if Self::is_custody_done(block) {
@@ -422,7 +421,7 @@ impl<T: Config> Module<T> {
 
         // 2. Get team member custody account
         // (can't fail because team member existing is checked before)
-        let info = <TeamAccounts<T>>::get(&who);
+        let info = <TeamAccounts<T>>::get(&who).unwrap();
 
         // 3. Set new governance proxy (removes any previous existing ones)
         Self::set_custody_governance_proxy(&info.custody, proxy)
@@ -431,7 +430,7 @@ impl<T: Config> Module<T> {
     /// Update a team member account
     pub fn update_team_member(who: T::AccountId, new: T::AccountId) {
         // 1. Take info from team accounts
-        let info = <TeamAccounts<T>>::take(&who);
+        let info = <TeamAccounts<T>>::take(&who).unwrap();
         // 2. Insert info in new account
         <TeamAccounts<T>>::insert(&new, info);
     }

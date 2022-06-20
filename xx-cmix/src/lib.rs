@@ -45,7 +45,7 @@ decl_storage! {
         pub AdminPermission get(fn admin_permission) config(): T::BlockNumber;
 
         /// Scheduling server account
-        pub SchedulingAccount get(fn scheduling_account) config(): T::AccountId;
+        pub SchedulingAccount get(fn scheduling_account): Option<T::AccountId>;
 
         /// Cmix user ephemeral reception IDs address space size in bits
         pub CmixAddressSpace get(fn cmix_address_space) config(): u8;
@@ -55,6 +55,17 @@ decl_storage! {
 
         /// Current cmix variables
         pub CmixVariables get(fn cmix_variables) config(): cmix::Variables;
+    }
+
+    add_extra_genesis {
+        config(scheduling_account): Option<T::AccountId>;
+
+        build(|config: &GenesisConfig<T>| {
+            // Set scheduling account
+            if let Some(acct) = &config.scheduling_account {
+                <SchedulingAccount<T>>::put(acct);
+            }
+        });
     }
 }
 
@@ -240,7 +251,11 @@ impl<T: Config> Module<T> {
 
     /// Check if given account is scheduling server
     fn is_scheduling(who: T::AccountId) -> bool {
-        who == <SchedulingAccount<T>>::get()
+        if let Some(sched) = <SchedulingAccount<T>>::get() {
+            who == sched
+        } else {
+            false
+        }
     }
 
     /// Check if origin is cmix variables

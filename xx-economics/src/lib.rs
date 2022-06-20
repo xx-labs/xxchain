@@ -130,7 +130,7 @@ decl_module! {
 	    //---------------- REWARDS POOL ----------------//
 
 	    const RewardsPoolId: PalletId = T::RewardsPoolId::get();
-	    const RewardsPoolAccount: T::AccountId = T::RewardsPoolId::get().into_account();
+	    const RewardsPoolAccount: T::AccountId = T::RewardsPoolId::get().into_account_truncating();
 
 	    fn deposit_event() = default;
 

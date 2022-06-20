@@ -112,13 +112,13 @@ impl<T: frame_system::Config> pallet_uniques::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: Uniques Class (r:1 w:1)
-	fn freeze_class() -> Weight {
+	fn freeze_collection() -> Weight {
 		(20_278_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: Uniques Class (r:1 w:1)
-	fn thaw_class() -> Weight {
+	fn thaw_collection() -> Weight {
 		(20_038_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
@@ -137,7 +137,7 @@ impl<T: frame_system::Config> pallet_uniques::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: Uniques Class (r:1 w:1)
-	fn force_asset_status() -> Weight {
+	fn force_item_status() -> Weight {
 		(19_286_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
@@ -174,14 +174,14 @@ impl<T: frame_system::Config> pallet_uniques::WeightInfo for WeightInfo<T> {
 	}
 	// Storage: Uniques Class (r:1 w:1)
 	// Storage: Uniques ClassMetadataOf (r:1 w:1)
-	fn set_class_metadata() -> Weight {
+	fn set_collection_metadata() -> Weight {
 		(46_467_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	// Storage: Uniques Class (r:1 w:0)
 	// Storage: Uniques ClassMetadataOf (r:1 w:1)
-	fn clear_class_metadata() -> Weight {
+	fn clear_collection_metadata() -> Weight {
 		(41_959_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
@@ -197,6 +197,19 @@ impl<T: frame_system::Config> pallet_uniques::WeightInfo for WeightInfo<T> {
 	// Storage: Uniques Asset (r:1 w:1)
 	fn cancel_approval() -> Weight {
 		(28_393_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	// Storage: Uniques OwnershipAcceptance (r:1 w:1)
+	fn set_accept_ownership() -> Weight {
+		(20_716_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	// Storage: Uniques CollectionMaxSupply (r:1 w:1)
+	// Storage: Uniques Class (r:1 w:0)
+	fn set_collection_max_supply() -> Weight {
+		(19_380_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}

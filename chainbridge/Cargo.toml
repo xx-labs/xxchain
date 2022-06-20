@@ -6,27 +6,27 @@ edition = '2018'
 
 [dependencies]
 # third-party dependencies
-codec = { package = "parity-scale-codec", version = "2.2.0", default-features = false, features = [
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [
 	"derive",
 	"max-encoded-len",
 ] }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 serde = { version = "1.0.126", optional = true }
 
 # primitives
-sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
 # frame dependencies
-frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
-pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
 [build-dependencies]
-substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 [features]
 default = ["std"]

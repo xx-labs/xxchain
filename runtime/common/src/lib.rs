@@ -101,8 +101,15 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
+
+	////////////////////////////////////////////
+	/// Scheduler + Preimage constants
 	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * BlockWeights::get().max_block;
 	pub const MaxScheduledPerBlock: u32 = 50;
+	pub const NoPreimagePostponement: Option<u32> = Some(10);
+	pub const PreimageMaxSize: u32 = 4096 * 1024;
+	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub const PreimageByteDeposit: Balance = deposit(0, 1);
 
 	////////////////////////////////////////////
 	/// Proxy constants
@@ -126,23 +133,21 @@ parameter_types! {
 	////////////////////////////////////////////
 	/// Staking constants
 	pub const SessionsPerEra: sp_staking::SessionIndex = 3;
-	pub const BondingDuration: pallet_staking::EraIndex = 28;
-	pub const SlashDeferDuration: pallet_staking::EraIndex = 27;
+	pub const BondingDuration: sp_staking::EraIndex = 28;
+	pub const SlashDeferDuration: sp_staking::EraIndex = 27;
 	pub const MaxNominatorRewardedPerValidator: u32 = 256;
 	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
-
+	
 	////////////////////////////////////////////
 	/// Election provider constants
 	// signed config
 	pub const SignedMaxSubmissions: u32 = 16;
-	pub const SignedDepositBase: Balance = deposit(1, 0);
-	// A typical solution occupies within an order of magnitude of 50kb.
-	// This formula is currently adjusted such that a typical solution will spend an amount equal
-	// to the base deposit for every 50 kb.
-	pub const SignedDepositByte: Balance = deposit(1, 0) / (50 * 1024);
+	pub const SignedMaxRefunds: u32 = 16 / 4;
+	pub const SignedDepositBase: Balance = deposit(2, 0);
+	pub const SignedDepositByte: Balance = deposit(0, 10) / 1024;
 	// Each good submission will get 1 UNIT as reward
 	pub SignedRewardBase: Balance = 1 * UNITS;
-	pub SolutionImprovementThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
+	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
 
 	// miner configs
 	pub MultiPhaseUnsignedPriority: TransactionPriority =
@@ -157,13 +162,16 @@ parameter_types! {
 		*BlockLength::get()
 		.max
 		.get(DispatchClass::Normal);
-	pub const VoterSnapshotPerBlock: u32 = 22_500;
+	/// We take the top 22500 nominators as electing voters..
+	pub const MaxElectingVoters: u32 = 22_500;
+	/// ... and all of the validators as electable targets. Whilst this is the case, we cannot and
+	/// shall not increase the size of the validator intentions.
+	pub const MaxElectableTargets: u16 = u16::MAX;
+	pub const MaxNominations: u32 = <NposSolution16 as frame_election_provider_support::NposSolution>::LIMIT as u32;
 
 	////////////////////////////////////////////
 	/// Democracy constants
 	pub const MinimumDeposit: Balance = 100 * UNITS;
-	// One cent: $10,000 / MB
-	pub const PreimageByteDeposit: Balance = 1 * CENTS;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
 
@@ -190,9 +198,11 @@ parameter_types! {
 	/// Treasury / Bounties / Tips constants
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 100 * UNITS;
+	pub const ProposalBondMaximum: Balance = 500 * UNITS;
 	pub const SpendPeriod: BlockNumber = 24 * DAYS;
 	pub const Burn: Permill = Permill::from_percent(1);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"xx/trsry");
+	pub const MaxApprovals: u32 = 100;
 	pub const TipCountdown: BlockNumber = 1 * DAYS;
 	pub const TipFindersFee: Percent = Percent::from_percent(20);
 	pub const TipReportDepositBase: Balance = 1 * UNITS;
@@ -201,9 +211,12 @@ parameter_types! {
 	pub const BountyDepositPayoutDelay: BlockNumber = 8 * DAYS;
 	pub const BountyUpdatePeriod: BlockNumber = 90 * DAYS;
 	pub const MaximumReasonLength: u32 = 16384;
-	pub const BountyCuratorDeposit: Permill = Permill::from_percent(50);
+	pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
+	pub const CuratorDepositMin: Balance = 10 * UNITS;
+	pub const CuratorDepositMax: Balance = 200 * UNITS;
 	pub const BountyValueMinimum: Balance = 10 * UNITS;
-	pub const MaxApprovals: u32 = 100;
+	pub const ChildBountyValueMinimum: Balance = 1 * UNITS;
+	pub const MaxActiveChildBountyCount: u32 = 100;
 
 	////////////////////////////////////////////
 	/// Consensus support constants
@@ -244,6 +257,7 @@ parameter_types! {
 	///////////////////////////////////////////
 	/// Assets constants
 	pub const AssetDeposit: Balance = 100 * UNITS;
+	pub const AssetAccountDeposit: u128 = UNITS;
 	pub const ApprovalDeposit: Balance = 1 * UNITS;
 	pub const StringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 10 * UNITS;
@@ -251,22 +265,21 @@ parameter_types! {
 
 	///////////////////////////////////////////
 	/// Uniques constants
-	pub const ClassDeposit: Balance = 100 * UNITS;
-	pub const InstanceDeposit: Balance = 1 * UNITS;
+	pub const CollectionDeposit: Balance = 100 * UNITS;
+	pub const ItemDeposit: Balance = 1 * UNITS;
 	pub const KeyLimit: u32 = 32;
 	pub const ValueLimit: u32 = 256;
 }
 
-sp_npos_elections::generate_solution_type!(
+frame_election_provider_support::generate_solution_type!(
 	#[compact]
 	pub struct NposSolution16::<
 		VoterIndex = u32,
 		TargetIndex = u16,
 		Accuracy = sp_runtime::PerU16,
+		MaxVoters = MaxElectingVoters,
 	>(16)
 );
-
-pub const MAX_NOMINATIONS: u32 = <NposSolution16 as sp_npos_elections::NposSolution>::LIMIT as u32;
 
 /// The numbers configured here could always be more than the the maximum limits of staking pallet
 /// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
@@ -288,10 +301,10 @@ pub const MINER_MAX_ITERATIONS: u32 = 10;
 
 /// A source of random balance for NposSolver, which is meant to be run by the OCW election miner.
 pub struct OffchainRandomBalancing;
-impl frame_support::pallet_prelude::Get<Option<(usize, sp_npos_elections::ExtendedBalance)>>
+impl frame_support::pallet_prelude::Get<Option<(usize, frame_election_provider_support::ExtendedBalance)>>
 for OffchainRandomBalancing
 {
-	fn get() -> Option<(usize, sp_npos_elections::ExtendedBalance)> {
+	fn get() -> Option<(usize, frame_election_provider_support::ExtendedBalance)> {
 		use sp_runtime::traits::TrailingZeroInput;
 		let iters = match MINER_MAX_ITERATIONS {
 			0 => 0,

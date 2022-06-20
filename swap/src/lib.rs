@@ -52,7 +52,7 @@ decl_storage! {
         pub SwapFee get(fn swap_fee) config(): BalanceOf<T>;
 
         /// Account to which the fee is paid to
-        pub FeeDestination get(fn fee_destination) config(): T::AccountId;
+        pub FeeDestination get(fn fee_destination): Option<T::AccountId>;
     }
 
     add_extra_genesis {
@@ -61,6 +61,7 @@ decl_storage! {
         config(resources): Vec<(ResourceId, Vec<u8>)>;
         config(threshold): u32;
         config(balance): BalanceOf<T>;
+        config(fee_destination): Option<T::AccountId>;
 
         build(|config: &GenesisConfig<T>| {
             /*
@@ -73,6 +74,10 @@ decl_storage! {
             // Create chainbridge account and set the balance from genesis
             let account_id = <chainbridge::Module<T>>::account_id();
             T::Currency::make_free_balance_be(&account_id, config.balance);
+            // Set fee destination
+            if let Some(dest) = &config.fee_destination {
+                <FeeDestination<T>>::put(dest);
+            }
         });
     }
 }
@@ -116,9 +121,10 @@ decl_module! {
             let balance = T::Currency::free_balance(&source);
             ensure!(balance >= amount + fee, Error::<T>::InsufficientBalance);
 
-            // Transfer fee to configured destination
-            let dest = <FeeDestination<T>>::get();
-            T::Currency::transfer(&source, &dest, fee, AllowDeath)?;
+            // Transfer fee to configured destination (if destination exists)
+            if let Some(dest) = <FeeDestination<T>>::get() {
+                T::Currency::transfer(&source, &dest, fee, AllowDeath)?;
+            };
 
             // Transfer amount to bridge
             let bridge_id = <chainbridge::Module<T>>::account_id();

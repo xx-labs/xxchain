@@ -4,7 +4,7 @@ use crate::*;
 use frame_support::{
     parameter_types,
     ord_parameter_types,
-    traits::GenesisBuild,
+    traits::{GenesisBuild, ConstU32},
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureSignedBy;
@@ -70,6 +70,7 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;

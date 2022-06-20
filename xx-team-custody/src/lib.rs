@@ -61,7 +61,7 @@ decl_storage! {
     trait Store for Module<T: Config> as XXCustody {
         /// Keep track of team members'accounts custody info
         pub TeamAccounts get(fn team_accounts): map hasher(twox_64_concat)
-            T::AccountId => custody::CustodyInfo<T::AccountId, BalanceOf<T>>;
+            T::AccountId => Option<custody::CustodyInfo<T::AccountId, BalanceOf<T>>>;
 
         /// Keep track of custody accounts
         pub CustodyAccounts get(fn custody_accounts): map hasher(twox_64_concat)

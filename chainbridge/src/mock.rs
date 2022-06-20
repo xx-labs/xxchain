@@ -112,7 +112,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         .build_storage::<Test>()
         .unwrap();
     pallet_balances::GenesisConfig::<Test> {
-        balances: vec![(PALLET_ID.into_account(), ENDOWED_BALANCE)],
+        balances: vec![(PALLET_ID.into_account_truncating(), ENDOWED_BALANCE)],
     }
     .assimilate_storage(&mut t)
     .unwrap();

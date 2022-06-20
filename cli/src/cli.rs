@@ -16,50 +16,53 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use sc_cli::{RunCmd, KeySubcommand, SignCmd, VanityCmd, VerifyCmd};
-use structopt::StructOpt;
-
 /// An overarching CLI command definition.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Parser)]
 pub struct Cli {
 	/// Possible subcommand with parameters.
-	#[structopt(subcommand)]
+	#[clap(subcommand)]
 	pub subcommand: Option<Subcommand>,
+
 	#[allow(missing_docs)]
-	#[structopt(flatten)]
-	pub run: RunCmd,
+	#[clap(flatten)]
+	pub run: sc_cli::RunCmd,
 }
 
 /// Possible subcommands of the main binary.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
-	/// Key management cli utilities
-	Key(KeySubcommand),
-
 	/// The custom inspect subcommmand for decoding blocks and extrinsics.
-	#[structopt(
+	#[clap(
 		name = "inspect",
 		about = "Decode given block or extrinsic using current native runtime."
 	)]
 	Inspect(node_inspect::cli::InspectCmd),
 
-	/// The custom benchmark subcommmand benchmarking runtime pallets.
-	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
+	/// Sub-commands concerned with benchmarking.
+	/// The pallet benchmarking moved to the `pallet` sub-command.
+	#[clap(subcommand)]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
-	/// Try some experimental command on the runtime. This includes migration and runtime-upgrade
-	/// testing.
+	/// Try some command against runtime state.
 	#[cfg(feature = "try-runtime")]
 	TryRuntime(try_runtime_cli::TryRuntimeCmd),
 
+	/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
+	#[cfg(not(feature = "try-runtime"))]
+	TryRuntime,
+
+	/// Key management cli utilities
+	#[clap(subcommand)]
+	Key(sc_cli::KeySubcommand),
+
 	/// Verify a signature for a message, provided on STDIN, with a given (public or secret) key.
-	Verify(VerifyCmd),
+	Verify(sc_cli::VerifyCmd),
 
 	/// Generate a seed that provides a vanity address.
-	Vanity(VanityCmd),
+	Vanity(sc_cli::VanityCmd),
 
 	/// Sign a message, with a given (secret) key.
-	Sign(SignCmd),
+	Sign(sc_cli::SignCmd),
 
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
@@ -81,4 +84,7 @@ pub enum Subcommand {
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
+
+	/// Db meta columns information.
+	ChainInfo(sc_cli::ChainInfoCmd),
 }

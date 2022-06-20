@@ -46,10 +46,6 @@ impl<T: frame_system::Config> frame_system::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn set_changes_trie_config() -> Weight {
-		// This function was removed, but not from the weights trait
-		0
-	}
 	// Storage: Skipped Metadata (r:0 w:0)
 	fn set_storage(i: u32, ) -> Weight {
 		(0 as Weight)

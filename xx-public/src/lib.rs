@@ -70,14 +70,23 @@ pub trait Config: frame_system::Config {
 decl_storage! {
     trait Store for Module<T: Config> as XXSale {
         /// Testnet Manager account
-        pub TestnetManager get(fn testnet_manager) config(): T::AccountId;
+        pub TestnetManager get(fn testnet_manager): Option<T::AccountId>;
         /// Sale Manager account
-        pub SaleManager get(fn sale_manager) config(): T::AccountId;
+        pub SaleManager get(fn sale_manager): Option<T::AccountId>;
     }
 	add_extra_genesis {
+        config(testnet_manager): Option<T::AccountId>;
 	    config(testnet_balance): BalanceOf<T>;
+        config(sale_manager): Option<T::AccountId>;
 	    config(sale_balance): BalanceOf<T>;
 		build(|config| {
+            // Set managers
+            if let Some(manager) = &config.testnet_manager {
+                <TestnetManager<T>>::put(manager);
+            }
+            if let Some(manager) = &config.sale_manager {
+                <SaleManager<T>>::put(manager);
+            }
 		    // Create Testnet account and set balance from genesis
 		    let testnet_account_id = <Module<T>>::testnet_account_id();
             let _ = <CurrencyOf<T>>::make_free_balance_be(&testnet_account_id, config.testnet_balance);
@@ -111,8 +120,8 @@ decl_error! {
 
 decl_module! {
 	pub struct Module<T: Config> for enum Call where origin: T::Origin {
-	    const TestnetAccount: T::AccountId = T::TestnetId::get().into_account();
-	    const SaleAccount: T::AccountId = T::SaleId::get().into_account();
+	    const TestnetAccount: T::AccountId = T::TestnetId::get().into_account_truncating();
+	    const SaleAccount: T::AccountId = T::SaleId::get().into_account_truncating();
 
 	    fn deposit_event() = default;
 
@@ -182,12 +191,12 @@ decl_module! {
 impl<T: Config> Module<T> {
     /// Get the Testnet AccountId
     pub fn testnet_account_id() -> T::AccountId {
-        T::TestnetId::get().into_account()
+        T::TestnetId::get().into_account_truncating()
     }
 
     /// Get the Sale AccountId
     pub fn sale_account_id() -> T::AccountId {
-        T::SaleId::get().into_account()
+        T::SaleId::get().into_account_truncating()
     }
 
     /// Check if origin is admin
@@ -200,12 +209,20 @@ impl<T: Config> Module<T> {
 
     /// Check if given account is the testnet manager
     fn is_testnet_manager(who: T::AccountId) -> bool {
-        who == <TestnetManager<T>>::get()
+        if let Some(manager) = <TestnetManager<T>>::get() {
+            who == manager
+        } else {
+            false
+        }
     }
 
     /// Check if given account is the sale manager
     fn is_sale_manager(who: T::AccountId) -> bool {
-        who == <SaleManager<T>>::get()
+        if let Some(manager) = <SaleManager<T>>::get() {
+            who == manager
+        } else {
+            false
+        }
     }
 
     /// Do a testnet distribution

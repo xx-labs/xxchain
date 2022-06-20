@@ -16,6 +16,7 @@ use frame_system::{self as system, ensure_root, ensure_signed};
 use sp_core::U256;
 use sp_runtime::traits::{AccountIdConversion, Dispatchable};
 use sp_runtime::RuntimeDebug;
+use sp_std::convert::TryInto;
 
 use codec::{Decode, Encode, EncodeLike};
 use scale_info::TypeInfo;
@@ -356,7 +357,7 @@ impl<T: Config> Module<T> {
     /// Provides an AccountId for the pallet.
     /// This is used both as an origin check and deposit/withdrawal account.
     pub fn account_id() -> T::AccountId {
-        T::PalletId::get().into_account()
+        T::PalletId::get().into_account_truncating()
     }
 
     /// Asserts if a resource is registered
