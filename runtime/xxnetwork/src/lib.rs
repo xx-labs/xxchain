@@ -30,6 +30,7 @@ use frame_support::{
 		KeyOwnerProofSystem,
 		U128CurrencyToVote, EqualPrivilegeOnly,
 	},
+	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use frame_support::{
@@ -106,7 +107,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 203,
+	spec_version: 204,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -181,7 +182,7 @@ impl frame_system::Config for Runtime {
 	type Header = generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
-	type DbWeight = frame_support::weights::constants::RocksDbWeight;
+	type DbWeight = RocksDbWeight;
 	type Version = Version;
 	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<Balance>;
@@ -562,7 +563,7 @@ impl pallet_election_provider_multi_phase::MinerConfig for Runtime {
 
 	// The unsigned submissions have to respect the weight of the submit_unsigned call, thus their
 	// weight estimate function is wired to this call's weight.
-	fn solution_weight(v: u32, t: u32, a: u32, d: u32) -> frame_support::weights::Weight {
+	fn solution_weight(v: u32, t: u32, a: u32, d: u32) -> Weight {
 		<
 			<Self as pallet_election_provider_multi_phase::Config>::WeightInfo
 			as
@@ -1329,7 +1330,7 @@ impl_runtime_apis! {
 			// have a backtrace here. If any of the pre/post migration checks fail, we shall stop
 			// right here and right now.
 			let weight = Executive::try_runtime_upgrade().unwrap();
-			(weight, RuntimeBlockWeights::get().max_block)
+			(weight, BlockWeights::get().max_block)
 		}
 
 		fn execute_block_no_check(block: Block) -> Weight {
