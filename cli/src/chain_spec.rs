@@ -336,7 +336,7 @@ pub fn canary_development_config() -> CanaryChainSpec {
 		None,
 		None,
 		None,
-		Default::default(),
+		None,
 		Default::default(),
 	)
 }
@@ -542,7 +542,7 @@ pub fn xxnetwork_development_config() -> XXNetworkChainSpec {
 		None,
 		None,
 		None,
-		Default::default(),
+		None,
 		Default::default(),
 	)
 }

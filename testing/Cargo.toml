@@ -34,8 +34,8 @@ sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev
 sc-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-log = "0.4.8"
+log = "0.4.17"
 tempfile = "3.1.0"
 fs_extra = "1"
-futures = "0.3.1"
+futures = "0.3.21"
 claims = { path = "../claims" }

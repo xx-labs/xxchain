@@ -18,14 +18,14 @@
 use codec::{Encode, Joiner};
 use frame_support::{
 	traits::Currency,
-	weights::{GetDispatchInfo, constants::ExtrinsicBaseWeight, WeightToFeePolynomial},
+	weights::{GetDispatchInfo, constants::ExtrinsicBaseWeight, WeightToFee},
 };
 use sp_core::NeverNativeValue;
 use sp_runtime::{Perbill, traits::One};
 use xxnetwork_runtime::{
 	CheckedExtrinsic, Call, Runtime, Balances, TransactionPayment, Multiplier,
 };
-use runtime_common::{TransactionByteFee, constants::{time::SLOT_DURATION, currency::*, fee::WeightToFee}};
+use runtime_common::{TransactionByteFee, constants::{time::SLOT_DURATION, currency::*, fee::WeightToFee as WeightToFeePoly}};
 use node_primitives::Balance;
 use node_testing::keyring::*;
 
@@ -185,13 +185,13 @@ fn transaction_fee_is_correct() {
 		let mut balance_alice = (100 - 69) * UNITS;
 
 		let base_weight = ExtrinsicBaseWeight::get();
-		let base_fee = WeightToFee::calc(&base_weight);
+		let base_fee = WeightToFeePoly::weight_to_fee(&base_weight);
 
 		let length_fee = TransactionByteFee::get() * (xt.clone().encode().len() as Balance);
 		balance_alice -= length_fee;
 
 		let weight = default_transfer_call().get_dispatch_info().weight;
-		let weight_fee = WeightToFee::calc(&weight);
+		let weight_fee = WeightToFeePoly::weight_to_fee(&weight);
 
 		balance_alice -= base_fee;
 		balance_alice -= weight_fee;

@@ -8,7 +8,6 @@ use frame_support::{
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureSignedBy;
-use pallet_staking::EraIndex;
 use sp_runtime::{
     testing::{Header, TestXt, H256},
     traits::{IdentityLookup, ConvertInto},
@@ -51,7 +50,7 @@ parameter_types! {
         );
     pub const MaxLocks: u32 = 1024;
     pub static ExistentialDeposit: Balance = 1;
-    pub static SlashDeferDuration: EraIndex = 0;
+    pub static SlashDeferDuration: sp_staking::EraIndex = 0;
     pub static Period: BlockNumber = 5;
     pub static Offset: BlockNumber = 0;
 }
@@ -80,6 +79,7 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;

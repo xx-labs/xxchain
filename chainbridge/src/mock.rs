@@ -10,6 +10,7 @@ use sp_runtime::{
     traits::{BlakeTwo256, IdentityLookup},
     Perbill,
 };
+use sp_std::convert::TryFrom;
 
 use crate::{self as bridge, Config};
 pub use pallet_balances as balances;
@@ -46,6 +47,7 @@ impl frame_system::Config for Test {
     type BlockLength = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {

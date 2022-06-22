@@ -187,8 +187,8 @@ impl ExtBuilder {
         }
 
         xx_public::GenesisConfig::<Test> {
-            testnet_manager: 42u64,
-            sale_manager: 43u64,
+            testnet_manager: Some(42u64),
+            sale_manager: Some(43u64),
             testnet_balance: self.testnet_balance,
             sale_balance: self.sale_balance,
         }.assimilate_storage(&mut storage).unwrap();

@@ -28,7 +28,7 @@ fn set_testnet_manager_account_called_by_admin_works() {
 				XXPublic::set_testnet_manager_account(Origin::signed(AdminAccount::get()), 45)
 			);
             assert_eq!(
-                XXPublic::testnet_manager(),
+                XXPublic::testnet_manager().unwrap(),
                 45
             );
             assert_eq!(
@@ -59,7 +59,7 @@ fn set_sale_manager_account_called_by_admin_works() {
 				XXPublic::set_sale_manager_account(Origin::signed(AdminAccount::get()), 46)
 			);
             assert_eq!(
-                XXPublic::sale_manager(),
+                XXPublic::sale_manager().unwrap(),
                 46
             );
             assert_eq!(

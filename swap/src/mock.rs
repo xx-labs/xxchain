@@ -49,6 +49,7 @@ impl frame_system::Config for Test {
     type BlockLength = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -139,7 +140,7 @@ pub fn new_test_ext(initial_balances: &[(AccountId, Balance)]) -> sp_io::TestExt
         threshold: 2,
         balance: 0,
         swap_fee: SWAP_FEE,
-        fee_destination: FEE_DESTINATION,
+        fee_destination: Some(FEE_DESTINATION),
     }
     .assimilate_storage(&mut t)
     .unwrap();

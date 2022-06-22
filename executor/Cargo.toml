@@ -22,6 +22,7 @@ sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-n
 sp-state-machine = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-trie = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 [dev-dependencies]
 criterion = "0.3.0"
@@ -36,6 +37,7 @@ sp-application-crypto = { git = "https://github.com/xx-labs/substrate", branch =
 sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-externalities = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 wat = "1.0"
 futures = "0.3.21"
 

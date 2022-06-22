@@ -21,17 +21,17 @@
 use crate as xx_cmix;
 use crate::*;
 
-use frame_election_provider_support::onchain;
+use frame_election_provider_support::{onchain, SequentialPhragmen};
 use frame_support::{
     parameter_types,
     traits::{
         Currency, FindAuthor, Get, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
-        OneSessionHandler, GenesisBuild,
+        OneSessionHandler, GenesisBuild, ConstU32,
     },
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureRoot;
-use pallet_staking::{ConvertCurve, EraIndex, Exposure, ExposureOf, StashOf, StakerStatus};
+use pallet_staking::{ConvertCurve, Exposure, ExposureOf, StashOf, StakerStatus};
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
@@ -40,7 +40,7 @@ use sp_runtime::{
     traits::{IdentityLookup, Zero},
     Perbill,
 };
-use sp_staking::SessionIndex;
+use sp_staking::{EraIndex, SessionIndex};
 use std::{cell::RefCell, collections::HashSet};
 
 pub(crate) const INIT_TIMESTAMP: u64 = 30_000;
@@ -93,6 +93,7 @@ frame_support::construct_runtime!(
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>},
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
+        Historical: pallet_session::historical::{Pallet},
         XXCmix: xx_cmix::{Pallet, Call, Storage, Event<T>, Config<T>},
     }
 );
@@ -146,6 +147,7 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
@@ -249,13 +251,18 @@ thread_local! {
     static XX_BLOCK_POINTS: RefCell<u32> = RefCell::new(20); // default block reward is 20. This is to stop existing tests from breaking
 }
 
-impl onchain::Config for Test {
-    type Accuracy = Perbill;
-    type DataProvider = Staking;
+pub struct OnChainSeqPhragmen;
+impl onchain::Config for OnChainSeqPhragmen {
+	type System = Test;
+	type Solver = SequentialPhragmen<AccountId, Perbill>;
+	type DataProvider = Staking;
+	type WeightInfo = ();
 }
+
 impl pallet_staking::Config for Test {
-    const MAX_NOMINATIONS: u32 = 16;
+    type MaxNominations = ConstU32<16>;
     type Currency = Balances;
+    type CurrencyBalance = <Self as pallet_balances::Config>::Balance;
     type UnixTime = Timestamp;
     type CurrencyToVote = frame_support::traits::SaturatingCurrencyToVote;
     type RewardRemainder = RewardRemainderMock;
@@ -270,14 +277,17 @@ impl pallet_staking::Config for Test {
     type EraPayout = ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
-    type ElectionProvider = onchain::OnChainSequentialPhragmen<Self>;
+    type ElectionProvider = onchain::UnboundedExecution<OnChainSeqPhragmen>;
     type WeightInfo = ();
     type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type CmixHandler = xx_cmix::Module<Test>; // connect up the staking and xx pallets
     type CustodyHandler = CustodyHandlerMock;
     type GenesisElectionProvider = Self::ElectionProvider;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
-    type SortedListProvider = pallet_staking::UseNominatorsMap<Self>;
+    type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type MaxUnlockingChunks = ConstU32<32>;
+	type OnStakerSlash = ();
+	type BenchmarkingConfig = pallet_staking::TestBenchmarkingConfig;
 }
 
 impl xx_cmix::Config for Test {
@@ -339,15 +349,16 @@ impl ExtBuilder {
             ],
         }.assimilate_storage(&mut storage);
 
+        let stakers = vec![
+            // (stash, ctrl, stake, status)
+            // these two will be elected in the default test where we elect 2.
+            (11, 10, 1000,
+                StakerStatus::<H256, AccountId>::Validator(Some(H256::repeat_byte(11u8)))),
+            (21, 20, 1000,
+                StakerStatus::<H256, AccountId>::Validator(Some(H256::repeat_byte(21u8)))),
+        ];
         let _ = pallet_staking::GenesisConfig::<Test> {
-            stakers: vec![
-                // (stash, ctrl, stake, status)
-                // these two will be elected in the default test where we elect 2.
-                (11, 10, 1000,
-                    StakerStatus::<H256, AccountId>::Validator(Some(H256::repeat_byte(11u8)))),
-                (21, 20, 1000,
-                    StakerStatus::<H256, AccountId>::Validator(Some(H256::repeat_byte(21u8)))),
-            ],
+            stakers: stakers.clone(),
             validator_count: 2,
             minimum_validator_count: 0,
             invulnerables: vec![],
@@ -359,14 +370,17 @@ impl ExtBuilder {
 
         let _ = xx_cmix::GenesisConfig::<Test> {
             admin_permission: self.admin_permission,
-            scheduling_account: self.scheduling_account.unwrap_or_default(),
+            scheduling_account: self.scheduling_account,
             ..Default::default()
         }
         .assimilate_storage(&mut storage);
 
         let _ = pallet_session::GenesisConfig::<Test> {
-            keys: Default::default()
-        }.assimilate_storage(&mut storage);
+			keys: stakers
+					.into_iter()
+					.map(|(id, ..)| (id, id, SessionKeys { other: id.into() }))
+					.collect(),
+		}.assimilate_storage(&mut storage);
 
         let mut ext = sp_io::TestExternalities::from(storage);
         if self.initialize_first_session {

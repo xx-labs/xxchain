@@ -34,9 +34,8 @@ xx-public = { version = "0.1.0", path = "../xx-public", default-features = false
 frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, optional = true }
 
 [dev-dependencies]
-
 pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-
+sp-staking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 [features]
 default = ["std"]

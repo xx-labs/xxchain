@@ -34,7 +34,7 @@ jsonrpsee = { version = "0.13.0", features = ["server"] }
 futures = "0.3.21"
 hex-literal = "0.3.4"
 log = "0.4.17"
-rand = "0.7.2"
+rand = "0.8"
 
 # primitives
 sp-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
@@ -73,6 +73,7 @@ sc-telemetry = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-
 sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-sync-state-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-sysinfo = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 # frame dependencies
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
@@ -94,8 +95,9 @@ sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-networ
 frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
 node-inspect = { version = "0.2.0", optional = true, path = "../inspect" }
 try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
+serde_json = "1.0.79"
 
-[target.'cfg(target_arch="x86_64")'.dependencies]
+[target.'cfg(any(target_arch="x86_64", target_arch="aarch64"))'.dependencies]
 node-executor = { version = "0.2.0", path = "../executor", features = [ "wasmtime" ] }
 sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true, features = [ "wasmtime" ] }
 sc-service = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, features = [ "wasmtime" ] }
@@ -108,7 +110,9 @@ sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-
 sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-consensus-epochs = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-service-test = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 futures = "0.3.21"
 tempfile = "3.1.0"
 assert_cmd = "2.0.2"
@@ -118,8 +122,8 @@ regex = "1.5.5"
 platforms = "2.0"
 async-std = { version = "1.11.0", features = ["attributes"] }
 soketto = "0.7.1"
-criterion = { version = "0.3.5", features = [ "async_tokio" ] }
-tokio = { version = "1.17", features = ["macros", "time", "parking_lot"] }
+criterion = { version = "0.3.5", features = ["async_tokio"] }
+tokio = { version = "1.17.0", features = ["macros", "time", "parking_lot"] }
 wait-timeout = "0.2"
 remote-externalities = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 

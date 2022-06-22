@@ -27,6 +27,7 @@ frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "d
 [dev-dependencies]
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-staking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 pallet-staking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }

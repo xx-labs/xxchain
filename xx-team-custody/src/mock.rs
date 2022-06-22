@@ -23,18 +23,18 @@
 use crate as xx_team_custody;
 use crate::*;
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_election_provider_support::onchain;
+use frame_election_provider_support::{onchain, SequentialPhragmen};
 use frame_support::{
     parameter_types,
     traits::{
         Currency, FindAuthor, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
-        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly
+        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly, ConstU32
     },
     weights::constants::RocksDbWeight,
     RuntimeDebug,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
-use pallet_staking::{ConvertCurve, EraIndex, Exposure, ExposureOf, StashOf};
+use pallet_staking::{ConvertCurve, Exposure, ExposureOf, StashOf};
 use sp_core::H256;
 pub use sp_runtime::{
     curve::PiecewiseLinear,
@@ -42,7 +42,7 @@ pub use sp_runtime::{
     traits::{IdentityLookup, Zero, BlakeTwo256, ConvertInto},
     Perbill,
 };
-use sp_staking::SessionIndex;
+use sp_staking::{EraIndex, SessionIndex};
 use std::{cell::RefCell, collections::HashSet};
 
 pub(crate) const INIT_TIMESTAMP: u64 = 30_000;
@@ -96,6 +96,7 @@ frame_support::construct_runtime!(
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>},
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
+        Historical: pallet_session::historical::{Pallet},
         Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
         Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
         Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
@@ -152,6 +153,7 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type Balance = Balance;
@@ -266,11 +268,6 @@ thread_local! {
     static XX_BLOCK_POINTS: RefCell<u32> = RefCell::new(20); // default block reward is 20. This is to stop existing tests from breaking
 }
 
-impl onchain::Config for Test {
-    type Accuracy = Perbill;
-    type DataProvider = Staking;
-}
-
 parameter_types! {
 	pub MaximumSchedulerWeight: u64 = 1_000_000_000_000_000;
 	pub const MaxScheduledPerBlock: u32 = 50;
@@ -286,33 +283,47 @@ impl pallet_scheduler::Config for Test {
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
     type WeightInfo = ();
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
+    type PreimageProvider = ();
+	type NoPreimagePostponement = ();
+}
+
+pub struct OnChainSeqPhragmen;
+impl onchain::Config for OnChainSeqPhragmen {
+	type System = Test;
+	type Solver = SequentialPhragmen<AccountId, Perbill>;
+	type DataProvider = Staking;
+	type WeightInfo = ();
 }
 
 impl pallet_staking::Config for Test {
+    type MaxNominations = ConstU32<16>;
     type Currency = Balances;
+    type CurrencyBalance = <Self as pallet_balances::Config>::Balance;
     type UnixTime = Timestamp;
     type CurrencyToVote = frame_support::traits::SaturatingCurrencyToVote;
-    type ElectionProvider = onchain::OnChainSequentialPhragmen<Self>;
-    type CmixHandler = CmixHandlerMock;
-    type CustodyHandler = CustodyHandlerMock;
-    type AdminOrigin = EnsureRoot<Self::AccountId>;
-    const MAX_NOMINATIONS: u32 = 16;
     type RewardRemainder = RewardRemainderMock;
     type Event = Event;
     type Slash = ();
     type Reward = ();
     type SessionsPerEra = SessionsPerEra;
-    type BondingDuration = BondingDuration;
     type SlashDeferDuration = SlashDeferDuration;
-    type SlashCancelOrigin = EnsureRoot<Self::AccountId>;
+    type SlashCancelOrigin = frame_system::EnsureRoot<Self::AccountId>;
+    type BondingDuration = BondingDuration;
     type SessionInterface = Self;
     type EraPayout = ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+    type ElectionProvider = onchain::UnboundedExecution<OnChainSeqPhragmen>;
     type WeightInfo = ();
+    type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
+    type CmixHandler = CmixHandlerMock;
+    type CustodyHandler = CustodyHandlerMock;
     type GenesisElectionProvider = Self::ElectionProvider;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
-    type SortedListProvider = pallet_staking::UseNominatorsMap<Self>;
+    type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type MaxUnlockingChunks = ConstU32<32>;
+	type OnStakerSlash = ();
+	type BenchmarkingConfig = pallet_staking::TestBenchmarkingConfig;
 }
 
 parameter_types! {

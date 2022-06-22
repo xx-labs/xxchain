@@ -65,7 +65,7 @@ fn set_scheduling_account_can_call_with_admin_during_permission_period() {
                 Origin::root(),
                 new_scheduling_account
             ));
-            assert_eq!(XXCmix::scheduling_account(), new_scheduling_account,);
+            assert_eq!(XXCmix::scheduling_account().unwrap(), new_scheduling_account);
             assert_eq!(
                 *xx_cmix_events().last().unwrap(),
                 RawEvent::SchedulingAccountUpdated

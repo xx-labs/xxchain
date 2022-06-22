@@ -103,10 +103,12 @@ pub fn run() -> Result<()> {
 	match &cli.subcommand {
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
+			log::info!("Running node");
 			runner.run_node_until_exit(|config| async move {
-				service::new_full(config).map_err(sc_cli::Error::Service)
+				service::new_full(config, cli.no_hardware_benchmarks)
+					.map_err(sc_cli::Error::Service)
 			})
-		}
+		},
 		Some(Subcommand::Inspect(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			#[cfg(feature = "canary")]
@@ -132,9 +134,10 @@ pub fn run() -> Result<()> {
 						service::XXNetworkExecutorDispatch>(config)
 				)
 			}
-		}
+		},
 		Some(Subcommand::Benchmark(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+
 			runner.sync_run(|config| {
 				match cmd {
 					BenchmarkCmd::Pallet(cmd) => {
@@ -349,7 +352,7 @@ pub fn run() -> Result<()> {
 					Ok((cmd.run::<chain_spec::xxnetwork::Block, service::XXNetworkExecutorDispatch>(config), task_manager))
 				})
 			}
-		}
+		},
 		#[cfg(not(feature = "try-runtime"))]
 		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
 				You can enable it with `--features try-runtime`."

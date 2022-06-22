@@ -26,6 +26,7 @@ use sp_core::{
 		testing::TestTransactionPoolExt,
 	},
 };
+use sp_keyring::sr25519::Keyring::Alice;
 use sp_keystore::{KeystoreExt, SyncCryptoStore, testing::KeyStore};
 use frame_system::{
 	offchain::{
@@ -46,7 +47,8 @@ fn should_submit_unsigned_transaction() {
 	t.register_extension(TransactionPoolExt::new(pool));
 
 	t.execute_with(|| {
-		let signature = Default::default();
+		let signature =
+			pallet_im_online::sr25519::AuthoritySignature::try_from(vec![0; 64]).unwrap();
 		let heartbeat_data = pallet_im_online::Heartbeat {
 			block_number: 1,
 			network_state: Default::default(),
@@ -92,7 +94,7 @@ fn should_submit_signed_transaction() {
 	t.execute_with(|| {
 		let results = Signer::<Runtime, TestAuthorityId>::all_accounts()
 			.send_signed_transaction(|_| {
-				pallet_balances::Call::transfer { dest: Default::default(), value: Default::default() }
+				pallet_balances::Call::transfer { dest: Alice.to_account_id().into(), value: Default::default() }
 			});
 
 		let len = results.len();
@@ -124,7 +126,7 @@ fn should_submit_signed_twice_from_the_same_account() {
 	t.execute_with(|| {
 		let result = Signer::<Runtime, TestAuthorityId>::any_account()
 			.send_signed_transaction(|_| {
-				pallet_balances::Call::transfer { dest: Default::default(), value: Default::default() }
+				pallet_balances::Call::transfer { dest: Alice.to_account_id().into(), value: Default::default() }
 			});
 
 		assert!(result.is_some());
@@ -133,7 +135,7 @@ fn should_submit_signed_twice_from_the_same_account() {
 		// submit another one from the same account. The nonce should be incremented.
 		let result = Signer::<Runtime, TestAuthorityId>::any_account()
 			.send_signed_transaction(|_| {
-				pallet_balances::Call::transfer { dest: Default::default(), value: Default::default() }
+				pallet_balances::Call::transfer { dest: Alice.to_account_id().into(), value: Default::default() }
 			});
 
 		assert!(result.is_some());
@@ -143,7 +145,7 @@ fn should_submit_signed_twice_from_the_same_account() {
 		let s = state.read();
 		fn nonce(tx: UncheckedExtrinsic) -> frame_system::CheckNonce<Runtime> {
 			let extra = tx.signature.unwrap().2;
-			extra.4
+			extra.5
 		}
 		let nonce1 = nonce(UncheckedExtrinsic::decode(&mut &*s.transactions[0]).unwrap());
 		let nonce2 = nonce(UncheckedExtrinsic::decode(&mut &*s.transactions[1]).unwrap());
@@ -174,7 +176,7 @@ fn should_submit_signed_twice_from_all_accounts() {
 	t.execute_with(|| {
 		let results = Signer::<Runtime, TestAuthorityId>::all_accounts()
 			.send_signed_transaction(|_| {
-				pallet_balances::Call::transfer { dest: Default::default(), value: Default::default() }
+				pallet_balances::Call::transfer { dest: Alice.to_account_id().into(), value: Default::default() }
 			});
 
 		let len = results.len();
@@ -185,7 +187,7 @@ fn should_submit_signed_twice_from_all_accounts() {
 		// submit another one from the same account. The nonce should be incremented.
 		let results = Signer::<Runtime, TestAuthorityId>::all_accounts()
 			.send_signed_transaction(|_| {
-				pallet_balances::Call::transfer { dest: Default::default(), value: Default::default() }
+				pallet_balances::Call::transfer { dest: Alice.to_account_id().into(), value: Default::default() }
 			});
 
 		let len = results.len();
@@ -197,7 +199,7 @@ fn should_submit_signed_twice_from_all_accounts() {
 		let s = state.read();
 		fn nonce(tx: UncheckedExtrinsic) -> frame_system::CheckNonce<Runtime> {
 			let extra = tx.signature.unwrap().2;
-			extra.4
+			extra.5
 		}
 		let nonce1 = nonce(UncheckedExtrinsic::decode(&mut &*s.transactions[0]).unwrap());
 		let nonce2 = nonce(UncheckedExtrinsic::decode(&mut &*s.transactions[1]).unwrap());
@@ -234,7 +236,7 @@ fn submitted_transaction_should_be_valid() {
 	t.execute_with(|| {
 		let results = Signer::<Runtime, TestAuthorityId>::all_accounts()
 			.send_signed_transaction(|_| {
-				pallet_balances::Call::transfer { dest: Default::default(), value: Default::default() }
+				pallet_balances::Call::transfer { dest: Alice.to_account_id().into(), value: Default::default() }
 			});
 		let len = results.len();
 		assert_eq!(len, 1);
@@ -252,7 +254,7 @@ fn submitted_transaction_should_be_valid() {
 		let author = extrinsic.signature.clone().unwrap().0;
 		let address = <Runtime as frame_system::Config>::Lookup::lookup(author).unwrap();
 		let data = pallet_balances::AccountData { free: 5_000_000_000_000, ..Default::default() };
-		let account = frame_system::AccountInfo { data, .. Default::default() };
+		let account = frame_system::AccountInfo { data, ..Default::default() };
 		<frame_system::Account<Runtime>>::insert(&address, account);
 
 		// check validity

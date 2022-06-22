@@ -151,7 +151,7 @@ where
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
-			&config,
+			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 		)?;
@@ -221,7 +221,7 @@ where
 		let justification_stream = grandpa_link.justification_stream();
 		let shared_authority_set = grandpa_link.shared_authority_set().clone();
 		let shared_voter_state = grandpa::SharedVoterState::empty();
-		let rpc_setup = shared_voter_state.clone();
+		let shared_voter_state2 = shared_voter_state.clone();
 
 		let finality_proof_provider = grandpa::FinalityProofProvider::new_for_service(
 			backend.clone(),
@@ -261,7 +261,7 @@ where
 			node_rpc::create_full(deps).map_err(Into::into)
 		};
 
-		(rpc_extensions_builder, rpc_setup)
+		(rpc_extensions_builder, shared_voter_state2)
 	};
 
 	Ok(sc_service::PartialComponents {
@@ -277,8 +277,10 @@ where
 }
 
 /// Creates a full service from the configuration for a given runtime and executor runtime.
-pub fn new_full_base<RuntimeApi, ExecutorDispatch>
-	(mut config: Configuration) -> Result<TaskManager, ServiceError>
+pub fn new_full_base<RuntimeApi, ExecutorDispatch>(
+	mut config: Configuration,
+	disable_hardware_benchmarks: bool,
+) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, ExecutorDispatch>>
 	+ Send
@@ -287,6 +289,15 @@ where
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	ExecutorDispatch: NativeExecutionDispatch + 'static,
 {
+	let hwbench = if !disable_hardware_benchmarks {
+		config.database.path().map(|database_path| {
+			let _ = std::fs::create_dir_all(&database_path);
+			sc_sysinfo::gather_hwbench(Some(database_path))
+		})
+	} else {
+		None
+	};
+
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -305,7 +316,10 @@ where
 		&config.chain_spec,
 	);
 
-	config.network.extra_sets.push(grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone()));
+	config
+		.network
+		.extra_sets
+		.push(grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone()));
 	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
@@ -352,6 +366,19 @@ where
 			system_rpc_tx,
 			telemetry: telemetry.as_mut(),
 		})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
 
 	let (block_import, grandpa_link, babe_link) = import_setup;
 
@@ -500,15 +527,16 @@ where
 /// Builds a new service for a full client.
 pub fn new_full(
 	config: Configuration,
+	disable_hardware_benchmarks: bool,
 ) -> Result<TaskManager, ServiceError> {
 	#[cfg(feature = "canary")]
 	if config.chain_spec.is_canary() {
-		return new_full_base::<CanaryRuntimeApi, CanaryExecutorDispatch>(config)
+		return new_full_base::<CanaryRuntimeApi, CanaryExecutorDispatch>(config, disable_hardware_benchmarks)
 	}
 
 	#[cfg(feature = "xxnetwork")]
 	{
-		return new_full_base::<XXNetworkRuntimeApi, XXNetworkExecutorDispatch>(config)
+		return new_full_base::<XXNetworkRuntimeApi, XXNetworkExecutorDispatch>(config, disable_hardware_benchmarks)
 	}
 
 	#[cfg(not(feature = "xxnetwork"))]

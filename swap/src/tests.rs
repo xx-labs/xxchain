@@ -182,7 +182,7 @@ fn set_fee_destination_successful_with_admin_origin() {
             )
         );
         // amount transferred from bridge account to account A
-        assert_eq!(Swap::fee_destination(), dest);
+        assert_eq!(Swap::fee_destination().unwrap(), dest);
         // fee change event emitted
         expect_event(swap::RawEvent::FeeDestinationChanged(dest));
     })
@@ -277,11 +277,11 @@ fn sucessful_transfer_proposal() {
             Event::Bridge(bridge::RawEvent::VoteAgainst(TEST_DESTINATION_CHAIN, prop_id, RELAYER_B)),
             Event::Bridge(bridge::RawEvent::VoteFor(TEST_DESTINATION_CHAIN, prop_id, RELAYER_C)),
             Event::Bridge(bridge::RawEvent::ProposalApproved(TEST_DESTINATION_CHAIN, prop_id)),
-            Event::Balances(balances::Event::Transfer(
-                Bridge::account_id(),
-                ACCOUNT_A,
-                amount,
-            )),
+            Event::Balances(balances::Event::Transfer {
+                from: Bridge::account_id(),
+                to: ACCOUNT_A,
+                amount: amount,
+            }),
             Event::Bridge(bridge::RawEvent::ProposalSucceeded(TEST_DESTINATION_CHAIN, prop_id)),
         ]);
     })
@@ -309,7 +309,7 @@ fn config_sets_expected_storage_items() {
         threshold: 2,
         balance: initial_bridge_balance,
         swap_fee: SWAP_FEE,
-        fee_destination: FEE_DESTINATION,
+        fee_destination: Some(FEE_DESTINATION),
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -317,7 +317,7 @@ fn config_sets_expected_storage_items() {
     let mut ext = sp_io::TestExternalities::new(t);
     ext.execute_with(|| {
         assert_eq!(Swap::swap_fee(), SWAP_FEE);
-        assert_eq!(Swap::fee_destination(), FEE_DESTINATION);
+        assert_eq!(Swap::fee_destination().unwrap(), FEE_DESTINATION);
         assert_eq!(Balances::free_balance(Bridge::account_id()), initial_bridge_balance);
         assert!(Bridge::chain_whitelisted(TEST_DESTINATION_CHAIN));
         assert!(Bridge::is_relayer(&RELAYER_A));
