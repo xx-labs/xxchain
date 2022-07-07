@@ -8,6 +8,10 @@ build-release:
 
 # TODO: add build optimizations for production binary
 
+# Builds xxnetwork-chain binary containing only xxnetwork runtime with the try-runtime feature
+build-release-try-runtime:
+	@cargo build -p xxnetwork-cli --release --features try-runtime
+
 #######################
 ###  xx canary only ###
 #######################
@@ -15,6 +19,10 @@ build-release:
 # Builds xxnetwork-chain binary containing only canary runtime
 build-canary-release:
 	@cargo build -p xxnetwork-cli --release --no-default-features --features cli,canary
+
+# Builds xxnetwork-chain binary containing only canary runtime with the try-runtime feature
+build-canary-release-try-runtime:
+	@cargo build -p xxnetwork-cli --release --no-default-features --features cli,canary,try-runtime
 
 # TODO: add build optimizations for production binary
 
@@ -29,6 +37,10 @@ build:
 # Builds xxnetwork-chain binary containing accelerated xxnetwork and canary runtime
 build-dev:
 	@cargo build -p xxnetwork-cli --release --features canary,fast-runtime
+
+# Builds xxnetwork-chain binary containing accelerated xxnetwork and canary runtime with the try-runtime feature
+build-dev-try-runtime:
+	@cargo build -p xxnetwork-cli --release --features canary,fast-runtime,try-runtime
 
 #######################
 ###  build runtimes ###
