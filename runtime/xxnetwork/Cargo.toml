@@ -1,6 +1,6 @@
 [package]
 name = "xxnetwork-runtime"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["xxlabs <admin@xx.network>"]
 edition = "2021"
 build = "build.rs"
@@ -102,9 +102,6 @@ xx-economics = {path = "../../xx-economics", default-features = false }
 xx-team-custody = {path = "../../xx-team-custody", default-features = false }
 xx-betanet-rewards = {path = "../../xx-betanet-rewards", default-features = false }
 xx-public = {path = "../../xx-public", default-features = false }
-
-# migrations
-migrations = {path = "../../migrations", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
@@ -250,6 +247,5 @@ try-runtime = [
 	"pallet-assets/try-runtime",
 	"pallet-recovery/try-runtime",
 	"pallet-uniques/try-runtime",
-	"migrations/try-runtime"
 ]
 fast-runtime = ["runtime-common/fast-runtime"]

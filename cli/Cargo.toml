@@ -1,6 +1,6 @@
 [package]
 name = "xxnetwork-cli"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["xxlabs <admin@xx.network>"]
 description = "Substrate based, xxnetwork blockchain node implementation in Rust."
 build = "build.rs"
@@ -81,7 +81,7 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/xx-labs
 pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
 
 # node-specific dependencies
-xxnetwork-runtime = { version = "0.2.3", path = "../runtime/xxnetwork", optional = true }
+xxnetwork-runtime = { version = "0.2.4", path = "../runtime/xxnetwork", optional = true }
 canary-runtime = { version = "0.2.0", path = "../runtime/canary", optional = true }
 node-rpc = { version = "0.2.0", path = "../rpc" }
 node-primitives = { version = "0.2.0", path = "../primitives" }
