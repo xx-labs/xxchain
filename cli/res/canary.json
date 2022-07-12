@@ -1,16 +1,16 @@
 {
-  "name": "phoenixx testnet",
-  "id": "phoenixx",
+  "name": "xx canary",
+  "id": "canary",
   "chainType": "Live",
   "bootNodes": [
     "/ip4/159.65.106.81/tcp/30333/p2p/12D3KooWM3kjbjRNPt2E5JDqo1mKsgbrJUPDNEbnSTCyVuPgQ3DN"
   ],
   "telemetryEndpoints": null,
-  "protocolId": "phxx",
+  "protocolId": "xxcan",
   "properties": {
     "ss58Format": 42,
     "tokenDecimals": 9,
-    "tokenSymbol": "zz"
+    "tokenSymbol": "cc"
   },
   "forkBlocks": null,
   "badBlocks": null,

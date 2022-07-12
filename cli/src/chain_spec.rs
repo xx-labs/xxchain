@@ -21,10 +21,12 @@
 use sc_chain_spec::{ChainSpecExtension, ChainType, ChainSpec};
 use sp_core::{Pair, Public, sr25519};
 use serde::{Serialize, Deserialize};
+
+#[cfg(feature = "xxnetwork")]
 pub use xxnetwork_runtime as xxnetwork;
-pub use protonet_runtime as protonet;
-pub use phoenixx_runtime as phoenixx;
-use phoenixx::constants::currency::*;
+#[cfg(feature = "canary")]
+pub use canary_runtime as canary;
+use runtime_common::constants::currency::UNITS;
 use hex_literal::hex;
 use grandpa_primitives::{AuthorityId as GrandpaId};
 use sp_consensus_babe::{AuthorityId as BabeId};
@@ -51,28 +53,35 @@ pub struct Extensions {
 	pub light_sync_state: sc_sync_state_rpc::LightSyncStateExtension,
 }
 
+/// A dummy `ChainSpec` for when a given runtime feature is disabled.
+pub type DummyChainSpec = sc_service::GenericChainSpec<(), Extensions>;
+
 /// The `ChainSpec` parameterized for the `xxnetwork` runtime.
+#[cfg(feature = "xxnetwork")]
 pub type XXNetworkChainSpec = sc_service::GenericChainSpec<xxnetwork::GenesisConfig, Extensions>;
 
-/// The `ChainSpec` parameterized for the `protonet` runtime.
-pub type ProtonetChainSpec = sc_service::GenericChainSpec<protonet::GenesisConfig, Extensions>;
+/// A dummy `ChainSpec` parameterized for the `xxnetwork` runtime, for when the feature is disabled.
+#[cfg(not(feature = "xxnetwork"))]
+pub type XXNetworkChainSpec = DummyChainSpec;
 
-/// The `ChainSpec` parameterized for the `phoenixx` runtime.
-pub type PhoenixxChainSpec = sc_service::GenericChainSpec<phoenixx::GenesisConfig, Extensions>;
+/// The `ChainSpec` parameterized for the `canary` runtime.
+#[cfg(feature = "canary")]
+pub type CanaryChainSpec = sc_service::GenericChainSpec<canary::GenesisConfig, Extensions>;
+
+/// A dummy `ChainSpec` parameterized for the `canary` runtime, for when the feature is disabled.
+#[cfg(not(feature = "canary"))]
+pub type CanaryChainSpec = DummyChainSpec;
 
 /// Genesis config for `xxnetwork` mainnet
+#[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_config() -> Result<XXNetworkChainSpec, String> {
 	XXNetworkChainSpec::from_json_bytes(&include_bytes!("../res/xxnetwork.json")[..])
 }
 
-/// Genesis config for `protonet` testnet
-pub fn protonet_config() -> Result<ProtonetChainSpec, String> {
-	ProtonetChainSpec::from_json_bytes(&include_bytes!("../res/protonet.json")[..])
-}
-
-/// Genesis config for `phoenixx` testnet
-pub fn phoenixx_config() -> Result<PhoenixxChainSpec, String> {
-	PhoenixxChainSpec::from_json_bytes(&include_bytes!("../res/phoenixx.json")[..])
+/// Genesis config for `canary` testnet
+#[cfg(feature = "canary")]
+pub fn canary_config() -> Result<CanaryChainSpec, String> {
+	CanaryChainSpec::from_json_bytes(&include_bytes!("../res/canary.json")[..])
 }
 
 /// Can be called for a `Configuration` to identify which network the configuration targets.
@@ -80,25 +89,20 @@ pub trait IdentifyVariant {
 	/// Returns if this is a configuration for the `xxnetwork` network.
 	fn is_xxnetwork(&self) -> bool;
 
-	/// Returns if this is a configuration for the `protonet` network.
-	fn is_protonet(&self) -> bool;
-
-	/// Returns if this is a configuration for the `phoenixx` network.
-	fn is_phoenixx(&self) -> bool;
+	/// Returns if this is a configuration for the `canary` network.
+	fn is_canary(&self) -> bool;
 }
 
 impl IdentifyVariant for Box<dyn ChainSpec> {
 	fn is_xxnetwork(&self) -> bool {
 		self.id().starts_with("xxnetwork")
 	}
-	fn is_protonet(&self) -> bool {
-		self.id().starts_with("xxprotonet")
-	}
-	fn is_phoenixx(&self) -> bool {
-		self.id().starts_with("phoenixx")
+	fn is_canary(&self) -> bool {
+		self.id().starts_with("canary")
 	}
 }
 
+#[cfg(feature = "xxnetwork")]
 fn xxnetwork_session_keys(
 	grandpa: GrandpaId,
 	babe: BabeId,
@@ -108,22 +112,14 @@ fn xxnetwork_session_keys(
 	xxnetwork::SessionKeys { grandpa, babe, im_online, authority_discovery }
 }
 
-fn protonet_session_keys(
+#[cfg(feature = "canary")]
+fn canary_session_keys(
 	grandpa: GrandpaId,
 	babe: BabeId,
 	im_online: ImOnlineId,
 	authority_discovery: AuthorityDiscoveryId,
-) -> protonet::SessionKeys {
-	protonet::SessionKeys { grandpa, babe, im_online, authority_discovery }
-}
-
-fn phoenixx_session_keys(
-	grandpa: GrandpaId,
-	babe: BabeId,
-	im_online: ImOnlineId,
-	authority_discovery: AuthorityDiscoveryId,
-) -> phoenixx::SessionKeys {
-	phoenixx::SessionKeys { grandpa, babe, im_online, authority_discovery }
+) -> canary::SessionKeys {
+	canary::SessionKeys { grandpa, babe, im_online, authority_discovery }
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -159,8 +155,9 @@ pub fn authority_keys_from_seed(seed: &str) -> (
 	)
 }
 
-/// Helper function to create GenesisConfig for testing of the `phoenixx` network
-pub fn phoenixx_testnet_genesis(
+/// Helper function to create GenesisConfig for testing of the `canary` network
+#[cfg(feature = "canary")]
+pub fn canary_testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
 		AccountId,
@@ -171,7 +168,7 @@ pub fn phoenixx_testnet_genesis(
 	)>,
 	initial_nominators: Vec<AccountId>,
 	endowed_accounts: Option<Vec<AccountId>>,
-) -> phoenixx::GenesisConfig {
+) -> canary::GenesisConfig {
 	let mut endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
 		vec![
 			get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -200,10 +197,10 @@ pub fn phoenixx_testnet_genesis(
 	let stakers = initial_authorities
 		.iter()
 		.enumerate()
-		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, phoenixx::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
+		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, canary::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
-			let limit = (phoenixx::MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let limit = (runtime_common::MAX_NOMINATIONS as usize).min(initial_authorities.len());
 			let count = rng.gen::<usize>() % limit;
 			let nominations = initial_authorities
 				.as_slice()
@@ -211,7 +208,7 @@ pub fn phoenixx_testnet_genesis(
 				.into_iter()
 				.map(|choice| choice.0.clone())
 				.collect::<Vec<_>>();
-			(x.clone(), x.clone(), STASH, phoenixx::StakerStatus::Nominator(nominations))
+			(x.clone(), x.clone(), STASH, canary::StakerStatus::Nominator(nominations))
 		}))
 		.collect::<Vec<_>>();
 
@@ -220,18 +217,18 @@ pub fn phoenixx_testnet_genesis(
 	const ENDOWMENT: Balance = 10_000_000 * UNITS;
 	const STASH: Balance = ENDOWMENT / 1000;
 
-	phoenixx::GenesisConfig {
-		system: phoenixx::SystemConfig {
-			code: phoenixx::wasm_binary_unwrap().to_vec(),
+	canary::GenesisConfig {
+		system: canary::SystemConfig {
+			code: canary::wasm_binary_unwrap().to_vec(),
 		},
-		balances: phoenixx::BalancesConfig {
+		balances: canary::BalancesConfig {
 			balances: endowed_accounts.iter().cloned()
 				.map(|x| (x, ENDOWMENT))
 				.collect()
 		},
-		session: phoenixx::SessionConfig {
+		session: canary::SessionConfig {
 			keys: initial_authorities.iter().map(|x| {
-				(x.0.clone(), x.0.clone(), phoenixx_session_keys(
+				(x.0.clone(), x.0.clone(), canary_session_keys(
 					x.2.clone(),
 					x.3.clone(),
 					x.4.clone(),
@@ -239,7 +236,7 @@ pub fn phoenixx_testnet_genesis(
 				))
 			}).collect::<Vec<_>>(),
 		},
-		staking: phoenixx::StakingConfig {
+		staking: canary::StakingConfig {
 			validator_count: initial_authorities.len() as u32 * 2,
 			minimum_validator_count: initial_authorities.len() as u32,
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
@@ -247,40 +244,39 @@ pub fn phoenixx_testnet_genesis(
 			stakers,
 			.. Default::default()
 		},
-		democracy: phoenixx::DemocracyConfig::default(),
-		elections: phoenixx::ElectionsConfig {
+		democracy: canary::DemocracyConfig::default(),
+		elections: canary::ElectionsConfig {
 			members: endowed_accounts.iter()
 						.take((num_endowed_accounts + 1) / 2)
 						.cloned()
 						.map(|member| (member, STASH))
 						.collect(),
 		},
-		council: phoenixx::CouncilConfig::default(),
-		technical_committee: phoenixx::TechnicalCommitteeConfig {
+		council: canary::CouncilConfig::default(),
+		technical_committee: canary::TechnicalCommitteeConfig {
 			members: endowed_accounts.iter()
 						.take((num_endowed_accounts + 1) / 2)
 						.cloned()
 						.collect(),
 			phantom: Default::default(),
 		},
-		babe: phoenixx::BabeConfig {
+		babe: canary::BabeConfig {
 			authorities: vec![],
-			epoch_config: Some(xxnetwork_runtime::BABE_GENESIS_EPOCH_CONFIG),
+			epoch_config: Some(canary::BABE_GENESIS_EPOCH_CONFIG),
 		},
-		im_online: phoenixx::ImOnlineConfig {
+		im_online: canary::ImOnlineConfig {
 			keys: vec![],
 		},
-		authority_discovery: phoenixx::AuthorityDiscoveryConfig {
+		authority_discovery: canary::AuthorityDiscoveryConfig {
 			keys: vec![],
 		},
-		grandpa: phoenixx::GrandpaConfig {
+		grandpa: canary::GrandpaConfig {
 			authorities: vec![],
 		},
 		technical_membership: Default::default(),
 		treasury: Default::default(),
 		vesting: Default::default(),
-		claims: Default::default(),
-		swap: phoenixx::SwapConfig {
+		swap: canary::SwapConfig {
 			swap_fee: 1 * UNITS,
 			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			chains: vec![1],
@@ -294,32 +290,32 @@ pub fn phoenixx_testnet_genesis(
 			threshold: 1,
 			balance: 100 * UNITS,
 		},
-		xx_cmix: phoenixx::XXCmixConfig {
+		xx_cmix: canary::XXCmixConfig {
 			admin_permission: 0,
 			cmix_address_space: 18,
 			cmix_hashes: Default::default(),
 			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
 			cmix_variables: Default::default(),
 		},
-		xx_economics: phoenixx::XXEconomicsConfig {
+		xx_economics: canary::XXEconomicsConfig {
 			balance: 10 * UNITS,
 			inflation_params: Default::default(),
 			interest_points: vec![Default::default()],
 			ideal_stake_rewards: 10 * UNITS,
 			liquidity_rewards: 100 * UNITS,
 		},
-		xx_custody: phoenixx::XXCustodyConfig {
+		xx_custody: canary::XXCustodyConfig {
 			team_allocations: vec![],
 			custodians: vec![],
 		},
-		xx_betanet_rewards: Default::default(),
 		xx_public: Default::default(),
 		assets: Default::default(),
 	}
 }
 
-fn phoenixx_development_config_genesis() -> phoenixx::GenesisConfig {
-	phoenixx_testnet_genesis(
+#[cfg(feature = "canary")]
+fn canary_development_config_genesis() -> canary::GenesisConfig {
+	canary_testnet_genesis(
 		vec![
 			authority_keys_from_seed("Alice"),
 		],
@@ -328,197 +324,14 @@ fn phoenixx_development_config_genesis() -> phoenixx::GenesisConfig {
 	)
 }
 
-/// `phoenixx` development config (single validator Alice)
-pub fn phoenixx_development_config() -> PhoenixxChainSpec {
-	PhoenixxChainSpec::from_genesis(
-		"phoenixx Development",
-		"phoenixx_dev",
+/// `canary` development config (single validator Alice)
+#[cfg(feature = "canary")]
+pub fn canary_development_config() -> CanaryChainSpec {
+	CanaryChainSpec::from_genesis(
+		"canary Development",
+		"canary_dev",
 		ChainType::Development,
-		phoenixx_development_config_genesis,
-		vec![],
-		None,
-		None,
-		None,
-		Default::default(),
-	)
-}
-
-/// Helper function to create GenesisConfig for testing of the `protonet` network
-pub fn protonet_testnet_genesis(
-	initial_authorities: Vec<(
-		AccountId,
-		AccountId,
-		GrandpaId,
-		BabeId,
-		ImOnlineId,
-		AuthorityDiscoveryId,
-	)>,
-	initial_nominators: Vec<AccountId>,
-	endowed_accounts: Option<Vec<AccountId>>,
-) -> protonet::GenesisConfig {
-	let mut endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
-		vec![
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			get_account_id_from_seed::<sr25519::Public>("Bob"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			get_account_id_from_seed::<sr25519::Public>("Dave"),
-			get_account_id_from_seed::<sr25519::Public>("Eve"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-		]
-	});
-	// endow all authorities and nominators.
-	initial_authorities.iter().map(|x| &x.0).chain(initial_nominators.iter()).for_each(|x| {
-		if !endowed_accounts.contains(&x) {
-			endowed_accounts.push(x.clone())
-		}
-	});
-
-	// stakers: all validators and nominators.
-	let mut rng = rand::thread_rng();
-	let stakers = initial_authorities
-		.iter()
-		.enumerate()
-		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, protonet::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
-		.chain(initial_nominators.iter().map(|x| {
-			use rand::{seq::SliceRandom, Rng};
-			let limit = (protonet::MAX_NOMINATIONS as usize).min(initial_authorities.len());
-			let count = rng.gen::<usize>() % limit;
-			let nominations = initial_authorities
-				.as_slice()
-				.choose_multiple(&mut rng, count)
-				.into_iter()
-				.map(|choice| choice.0.clone())
-				.collect::<Vec<_>>();
-			(x.clone(), x.clone(), STASH, protonet::StakerStatus::Nominator(nominations))
-		}))
-		.collect::<Vec<_>>();
-
-	let num_endowed_accounts = endowed_accounts.len();
-
-	const ENDOWMENT: Balance = 10_000_000 * UNITS;
-	const STASH: Balance = ENDOWMENT / 1000;
-
-	protonet::GenesisConfig {
-		system: protonet::SystemConfig {
-			code: protonet::wasm_binary_unwrap().to_vec(),
-		},
-		balances: protonet::BalancesConfig {
-			balances: endowed_accounts.iter().cloned()
-				.map(|x| (x, ENDOWMENT))
-				.collect()
-		},
-		session: protonet::SessionConfig {
-			keys: initial_authorities.iter().map(|x| {
-				(x.0.clone(), x.0.clone(), protonet_session_keys(
-					x.2.clone(),
-					x.3.clone(),
-					x.4.clone(),
-					x.5.clone(),
-				))
-			}).collect::<Vec<_>>(),
-		},
-		staking: protonet::StakingConfig {
-			validator_count: initial_authorities.len() as u32 * 2,
-			minimum_validator_count: initial_authorities.len() as u32,
-			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			slash_reward_fraction: Perbill::from_percent(10),
-			stakers,
-			.. Default::default()
-		},
-		democracy: protonet::DemocracyConfig::default(),
-		elections: protonet::ElectionsConfig {
-			members: endowed_accounts.iter()
-				.take((num_endowed_accounts + 1) / 2)
-				.cloned()
-				.map(|member| (member, STASH))
-				.collect(),
-		},
-		council: protonet::CouncilConfig::default(),
-		technical_committee: protonet::TechnicalCommitteeConfig {
-			members: endowed_accounts.iter()
-				.take((num_endowed_accounts + 1) / 2)
-				.cloned()
-				.collect(),
-			phantom: Default::default(),
-		},
-		babe: protonet::BabeConfig {
-			authorities: vec![],
-			epoch_config: Some(xxnetwork_runtime::BABE_GENESIS_EPOCH_CONFIG),
-		},
-		im_online: protonet::ImOnlineConfig {
-			keys: vec![],
-		},
-		authority_discovery: protonet::AuthorityDiscoveryConfig {
-			keys: vec![],
-		},
-		grandpa: protonet::GrandpaConfig {
-			authorities: vec![],
-		},
-		technical_membership: Default::default(),
-		treasury: Default::default(),
-		vesting: Default::default(),
-		claims: Default::default(),
-		swap: protonet::SwapConfig {
-			swap_fee: 1 * UNITS,
-			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
-			chains: vec![1],
-			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
-			resources: vec![
-				// SHA2_256("xx coin") [0:31] | 0x00
-				(hex!["26c3ecba0b7cea7c131a6aedf4774f96216318a2ae74926cd0e01832a0b0b500"],
-				 // Swap.transfer method
-				 hex!["537761702e7472616e73666572"].iter().cloned().collect())
-			],
-			threshold: 1,
-			balance: 100 * UNITS,
-		},
-		xx_cmix: protonet::XXCmixConfig {
-			admin_permission: 0,
-			cmix_address_space: 18,
-			cmix_hashes: Default::default(),
-			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
-			cmix_variables: Default::default(),
-		},
-		xx_economics: protonet::XXEconomicsConfig {
-			balance: 10 * UNITS,
-			inflation_params: Default::default(),
-			interest_points: vec![Default::default()],
-			ideal_stake_rewards: 10 * UNITS,
-			liquidity_rewards: 100 * UNITS,
-		},
-		xx_custody: protonet::XXCustodyConfig {
-			team_allocations: vec![],
-			custodians: vec![],
-		},
-		xx_betanet_rewards: Default::default(),
-		xx_public: Default::default(),
-		assets: Default::default(),
-	}
-}
-
-fn protonet_development_config_genesis() -> protonet::GenesisConfig {
-	protonet_testnet_genesis(
-		vec![
-			authority_keys_from_seed("Alice"),
-		],
-		vec![],
-		None,
-	)
-}
-
-/// `protonet` development config (single validator Alice)
-pub fn protonet_development_config() -> ProtonetChainSpec {
-	ProtonetChainSpec::from_genesis(
-		"xx protonet Development",
-		"xxprotonet_dev",
-		ChainType::Development,
-		protonet_development_config_genesis,
+		canary_development_config_genesis,
 		vec![],
 		None,
 		None,
@@ -528,6 +341,7 @@ pub fn protonet_development_config() -> ProtonetChainSpec {
 }
 
 /// Helper function to create GenesisConfig for testing of `xxnetwork`
+#[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_testnet_genesis(
 	initial_authorities: Vec<(
 		AccountId,
@@ -571,7 +385,7 @@ pub fn xxnetwork_testnet_genesis(
 		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
-			let limit = (xxnetwork::MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let limit = (runtime_common::MAX_NOMINATIONS as usize).min(initial_authorities.len());
 			let count = rng.gen::<usize>() % limit;
 			let nominations = initial_authorities
 				.as_slice()
@@ -704,6 +518,7 @@ pub fn xxnetwork_testnet_genesis(
 	}
 }
 
+#[cfg(feature = "xxnetwork")]
 fn xxnetwork_development_config_genesis() -> xxnetwork::GenesisConfig {
 	xxnetwork_testnet_genesis(
 		vec![
@@ -715,6 +530,7 @@ fn xxnetwork_development_config_genesis() -> xxnetwork::GenesisConfig {
 }
 
 /// `xxnetwork` development config (single validator Alice)
+#[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_development_config() -> XXNetworkChainSpec {
 	XXNetworkChainSpec::from_genesis(
 		"xx network Development",

@@ -15,7 +15,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! A set of constant values used in substrate runtime.
+//! A set of constant values used in xxnetwork and canarynet runtimes.
+
+/// Macro to set a value (e.g. when using the `parameter_types` macro) to either a production value
+/// or to an environment variable or testing value (in case the `fast-runtime` feature is selected).
+/// Note that the environment variable is evaluated _at compile time_.
+///
+/// Usage:
+/// ```Rust
+/// parameter_types! {
+/// 	// Note that the env variable version parameter cannot be const.
+/// 	pub LaunchPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1, "KSM_LAUNCH_PERIOD");
+/// 	pub const VotingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1 * MINUTES);
+/// }
+/// ```
+#[macro_export]
+macro_rules! prod_or_fast {
+	($prod:expr, $test:expr) => {
+		if cfg!(feature = "fast-runtime") {
+			$test
+		} else {
+			$prod
+		}
+	};
+}
 
 /// Money matters.
 pub mod currency {
@@ -33,6 +56,7 @@ pub mod currency {
 /// Time.
 pub mod time {
 	use node_primitives::{Moment, BlockNumber};
+	use crate::prod_or_fast;
 
 	/// Since BABE is probabilistic this is the average expected block time that
 	/// we are targeting. Blocks will be produced at a minimum duration defined
@@ -59,19 +83,11 @@ pub mod time {
 	// 1 in 4 blocks (on average, not counting collisions) will be primary BABE blocks.
 	pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
-	pub const ERA_DURATION_IN_SESSIONS: u32 = 3;
-	// NOTE: Currently it is not possible to change the epoch duration after the chain has started.
-	//       Attempting to do so will brick block production.
-	pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 8 * HOURS;
-	pub const EPOCH_DURATION_IN_SLOTS: u64 = {
-		const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
-
-		(EPOCH_DURATION_IN_BLOCKS as f64 * SLOT_FILL_RATE) as u64
-	};
-
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
-	pub const HOURS: BlockNumber = MINUTES * 60;
+	// For fast runtimes, redefine the hours constanst to be 120x faster (5 blocks instead of 600)
+	// This will propragate to other time constants
+	pub const HOURS: BlockNumber = prod_or_fast!(MINUTES * 60, 5);
 	pub const DAYS: BlockNumber = HOURS * 24;
 	pub const WEEKS: BlockNumber = 7 * DAYS;
 	pub const YEARS: BlockNumber = 365 * DAYS + 6*HOURS;

@@ -18,15 +18,14 @@
 use codec::{Encode, Joiner};
 use frame_support::{
 	traits::Currency,
-	weights::{GetDispatchInfo, constants::ExtrinsicBaseWeight, IdentityFee, WeightToFeePolynomial},
+	weights::{GetDispatchInfo, constants::ExtrinsicBaseWeight, WeightToFeePolynomial},
 };
 use sp_core::NeverNativeValue;
-use sp_runtime::{Perbill, FixedPointNumber, traits::One};
+use sp_runtime::{Perbill, traits::One};
 use xxnetwork_runtime::{
 	CheckedExtrinsic, Call, Runtime, Balances, TransactionPayment, Multiplier,
-	TransactionByteFee,
-	constants::{time::SLOT_DURATION, currency::*},
 };
+use runtime_common::{TransactionByteFee, constants::{time::SLOT_DURATION, currency::*, fee::WeightToFee}};
 use node_primitives::Balance;
 use node_testing::keyring::*;
 
@@ -35,7 +34,7 @@ use self::common::{*, sign};
 
 #[test]
 fn fee_multiplier_increases_and_decreases_on_big_weight() {
-	let mut t = new_test_ext(compact_code_unwrap(), false);
+	let mut t = new_test_ext(compact_code_unwrap());
 
 	// initial fee multiplier must be one.
 	let mut prev_multiplier = Multiplier::one();
@@ -44,7 +43,7 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 		assert_eq!(TransactionPayment::next_fee_multiplier(), prev_multiplier);
 	});
 
-	let mut tt = new_test_ext(compact_code_unwrap(), false);
+	let mut tt = new_test_ext(compact_code_unwrap());
 
 	let time1 = 42 * 1000;
 	// big one in terms of weight.
@@ -55,11 +54,11 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 		vec![
 			CheckedExtrinsic {
 				signed: None,
-				function: Call::Timestamp(pallet_timestamp::Call::set(time1)),
+				function: Call::Timestamp(pallet_timestamp::Call::set { now: time1 }),
 			},
 			CheckedExtrinsic {
 				signed: Some((charlie(), signed_extra(0, 0))),
-				function: Call::System(frame_system::Call::fill_block(Perbill::from_percent(60))),
+				function: Call::System(frame_system::Call::fill_block { ratio: Perbill::from_percent(60) }),
 			}
 		],
 		(time1 / SLOT_DURATION).into(),
@@ -74,11 +73,11 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 		vec![
 			CheckedExtrinsic {
 				signed: None,
-				function: Call::Timestamp(pallet_timestamp::Call::set(time2)),
+				function: Call::Timestamp(pallet_timestamp::Call::set { now: time2 }),
 			},
 			CheckedExtrinsic {
 				signed: Some((charlie(), signed_extra(1, 0))),
-				function: Call::System(frame_system::Call::remark(vec![0; 1])),
+				function: Call::System(frame_system::Call::remark { remark: vec![0; 1] }),
 			}
 		],
 		(time2 / SLOT_DURATION).into(),
@@ -124,13 +123,13 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 	});
 }
 
-fn new_account_info(free_UNITS: u128) -> Vec<u8> {
+fn new_account_info(free_units: u128) -> Vec<u8> {
 	frame_system::AccountInfo {
 		nonce: 0u32,
 		consumers: 0,
 		providers: 0,
 		sufficients: 0,
-		data: (free_UNITS * UNITS, 0 * UNITS, 0 * UNITS, 0 * UNITS),
+		data: (free_units * UNITS, 0 * UNITS, 0 * UNITS, 0 * UNITS),
 	}.encode()
 }
 
@@ -142,7 +141,7 @@ fn transaction_fee_is_correct() {
 	// if weight of the cheapest weight would be 10^7, this would be 10^9, which is:
 	//   - 1 MILLICENTS in substrate node.
 	// (this baed on assigning 0.1 CENT to the cheapest tx with `weight = 100`)
-	let mut t = new_test_ext(compact_code_unwrap(), false);
+	let mut t = new_test_ext(compact_code_unwrap());
 	t.insert(<frame_system::Account<Runtime>>::hashed_key_for(alice()), new_account_info(100));
 	t.insert(<frame_system::Account<Runtime>>::hashed_key_for(bob()), new_account_info(10));
 	t.insert(
@@ -186,18 +185,14 @@ fn transaction_fee_is_correct() {
 		let mut balance_alice = (100 - 69) * UNITS;
 
 		let base_weight = ExtrinsicBaseWeight::get();
-		let base_fee = IdentityFee::<Balance>::calc(&base_weight);
+		let base_fee = WeightToFee::calc(&base_weight);
 
 		let length_fee = TransactionByteFee::get() * (xt.clone().encode().len() as Balance);
 		balance_alice -= length_fee;
 
 		let weight = default_transfer_call().get_dispatch_info().weight;
-		let weight_fee = IdentityFee::<Balance>::calc(&weight);
+		let weight_fee = WeightToFee::calc(&weight);
 
-		// we know that weight to fee multiplier is effect-less in block 1.
-		// current weight of transfer = 200_000_000
-		// Linear weight to fee is 1:1 right now (1 weight = 1 unit of balance)
-		assert_eq!(weight_fee, weight as Balance);
 		balance_alice -= base_fee;
 		balance_alice -= weight_fee;
 		balance_alice -= tip;
@@ -215,9 +210,9 @@ fn block_weight_capacity_report() {
 	use node_primitives::Index;
 
 	// execution ext.
-	let mut t = new_test_ext(compact_code_unwrap(), false);
+	let mut t = new_test_ext(compact_code_unwrap());
 	// setup ext.
-	let mut tt = new_test_ext(compact_code_unwrap(), false);
+	let mut tt = new_test_ext(compact_code_unwrap());
 
 	let factor = 50;
 	let mut time = 10;
@@ -229,12 +224,12 @@ fn block_weight_capacity_report() {
 		let num_transfers = block_number * factor;
 		let mut xts = (0..num_transfers).map(|i| CheckedExtrinsic {
 			signed: Some((charlie(), signed_extra(nonce + i as Index, 0))),
-			function: Call::Balances(pallet_balances::Call::transfer(bob().into(), 0)),
+			function: Call::Balances(pallet_balances::Call::transfer { dest: bob().into(), value: 0 }),
 		}).collect::<Vec<CheckedExtrinsic>>();
 
 		xts.insert(0, CheckedExtrinsic {
 			signed: None,
-			function: Call::Timestamp(pallet_timestamp::Call::set(time * 1000)),
+			function: Call::Timestamp(pallet_timestamp::Call::set { now: time * 1000 }),
 		});
 
 		// NOTE: this is super slow. Can probably be improved.
@@ -283,9 +278,9 @@ fn block_length_capacity_report() {
 	use node_primitives::Index;
 
 	// execution ext.
-	let mut t = new_test_ext(compact_code_unwrap(), false);
+	let mut t = new_test_ext(compact_code_unwrap());
 	// setup ext.
-	let mut tt = new_test_ext(compact_code_unwrap(), false);
+	let mut tt = new_test_ext(compact_code_unwrap());
 
 	let factor = 256 * 1024;
 	let mut time = 10;
@@ -302,11 +297,11 @@ fn block_length_capacity_report() {
 			vec![
 				CheckedExtrinsic {
 					signed: None,
-					function: Call::Timestamp(pallet_timestamp::Call::set(time * 1000)),
+					function: Call::Timestamp(pallet_timestamp::Call::set { now: time * 1000 }),
 				},
 				CheckedExtrinsic {
 					signed: Some((charlie(), signed_extra(nonce, 0))),
-					function: Call::System(frame_system::Call::remark(vec![0u8; (block_number * factor) as usize])),
+					function: Call::System(frame_system::Call::remark { remark: vec![0u8; (block_number * factor) as usize] }),
 				},
 			],
 			(time * 1000 / SLOT_DURATION).into(),
