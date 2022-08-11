@@ -9886,7 +9886,7 @@ dependencies = [
 
 [[package]]
 name = "xxnetwork-cli"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "assert_cmd",
  "async-std",
@@ -9974,7 +9974,7 @@ dependencies = [
 
 [[package]]
 name = "xxnetwork-runtime"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "chainbridge",
  "claims",
@@ -9988,7 +9988,6 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "log",
- "migrations",
  "node-primitives",
  "pallet-assets",
  "pallet-authority-discovery",

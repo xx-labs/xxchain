@@ -14,7 +14,7 @@ codec = { package = "parity-scale-codec", version = "3.0.0" }
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 node-primitives = { version = "0.2.0", path = "../primitives" }
 runtime-common = { version = "0.2.0", path = "../runtime/common" }
-xxnetwork-runtime = { version = "0.2.3", path = "../runtime/xxnetwork", optional=true }
+xxnetwork-runtime = { version = "0.2.4", path = "../runtime/xxnetwork", optional=true }
 canary-runtime = { version = "0.2.0", path = "../runtime/canary", optional=true }
 sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
