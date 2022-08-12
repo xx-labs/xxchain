@@ -33,6 +33,7 @@ pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/
 pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 pallet-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 pallet-treasury = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-application-crypto = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }

@@ -38,6 +38,7 @@ use frame_system::limits;
 use node_primitives::{Balance, BlockNumber};
 use sp_runtime::{FixedPointNumber, Percent, Permill, Perbill, Perquintill, transaction_validity::TransactionPriority};
 use pallet_transaction_payment::Multiplier;
+use frame_election_provider_support::BalancingConfig;
 use static_assertions::const_assert;
 use constants::{currency::{deposit, CENTS, UNITS}, time::DAYS};
 use codec::Decode;
@@ -69,11 +70,11 @@ parameter_types! {
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(50);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(75, 1_000_000);
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero`.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128);
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 10u128);
 	/// This value increases the priority of `Operational` transactions by adding
 	/// a "virtual tip" that's equal to the `OperationalFeeMultiplier * final_fee`.
 	pub const OperationalFeeMultiplier: u8 = 5;
@@ -301,12 +302,11 @@ pub const MINER_MAX_ITERATIONS: u32 = 10;
 
 /// A source of random balance for NposSolver, which is meant to be run by the OCW election miner.
 pub struct OffchainRandomBalancing;
-impl frame_support::pallet_prelude::Get<Option<(usize, frame_election_provider_support::ExtendedBalance)>>
-for OffchainRandomBalancing
-{
-	fn get() -> Option<(usize, frame_election_provider_support::ExtendedBalance)> {
+impl frame_support::pallet_prelude::Get<Option<BalancingConfig>>
+for OffchainRandomBalancing {
+	fn get() -> Option<BalancingConfig> {
 		use sp_runtime::traits::TrailingZeroInput;
-		let iters = match MINER_MAX_ITERATIONS {
+		let iterations = match MINER_MAX_ITERATIONS {
 			0 => 0,
 			max @ _ => {
 				let seed = sp_io::offchain::random_seed();
@@ -317,6 +317,7 @@ for OffchainRandomBalancing
 			},
 		};
 
-		Some((iters, 0))
+		let config = BalancingConfig { iterations, tolerance: 0 };
+		Some(config)
 	}
 }
