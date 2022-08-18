@@ -25,7 +25,7 @@ use node_primitives::{AccountId, Block, Balance, Index};
 use sc_client_api::{BlockBackend, ExecutorProvider};
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network::Event;
+use sc_network_common::{protocol::event::Event, service::NetworkEventStream};
 use sc_service::{
 	config::Configuration, error::Error as ServiceError, TaskManager,
 };

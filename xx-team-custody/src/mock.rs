@@ -448,6 +448,8 @@ parameter_types! {
 	pub const TermDuration: BlockNumber = 10;
 	pub const DesiredMembers: u32 = 9;
 	pub const DesiredRunnersUp: u32 = 10;
+    pub const MaxVoters: u32 = 10 * 1000;
+	pub const MaxCandidates: u32 = 1000;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
 }
 
@@ -466,6 +468,8 @@ impl pallet_elections_phragmen::Config for Test {
     type DesiredMembers = DesiredMembers;
     type DesiredRunnersUp = DesiredRunnersUp;
     type TermDuration = TermDuration;
+    type MaxVoters = MaxVoters;
+	type MaxCandidates = MaxCandidates;
     type WeightInfo = ();
 }
 
