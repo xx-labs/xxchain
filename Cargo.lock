@@ -708,6 +708,7 @@ dependencies = [
  "pallet-collective",
  "pallet-democracy",
  "pallet-election-provider-multi-phase",
+ "pallet-election-provider-support-benchmarking",
  "pallet-elections-phragmen",
  "pallet-grandpa",
  "pallet-identity",
@@ -4583,6 +4584,7 @@ name = "pallet-child-bounties"
 version = "4.0.0-dev"
 source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#dd69d19230fa27e780bae4d5a06ae3d829ff831c"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -4650,6 +4652,19 @@ dependencies = [
  "sp-std",
  "static_assertions",
  "strum",
+]
+
+[[package]]
+name = "pallet-election-provider-support-benchmarking"
+version = "4.0.0-dev"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#dd69d19230fa27e780bae4d5a06ae3d829ff831c"
+dependencies = [
+ "frame-benchmarking",
+ "frame-election-provider-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-npos-elections",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -10048,6 +10063,7 @@ dependencies = [
  "pallet-collective",
  "pallet-democracy",
  "pallet-election-provider-multi-phase",
+ "pallet-election-provider-support-benchmarking",
  "pallet-elections-phragmen",
  "pallet-grandpa",
  "pallet-identity",

@@ -8,6 +8,10 @@ build-release:
 
 # TODO: add build optimizations for production binary
 
+# Builds xxnetwork-chain binary containing only xxnetwork runtime with the runtime-benchmarks feature
+build-release-bench:
+	@cargo build -p xxnetwork-cli --release --features runtime-benchmarks
+
 # Builds xxnetwork-chain binary containing only xxnetwork runtime with the try-runtime feature
 build-release-try-runtime:
 	@cargo build -p xxnetwork-cli --release --features try-runtime

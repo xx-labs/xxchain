@@ -62,6 +62,7 @@ pallet-bounties = { git = "https://github.com/xx-labs/substrate", branch = "dev/
 pallet-collective = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 pallet-democracy = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 pallet-election-provider-multi-phase = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-election-provider-support-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, optional = true }
 pallet-elections-phragmen = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 pallet-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
@@ -180,8 +181,7 @@ std = [
 	"pallet-child-bounties/std",
 ]
 runtime-benchmarks = [
-    "hex-literal",
-	"frame-benchmarking",
+	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
@@ -189,9 +189,11 @@ runtime-benchmarks = [
 	"pallet-babe/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-bounties/runtime-benchmarks",
+	"pallet-child-bounties/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-democracy/runtime-benchmarks",
 	"pallet-election-provider-multi-phase/runtime-benchmarks",
+	"pallet-election-provider-support-benchmarking/runtime-benchmarks",
 	"pallet-elections-phragmen/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
@@ -199,11 +201,12 @@ runtime-benchmarks = [
 	"pallet-membership/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-offences-benchmarking",
+	"pallet-preimage/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
+	"pallet-recovery/runtime-benchmarks",
 	"pallet-session-benchmarking",
 	"pallet-staking/runtime-benchmarks",
-	"frame-system-benchmarking",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-tips/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
@@ -217,6 +220,8 @@ runtime-benchmarks = [
 	"xx-team-custody/runtime-benchmarks",
 	"xx-economics/runtime-benchmarks",
 	"xx-betanet-rewards/runtime-benchmarks",
+	"frame-system-benchmarking",
+	"hex-literal",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",

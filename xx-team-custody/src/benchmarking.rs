@@ -30,7 +30,7 @@ benchmarks!{
 		let custodian = custodian::<T>();
 		let proxy = account_from_index::<T>(11);
 
-		let info = XXCustody::<T>::team_accounts(team.clone());
+		let info = XXCustody::<T>::team_accounts(team.clone()).unwrap();
 		let amount = <<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::minimum_balance() * 10u32.into();
 
 		// set up a bond
@@ -58,7 +58,7 @@ benchmarks!{
 		let team = team_member::<T>();
 		let custodian = custodian::<T>();
 		let amount = <<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::minimum_balance() * 10u32.into();
-		let info = XXCustody::<T>::team_accounts(team.clone());
+		let info = XXCustody::<T>::team_accounts(team.clone()).unwrap();
 
 	}: _(RawOrigin::Signed(custodian.clone()), info.custody, custodian.clone(), amount)
 
@@ -67,7 +67,7 @@ benchmarks!{
 		let team = team_member::<T>();
 		let custodian = custodian::<T>();
 
-		let info = XXCustody::<T>::team_accounts(team.clone());
+		let info = XXCustody::<T>::team_accounts(team.clone()).unwrap();
 		let amount = <<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::minimum_balance() * 10u32.into();
 
 		// set up an initial bond
@@ -85,7 +85,7 @@ benchmarks!{
 		let custodian = custodian::<T>();
 		let new_controller = account_from_index::<T>(55);
 
-		let info = XXCustody::<T>::team_accounts(team.clone());
+		let info = XXCustody::<T>::team_accounts(team.clone()).unwrap();
 		let amount = <<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::minimum_balance() * 10u32.into();
 
 		// set up an initial bond with the custodian as the controller
@@ -103,7 +103,7 @@ benchmarks!{
 		let custodian = custodian::<T>();
 		let proxy = account_from_index::<T>(11);
 
-		let info = XXCustody::<T>::team_accounts(team.clone());
+		let info = XXCustody::<T>::team_accounts(team.clone()).unwrap();
 
 	}: _(RawOrigin::Signed(custodian.clone()), info.custody, proxy)
 
@@ -111,7 +111,7 @@ benchmarks!{
 		let team = team_member::<T>();
 		let proxy = account_from_index::<T>(11);
 
-		let info = XXCustody::<T>::team_accounts(team.clone());
+		let info = XXCustody::<T>::team_accounts(team.clone()).unwrap();
 
 		// allocate some balance to pay the lockup fee (this may not be required later)
 		let balance = <<T as pallet_staking::Config>::Currency as Currency<T::AccountId>>::Balance::max_value();
