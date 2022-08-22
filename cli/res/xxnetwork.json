@@ -4,13 +4,9 @@
     "chainType": "Live",
     "bootNodes": [
         "/ip4/44.199.135.176/tcp/15974/p2p/12D3KooWEHCoJu1BzojgbXrvLfYwyKsGNDw5NzDKhoV1RgB91q28",
-        "/ip4/52.2.42.105/tcp/15974/p2p/12D3KooWCYCyVqFEdrNJ6EoroAbM3zWXJaE8tKJTs5G19uN8Ndxr",
         "/ip4/52.8.121.134/tcp/15974/p2p/12D3KooWSi5xCtT1h8BbuCBa42gp1jLVv22TRdZkx8AiDN7sXC9i",
-        "/ip4/52.8.96.188/tcp/15974/p2p/12D3KooWHN38MhPpGYg26fdH9WBeQGs8zbKdbzQDLehnPKXowV5U",
         "/ip4/54.179.218.18/tcp/15974/p2p/12D3KooWPz81XDxwSmPm6cNJog1pC2FinZnZ3t6tUaTXSFm8pvS6",
-        "/ip4/54.255.84.211/tcp/15974/p2p/12D3KooWFu33XNZJzthxsnUZ5nqgvAbNuDaciLn8YYqyGDuZHsgF",
-        "/ip4/3.123.188.164/tcp/15974/p2p/12D3KooWPsy3DT5xVgpna2r4XeTTUL4cNndg6G8v6r6UQ2AHpne4",
-        "/ip4/3.70.125.137/tcp/15974/p2p/12D3KooWQc3dMZdqcmQrg2CY6sw5bTNTGQDviqr28jECCndDSbwt"
+        "/ip4/3.123.188.164/tcp/15974/p2p/12D3KooWPsy3DT5xVgpna2r4XeTTUL4cNndg6G8v6r6UQ2AHpne4"
     ],
     "telemetryEndpoints": null,
     "protocolId": "xxnet",
