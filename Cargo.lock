@@ -9588,7 +9588,7 @@ dependencies = [
 
 [[package]]
 name = "xxnetwork-cli"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "assert_cmd",
  "async-std",
@@ -9672,7 +9672,7 @@ dependencies = [
 
 [[package]]
 name = "xxnetwork-runtime"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "chainbridge",
  "claims",
