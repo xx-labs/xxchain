@@ -212,10 +212,10 @@ decl_module! {
                     Self::deposit_event(RawEvent::ProgramEnacted);
                     T::BlockWeights::get().max_block
                 } else {
-                    0
+                    Weight::zero()
                 }
             } else {
-                0
+                Weight::zero()
             }
         }
     }

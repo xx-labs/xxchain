@@ -23,7 +23,7 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::Weight};
+use frame_support::{traits::Get, weights::{RefTimeWeight , Weight}};
 use sp_std::marker::PhantomData;
 
 /// Weight functions for `xx_economics`.
@@ -31,22 +31,22 @@ pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> xx_economics::WeightInfo for WeightInfo<T> {
 	// Storage: XXEconomics InflationParams (r:0 w:1)
 	fn set_inflation_params() -> Weight {
-		(14_588_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_588_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXEconomics InterestPoints (r:0 w:1)
 	fn set_interest_points() -> Weight {
-		(14_948_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_948_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXEconomics IdealLiquidityStake (r:0 w:1)
 	fn set_liquidity_rewards_stake() -> Weight {
-		(14_547_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_547_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXEconomics LiquidityRewards (r:0 w:1)
 	fn set_liquidity_rewards_balance() -> Weight {
-		(14_117_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_117_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 }

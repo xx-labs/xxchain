@@ -310,9 +310,9 @@ checksum = "e91831deabf0d6d7ec49552e489aed63b7456a7a3c46cff62adad428110b0af0"
 
 [[package]]
 name = "async-trait"
-version = "0.1.52"
+version = "0.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "061a7acccaa286c011ddc30970520b98fa40e00c9d644633fb26b5fc63a265e3"
+checksum = "76464446b8bc32758d7e88ee1a804d9914cd9b1cb264c029899680b0be29826f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -412,7 +412,7 @@ dependencies = [
 [[package]]
 name = "beefy-merkle-tree"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "beefy-primitives",
  "sp-api",
@@ -421,7 +421,7 @@ dependencies = [
 [[package]]
 name = "beefy-primitives"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -811,6 +811,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
 dependencies = [
  "nom",
+]
+
+[[package]]
+name = "cfg-expr"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0aacacf4d96c24b2ad6eb8ee6df040e4f27b0d0b39a5710c30091baa830485db"
+dependencies = [
+ "smallvec",
 ]
 
 [[package]]
@@ -1867,7 +1876,7 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 [[package]]
 name = "fork-tree"
 version = "3.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
 ]
@@ -1885,7 +1894,7 @@ dependencies = [
 [[package]]
 name = "frame-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1908,7 +1917,7 @@ dependencies = [
 [[package]]
 name = "frame-benchmarking-cli"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "Inflector",
  "chrono",
@@ -1959,7 +1968,7 @@ dependencies = [
 [[package]]
 name = "frame-election-provider-solution-type"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1970,7 +1979,7 @@ dependencies = [
 [[package]]
 name = "frame-election-provider-support"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-election-provider-solution-type",
  "frame-support",
@@ -1986,10 +1995,11 @@ dependencies = [
 [[package]]
 name = "frame-executive"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
+ "frame-try-runtime",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -2014,7 +2024,7 @@ dependencies = [
 [[package]]
 name = "frame-support"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "bitflags",
  "frame-metadata",
@@ -2045,10 +2055,12 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "Inflector",
+ "cfg-expr",
  "frame-support-procedural-tools",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn",
@@ -2057,7 +2069,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate",
@@ -2069,7 +2081,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "3.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2079,7 +2091,7 @@ dependencies = [
 [[package]]
 name = "frame-system"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "log",
@@ -2096,7 +2108,7 @@ dependencies = [
 [[package]]
 name = "frame-system-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -2111,7 +2123,7 @@ dependencies = [
 [[package]]
 name = "frame-system-rpc-runtime-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -2120,9 +2132,10 @@ dependencies = [
 [[package]]
 name = "frame-try-runtime"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
+ "parity-scale-codec",
  "sp-api",
  "sp-runtime",
  "sp-std",
@@ -2475,9 +2488,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.12.1"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
+checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 dependencies = [
  "ahash",
 ]
@@ -2720,7 +2733,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
 dependencies = [
  "autocfg",
- "hashbrown 0.12.1",
+ "hashbrown 0.12.3",
  "serde",
 ]
 
@@ -3903,7 +3916,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6566c70c1016f525ced45d7b7f97730a2bafb037c788211d0c186ef5b2189f0a"
 dependencies = [
  "hash-db",
- "hashbrown 0.12.1",
+ "hashbrown 0.12.3",
  "parity-util-mem",
 ]
 
@@ -4480,7 +4493,7 @@ dependencies = [
 [[package]]
 name = "pallet-assets"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4494,7 +4507,7 @@ dependencies = [
 [[package]]
 name = "pallet-authority-discovery"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4510,7 +4523,7 @@ dependencies = [
 [[package]]
 name = "pallet-authorship"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4525,7 +4538,7 @@ dependencies = [
 [[package]]
 name = "pallet-babe"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4549,7 +4562,7 @@ dependencies = [
 [[package]]
 name = "pallet-balances"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4564,7 +4577,7 @@ dependencies = [
 [[package]]
 name = "pallet-bounties"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4582,7 +4595,7 @@ dependencies = [
 [[package]]
 name = "pallet-child-bounties"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4601,7 +4614,7 @@ dependencies = [
 [[package]]
 name = "pallet-collective"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4618,7 +4631,7 @@ dependencies = [
 [[package]]
 name = "pallet-democracy"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4634,7 +4647,7 @@ dependencies = [
 [[package]]
 name = "pallet-election-provider-multi-phase"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -4657,7 +4670,7 @@ dependencies = [
 [[package]]
 name = "pallet-election-provider-support-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -4670,7 +4683,7 @@ dependencies = [
 [[package]]
 name = "pallet-elections-phragmen"
 version = "5.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4688,7 +4701,7 @@ dependencies = [
 [[package]]
 name = "pallet-grandpa"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4711,7 +4724,7 @@ dependencies = [
 [[package]]
 name = "pallet-identity"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "enumflags2",
  "frame-benchmarking",
@@ -4727,7 +4740,7 @@ dependencies = [
 [[package]]
 name = "pallet-im-online"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4747,7 +4760,7 @@ dependencies = [
 [[package]]
 name = "pallet-membership"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4764,7 +4777,7 @@ dependencies = [
 [[package]]
 name = "pallet-multisig"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4779,7 +4792,7 @@ dependencies = [
 [[package]]
 name = "pallet-offences"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4796,7 +4809,7 @@ dependencies = [
 [[package]]
 name = "pallet-offences-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -4819,7 +4832,7 @@ dependencies = [
 [[package]]
 name = "pallet-preimage"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4835,7 +4848,7 @@ dependencies = [
 [[package]]
 name = "pallet-proxy"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4850,7 +4863,7 @@ dependencies = [
 [[package]]
 name = "pallet-randomness-collective-flip"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4864,7 +4877,7 @@ dependencies = [
 [[package]]
 name = "pallet-recovery"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4879,7 +4892,7 @@ dependencies = [
 [[package]]
 name = "pallet-scheduler"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4895,7 +4908,7 @@ dependencies = [
 [[package]]
 name = "pallet-session"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4916,7 +4929,7 @@ dependencies = [
 [[package]]
 name = "pallet-session-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4932,7 +4945,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -4955,7 +4968,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking-reward-curve"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -4966,7 +4979,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking-reward-fn"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "sp-arithmetic",
@@ -4975,7 +4988,7 @@ dependencies = [
 [[package]]
 name = "pallet-timestamp"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4993,7 +5006,7 @@ dependencies = [
 [[package]]
 name = "pallet-tips"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5012,7 +5025,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-payment"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5028,7 +5041,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-payment-rpc"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "jsonrpsee",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -5043,7 +5056,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-payment-rpc-runtime-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "pallet-transaction-payment",
  "parity-scale-codec",
@@ -5054,7 +5067,7 @@ dependencies = [
 [[package]]
 name = "pallet-treasury"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5071,7 +5084,7 @@ dependencies = [
 [[package]]
 name = "pallet-uniques"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5086,7 +5099,7 @@ dependencies = [
 [[package]]
 name = "pallet-utility"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5102,7 +5115,7 @@ dependencies = [
 [[package]]
 name = "pallet-vesting"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5116,9 +5129,9 @@ dependencies = [
 
 [[package]]
 name = "parity-db"
-version = "0.3.13"
+version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55a7901b85874402471e131de3332dde0e51f38432c69a3853627c8e25433048"
+checksum = "2bb474d0ed0836e185cb998a6b140ed1073d1fbf27d690ecf9ede8030289382c"
 dependencies = [
  "blake2-rfc",
  "crc32fast",
@@ -5173,7 +5186,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c32561d248d352148124f036cac253a644685a21dc9fea383eb4907d7bd35a8f"
 dependencies = [
  "cfg-if",
- "hashbrown 0.12.1",
+ "hashbrown 0.12.3",
  "impl-trait-for-tuples",
  "parity-util-mem-derive",
  "parking_lot 0.12.1",
@@ -5933,7 +5946,7 @@ dependencies = [
 [[package]]
 name = "remote-externalities"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "env_logger 0.9.0",
  "jsonrpsee",
@@ -6200,7 +6213,7 @@ dependencies = [
 [[package]]
 name = "sc-allocator"
 version = "4.1.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "sp-core",
@@ -6211,8 +6224,9 @@ dependencies = [
 [[package]]
 name = "sc-authority-discovery"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
+ "async-trait",
  "futures",
  "futures-timer",
  "ip_network",
@@ -6223,7 +6237,6 @@ dependencies = [
  "prost-build",
  "rand 0.7.3",
  "sc-client-api",
- "sc-network",
  "sc-network-common",
  "sp-api",
  "sp-authority-discovery",
@@ -6238,7 +6251,7 @@ dependencies = [
 [[package]]
 name = "sc-basic-authorship"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "futures-timer",
@@ -6261,7 +6274,7 @@ dependencies = [
 [[package]]
 name = "sc-block-builder"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "sc-client-api",
@@ -6277,13 +6290,13 @@ dependencies = [
 [[package]]
 name = "sc-chain-spec"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "impl-trait-for-tuples",
  "memmap2 0.5.0",
  "parity-scale-codec",
  "sc-chain-spec-derive",
- "sc-network",
+ "sc-network-common",
  "sc-telemetry",
  "serde",
  "serde_json",
@@ -6294,7 +6307,7 @@ dependencies = [
 [[package]]
 name = "sc-chain-spec-derive"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -6305,7 +6318,7 @@ dependencies = [
 [[package]]
 name = "sc-cli"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "chrono",
  "clap 3.2.5",
@@ -6344,7 +6357,7 @@ dependencies = [
 [[package]]
 name = "sc-client-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "fnv",
  "futures",
@@ -6372,7 +6385,7 @@ dependencies = [
 [[package]]
 name = "sc-client-db"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "hash-db",
  "kvdb",
@@ -6397,7 +6410,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "futures",
@@ -6421,7 +6434,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus-babe"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "fork-tree",
@@ -6463,7 +6476,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus-babe-rpc"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "jsonrpsee",
@@ -6485,7 +6498,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus-epochs"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "fork-tree",
  "parity-scale-codec",
@@ -6498,7 +6511,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus-slots"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "futures",
@@ -6523,7 +6536,7 @@ dependencies = [
 [[package]]
 name = "sc-consensus-uncles"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "sc-client-api",
  "sp-authorship",
@@ -6534,7 +6547,7 @@ dependencies = [
 [[package]]
 name = "sc-executor"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "lazy_static",
  "lru",
@@ -6561,7 +6574,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-common"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -6577,7 +6590,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-wasmi"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -6592,7 +6605,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-wasmtime"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "cfg-if",
  "libc",
@@ -6600,6 +6613,7 @@ dependencies = [
  "once_cell",
  "parity-scale-codec",
  "parity-wasm 0.42.2",
+ "rustix 0.33.7",
  "rustix 0.35.7",
  "sc-allocator",
  "sc-executor-common",
@@ -6612,7 +6626,7 @@ dependencies = [
 [[package]]
 name = "sc-finality-grandpa"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "ahash",
  "async-trait",
@@ -6653,7 +6667,7 @@ dependencies = [
 [[package]]
 name = "sc-finality-grandpa-rpc"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "finality-grandpa",
  "futures",
@@ -6674,7 +6688,7 @@ dependencies = [
 [[package]]
 name = "sc-informant"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "ansi_term",
  "futures",
@@ -6691,7 +6705,7 @@ dependencies = [
 [[package]]
 name = "sc-keystore"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "hex",
@@ -6706,7 +6720,7 @@ dependencies = [
 [[package]]
 name = "sc-network"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "asynchronous-codec",
@@ -6755,7 +6769,7 @@ dependencies = [
 [[package]]
 name = "sc-network-common"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "bitflags",
@@ -6766,7 +6780,9 @@ dependencies = [
  "prost-build",
  "sc-consensus",
  "sc-peerset",
+ "serde",
  "smallvec",
+ "sp-blockchain",
  "sp-consensus",
  "sp-finality-grandpa",
  "sp-runtime",
@@ -6776,7 +6792,7 @@ dependencies = [
 [[package]]
 name = "sc-network-gossip"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "ahash",
  "futures",
@@ -6784,8 +6800,8 @@ dependencies = [
  "libp2p",
  "log",
  "lru",
- "sc-network",
  "sc-network-common",
+ "sc-peerset",
  "sp-runtime",
  "substrate-prometheus-endpoint",
  "tracing",
@@ -6794,7 +6810,7 @@ dependencies = [
 [[package]]
 name = "sc-network-light"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "hex",
@@ -6815,7 +6831,7 @@ dependencies = [
 [[package]]
 name = "sc-network-sync"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "fork-tree",
  "futures",
@@ -6843,7 +6859,7 @@ dependencies = [
 [[package]]
 name = "sc-offchain"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "bytes",
  "fnv",
@@ -6852,14 +6868,15 @@ dependencies = [
  "hex",
  "hyper",
  "hyper-rustls",
+ "libp2p",
  "num_cpus",
  "once_cell",
  "parity-scale-codec",
  "parking_lot 0.12.1",
  "rand 0.7.3",
  "sc-client-api",
- "sc-network",
  "sc-network-common",
+ "sc-peerset",
  "sc-utils",
  "sp-api",
  "sp-core",
@@ -6872,7 +6889,7 @@ dependencies = [
 [[package]]
 name = "sc-peerset"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "libp2p",
@@ -6885,7 +6902,7 @@ dependencies = [
 [[package]]
 name = "sc-proposer-metrics"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "substrate-prometheus-endpoint",
@@ -6894,7 +6911,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "hash-db",
@@ -6924,7 +6941,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc-api"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "jsonrpsee",
@@ -6947,7 +6964,7 @@ dependencies = [
 [[package]]
 name = "sc-rpc-server"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "jsonrpsee",
@@ -6960,7 +6977,7 @@ dependencies = [
 [[package]]
 name = "sc-service"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "directories",
@@ -7027,7 +7044,7 @@ dependencies = [
 [[package]]
 name = "sc-service-test"
 version = "2.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "fdlimit",
  "futures",
@@ -7065,7 +7082,7 @@ dependencies = [
 [[package]]
 name = "sc-state-db"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -7079,7 +7096,7 @@ dependencies = [
 [[package]]
 name = "sc-sync-state-rpc"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "jsonrpsee",
  "parity-scale-codec",
@@ -7098,7 +7115,7 @@ dependencies = [
 [[package]]
 name = "sc-sysinfo"
 version = "6.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "libc",
@@ -7117,7 +7134,7 @@ dependencies = [
 [[package]]
 name = "sc-telemetry"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "chrono",
  "futures",
@@ -7135,7 +7152,7 @@ dependencies = [
 [[package]]
 name = "sc-tracing"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "ansi_term",
  "atty",
@@ -7166,7 +7183,7 @@ dependencies = [
 [[package]]
 name = "sc-tracing-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -7177,7 +7194,7 @@ dependencies = [
 [[package]]
 name = "sc-transaction-pool"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "futures-timer",
@@ -7203,7 +7220,7 @@ dependencies = [
 [[package]]
 name = "sc-transaction-pool-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "log",
@@ -7216,7 +7233,7 @@ dependencies = [
 [[package]]
 name = "sc-utils"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "futures-timer",
@@ -7423,9 +7440,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.81"
+version = "1.0.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b7ce2b32a1aed03c558dc61a5cd328f15aff2dbc17daad8fb8af04d2100e15c"
+checksum = "e55a28e3aaef9d5ce0506d0a14dbba8054ddc7e499ef522dd8b26859ec9d4a44"
 dependencies = [
  "itoa 1.0.1",
  "ryu",
@@ -7650,7 +7667,7 @@ dependencies = [
 [[package]]
 name = "sp-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "hash-db",
  "log",
@@ -7660,6 +7677,7 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "sp-std",
+ "sp-trie",
  "sp-version",
  "thiserror",
 ]
@@ -7667,7 +7685,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "blake2",
  "proc-macro-crate",
@@ -7679,7 +7697,7 @@ dependencies = [
 [[package]]
 name = "sp-application-crypto"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -7692,7 +7710,7 @@ dependencies = [
 [[package]]
 name = "sp-arithmetic"
 version = "5.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "integer-sqrt",
  "num-traits",
@@ -7707,7 +7725,7 @@ dependencies = [
 [[package]]
 name = "sp-authority-discovery"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -7720,7 +7738,7 @@ dependencies = [
 [[package]]
 name = "sp-authorship"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -7732,7 +7750,7 @@ dependencies = [
 [[package]]
 name = "sp-block-builder"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -7744,7 +7762,7 @@ dependencies = [
 [[package]]
 name = "sp-blockchain"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "log",
@@ -7762,7 +7780,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "futures",
@@ -7781,7 +7799,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-aura"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -7799,7 +7817,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-babe"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "merlin",
@@ -7822,7 +7840,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-slots"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -7836,7 +7854,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-vrf"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -7849,7 +7867,7 @@ dependencies = [
 [[package]]
 name = "sp-core"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "base58",
  "bitflags",
@@ -7895,7 +7913,7 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing"
 version = "4.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "blake2",
  "byteorder",
@@ -7909,7 +7927,7 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing-proc-macro"
 version = "5.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7920,7 +7938,7 @@ dependencies = [
 [[package]]
 name = "sp-database"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "kvdb",
  "parking_lot 0.12.1",
@@ -7929,7 +7947,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "4.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7939,7 +7957,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.12.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -7950,7 +7968,7 @@ dependencies = [
 [[package]]
 name = "sp-finality-grandpa"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "finality-grandpa",
  "log",
@@ -7968,7 +7986,7 @@ dependencies = [
 [[package]]
 name = "sp-inherents"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
@@ -7982,7 +8000,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "bytes",
  "futures",
@@ -8008,7 +8026,7 @@ dependencies = [
 [[package]]
 name = "sp-keyring"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "lazy_static",
  "sp-core",
@@ -8019,7 +8037,7 @@ dependencies = [
 [[package]]
 name = "sp-keystore"
 version = "0.12.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "futures",
@@ -8036,7 +8054,7 @@ dependencies = [
 [[package]]
 name = "sp-maybe-compressed-blob"
 version = "4.1.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "thiserror",
  "zstd",
@@ -8045,7 +8063,7 @@ dependencies = [
 [[package]]
 name = "sp-npos-elections"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -8059,7 +8077,7 @@ dependencies = [
 [[package]]
 name = "sp-offchain"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "sp-api",
  "sp-core",
@@ -8069,7 +8087,7 @@ dependencies = [
 [[package]]
 name = "sp-panic-handler"
 version = "4.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "backtrace",
  "lazy_static",
@@ -8079,7 +8097,7 @@ dependencies = [
 [[package]]
 name = "sp-rpc"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "rustc-hash",
  "serde",
@@ -8089,7 +8107,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "either",
  "hash256-std-hasher",
@@ -8111,7 +8129,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -8129,7 +8147,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "5.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "Inflector",
  "proc-macro-crate",
@@ -8141,7 +8159,7 @@ dependencies = [
 [[package]]
 name = "sp-sandbox"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -8155,7 +8173,7 @@ dependencies = [
 [[package]]
 name = "sp-session"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -8169,7 +8187,7 @@ dependencies = [
 [[package]]
 name = "sp-staking"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -8180,7 +8198,7 @@ dependencies = [
 [[package]]
 name = "sp-state-machine"
 version = "0.12.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "hash-db",
  "log",
@@ -8202,12 +8220,12 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "4.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 
 [[package]]
 name = "sp-storage"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -8220,7 +8238,7 @@ dependencies = [
 [[package]]
 name = "sp-tasks"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "log",
  "sp-core",
@@ -8233,7 +8251,7 @@ dependencies = [
 [[package]]
 name = "sp-timestamp"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "futures-timer",
@@ -8249,7 +8267,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "5.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "sp-std",
@@ -8261,7 +8279,7 @@ dependencies = [
 [[package]]
 name = "sp-transaction-pool"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "sp-api",
  "sp-runtime",
@@ -8270,7 +8288,7 @@ dependencies = [
 [[package]]
 name = "sp-transaction-storage-proof"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "log",
@@ -8286,15 +8304,22 @@ dependencies = [
 [[package]]
 name = "sp-trie"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
+ "ahash",
  "hash-db",
+ "hashbrown 0.12.3",
+ "lazy_static",
+ "lru",
  "memory-db",
+ "nohash-hasher",
  "parity-scale-codec",
+ "parking_lot 0.12.1",
  "scale-info",
  "sp-core",
  "sp-std",
  "thiserror",
+ "tracing",
  "trie-db",
  "trie-root",
 ]
@@ -8302,7 +8327,7 @@ dependencies = [
 [[package]]
 name = "sp-version"
 version = "5.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -8319,7 +8344,7 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "parity-scale-codec",
  "proc-macro2",
@@ -8330,7 +8355,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "6.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "impl-trait-for-tuples",
  "log",
@@ -8430,7 +8455,7 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "3.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "platforms",
 ]
@@ -8438,7 +8463,7 @@ dependencies = [
 [[package]]
 name = "substrate-frame-cli"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "clap 3.2.5",
  "frame-support",
@@ -8451,7 +8476,7 @@ dependencies = [
 [[package]]
 name = "substrate-frame-rpc-system"
 version = "4.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "frame-system-rpc-runtime-api",
  "futures",
@@ -8472,7 +8497,7 @@ dependencies = [
 [[package]]
 name = "substrate-prometheus-endpoint"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures-util",
  "hyper",
@@ -8485,7 +8510,7 @@ dependencies = [
 [[package]]
 name = "substrate-test-client"
 version = "2.0.1"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "async-trait",
  "futures",
@@ -8511,7 +8536,7 @@ dependencies = [
 [[package]]
 name = "substrate-test-runtime"
 version = "2.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "beefy-merkle-tree",
  "beefy-primitives",
@@ -8555,7 +8580,7 @@ dependencies = [
 [[package]]
 name = "substrate-test-runtime-client"
 version = "2.0.0"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "futures",
  "parity-scale-codec",
@@ -8574,7 +8599,7 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder"
 version = "5.0.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "ansi_term",
  "build-helper",
@@ -8996,12 +9021,12 @@ dependencies = [
 
 [[package]]
 name = "trie-db"
-version = "0.23.1"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d32d034c0d3db64b43c31de38e945f15b40cd4ca6d2dcfc26d4798ce8de4ab83"
+checksum = "004e1e8f92535694b4cb1444dc5a8073ecf0815e3357f729638b9f8fc4062908"
 dependencies = [
  "hash-db",
- "hashbrown 0.12.1",
+ "hashbrown 0.12.3",
  "log",
  "rustc-hex",
  "smallvec",
@@ -9068,9 +9093,10 @@ checksum = "59547bce71d9c38b83d9c0e92b6066c4253371f15005def0c30d9657f50c7642"
 [[package]]
 name = "try-runtime-cli"
 version = "0.10.0-dev"
-source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#f6661b392b6947bd059806be5c2d671c56a321e3"
+source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#49bf8f1c679c12af0145764638fb3758339c7c5a"
 dependencies = [
  "clap 3.2.5",
+ "frame-try-runtime",
  "jsonrpsee",
  "log",
  "parity-scale-codec",

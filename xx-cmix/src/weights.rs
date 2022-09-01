@@ -40,7 +40,7 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{traits::Get, weights::{RefTimeWeight, Weight, constants::RocksDbWeight}};
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for xx_cmix.
@@ -60,51 +60,51 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: XXCmix AdminPermission (r:1 w:0)
 	// Storage: XXCmix CmixHashes (r:0 w:1)
 	fn set_cmix_hashes() -> Weight {
-		(28_827_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(28_827_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(1 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix SchedulingAccount (r:0 w:1)
 	fn set_scheduling_account() -> Weight {
-		(18_741_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(18_741_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix NextCmixVariables (r:0 w:1)
 	fn set_next_cmix_variables() -> Weight {
-		(5_291_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(5_291_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: Staking ErasRewardPoints (r:1 w:1)
 	// Storage: Staking ActiveEra (r:1 w:0)
 	// Storage: XXCmix SchedulingAccount (r:1 w:0)
 	fn submit_cmix_points(n: u32, ) -> Weight {
-		(34_311_000 as Weight)
+		Weight::from_ref_time(34_311_000 as RefTimeWeight)
 			// Standard Error: 1_000
-			.saturating_add((383_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+			.saturating_add(Weight::from_ref_time(383_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().reads(3 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: Staking ActiveEra (r:1 w:0)
 	// Storage: Staking ErasRewardPoints (r:1 w:1)
 	// Storage: XXCmix SchedulingAccount (r:1 w:0)
 	fn submit_cmix_deductions(n: u32, ) -> Weight {
-		(34_593_000 as Weight)
+		Weight::from_ref_time(34_593_000 as RefTimeWeight)
 			// Standard Error: 1_000
-			.saturating_add((374_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+			.saturating_add(Weight::from_ref_time(374_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().reads(3 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix CmixAddressSpace (r:0 w:1)
 	// Storage: XXCmix SchedulingAccount (r:1 w:0)
 	fn set_cmix_address_space() -> Weight {
-		(23_948_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(23_948_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(1 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix AdminPermission (r:0 w:1)
 	fn set_admin_permission() -> Weight {
-		(18_172_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(18_172_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
 	}
 }
 
@@ -113,50 +113,50 @@ impl WeightInfo for () {
 	// Storage: XXCmix AdminPermission (r:1 w:0)
 	// Storage: XXCmix CmixHashes (r:0 w:1)
 	fn set_cmix_hashes() -> Weight {
-		(28_827_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(28_827_000 as RefTimeWeight)
+			.saturating_add(RocksDbWeight::get().reads(1 as RefTimeWeight))
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix SchedulingAccount (r:0 w:1)
 	fn set_scheduling_account() -> Weight {
-		(18_741_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(18_741_000 as RefTimeWeight)
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix NextCmixVariables (r:0 w:1)
 	fn set_next_cmix_variables() -> Weight {
-		(5_291_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(5_291_000 as RefTimeWeight)
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: Staking ErasRewardPoints (r:1 w:1)
 	// Storage: Staking ActiveEra (r:1 w:0)
 	// Storage: XXCmix SchedulingAccount (r:1 w:0)
 	fn submit_cmix_points(n: u32, ) -> Weight {
-		(34_311_000 as Weight)
+		Weight::from_ref_time(34_311_000 as RefTimeWeight)
 			// Standard Error: 1_000
-			.saturating_add((383_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+			.saturating_add(Weight::from_ref_time(383_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
+			.saturating_add(RocksDbWeight::get().reads(3 as RefTimeWeight))
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: Staking ActiveEra (r:1 w:0)
 	// Storage: Staking ErasRewardPoints (r:1 w:1)
 	// Storage: XXCmix SchedulingAccount (r:1 w:0)
 	fn submit_cmix_deductions(n: u32, ) -> Weight {
-		(34_593_000 as Weight)
+		Weight::from_ref_time(34_593_000 as RefTimeWeight)
 			// Standard Error: 1_000
-			.saturating_add((374_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+			.saturating_add(Weight::from_ref_time(374_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
+			.saturating_add(RocksDbWeight::get().reads(3 as RefTimeWeight))
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix CmixAddressSpace (r:0 w:1)
 	// Storage: XXCmix SchedulingAccount (r:1 w:0)
 	fn set_cmix_address_space() -> Weight {
-		(23_948_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(23_948_000 as RefTimeWeight)
+			.saturating_add(RocksDbWeight::get().reads(1 as RefTimeWeight))
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 	// Storage: XXCmix AdminPermission (r:0 w:1)
 	fn set_admin_permission() -> Weight {
-		(18_172_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(18_172_000 as RefTimeWeight)
+			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
 	}
 }

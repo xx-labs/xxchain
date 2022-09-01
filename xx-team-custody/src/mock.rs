@@ -30,7 +30,7 @@ use frame_support::{
         Currency, FindAuthor, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
         OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly, ConstU32
     },
-    weights::constants::RocksDbWeight,
+    weights::{Weight, constants::RocksDbWeight},
     RuntimeDebug,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
@@ -269,7 +269,7 @@ thread_local! {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: u64 = 1_000_000_000_000_000;
+	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(1_000_000_000_000_000);
 	pub const MaxScheduledPerBlock: u32 = 50;
 }
 

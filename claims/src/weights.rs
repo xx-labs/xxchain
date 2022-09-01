@@ -16,7 +16,7 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::Weight};
+use frame_support::{traits::Get, weights::{RefTimeWeight, Weight}};
 use sp_std::marker::PhantomData;
 
 pub trait WeightInfo {
@@ -29,39 +29,39 @@ pub trait WeightInfo {
 
 pub struct TestWeightInfo;
 impl WeightInfo for TestWeightInfo {
-    fn claim() -> Weight { 0 }
-    fn mint_claim() -> Weight { 0 }
-    fn claim_attest() -> Weight { 0 }
-    fn attest() -> Weight { 0 }
-    fn move_claim() -> Weight { 0 }
+    fn claim() -> Weight { Weight::zero() }
+    fn mint_claim() -> Weight { Weight::zero() }
+    fn claim_attest() -> Weight { Weight::zero() }
+    fn attest() -> Weight { Weight::zero() }
+    fn move_claim() -> Weight { Weight::zero() }
 }
 
 /// Weight functions for claims.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
     fn claim() -> Weight {
-        (466_905_000 as Weight)
-            .saturating_add(T::DbWeight::get().reads(7 as Weight))
-            .saturating_add(T::DbWeight::get().writes(7 as Weight))
+       Weight::from_ref_time(466_905_000 as RefTimeWeight)
+            .saturating_add(T::DbWeight::get().reads(7 as RefTimeWeight))
+            .saturating_add(T::DbWeight::get().writes(7 as RefTimeWeight))
     }
     fn mint_claim() -> Weight {
-        (19_003_000 as Weight)
-            .saturating_add(T::DbWeight::get().reads(1 as Weight))
-            .saturating_add(T::DbWeight::get().writes(4 as Weight))
+       Weight::from_ref_time(19_003_000 as RefTimeWeight)
+            .saturating_add(T::DbWeight::get().reads(1 as RefTimeWeight))
+            .saturating_add(T::DbWeight::get().writes(4 as RefTimeWeight))
     }
     fn claim_attest() -> Weight {
-        (471_915_000 as Weight)
-            .saturating_add(T::DbWeight::get().reads(7 as Weight))
-            .saturating_add(T::DbWeight::get().writes(7 as Weight))
+       Weight::from_ref_time(471_915_000 as RefTimeWeight)
+            .saturating_add(T::DbWeight::get().reads(7 as RefTimeWeight))
+            .saturating_add(T::DbWeight::get().writes(7 as RefTimeWeight))
     }
     fn attest() -> Weight {
-        (156_649_000 as Weight)
-            .saturating_add(T::DbWeight::get().reads(8 as Weight))
-            .saturating_add(T::DbWeight::get().writes(8 as Weight))
+       Weight::from_ref_time(156_649_000 as RefTimeWeight)
+            .saturating_add(T::DbWeight::get().reads(8 as RefTimeWeight))
+            .saturating_add(T::DbWeight::get().writes(8 as RefTimeWeight))
     }
     fn move_claim() -> Weight {
-        (39_612_000 as Weight)
-            .saturating_add(T::DbWeight::get().reads(4 as Weight))
-            .saturating_add(T::DbWeight::get().writes(7 as Weight))
+       Weight::from_ref_time(39_612_000 as RefTimeWeight)
+            .saturating_add(T::DbWeight::get().reads(4 as RefTimeWeight))
+            .saturating_add(T::DbWeight::get().writes(7 as RefTimeWeight))
     }
 }

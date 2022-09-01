@@ -23,7 +23,7 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::Weight};
+use frame_support::{traits::Get, weights::{RefTimeWeight , Weight}};
 use sp_std::marker::PhantomData;
 
 /// Weight functions for `claims`.
@@ -38,18 +38,18 @@ impl<T: frame_system::Config> claims::WeightInfo for WeightInfo<T> {
 	// Storage: Balances Locks (r:1 w:1)
 	// Storage: Claims Rewards (r:1 w:0)
 	fn claim() -> Weight {
-		(439_488_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+		Weight::from_ref_time(439_488_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(8 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(6 as RefTimeWeight))
 	}
 	// Storage: Claims Total (r:1 w:1)
 	// Storage: Claims Vesting (r:0 w:1)
 	// Storage: Claims Claims (r:0 w:1)
 	// Storage: Claims Signing (r:0 w:1)
 	fn mint_claim() -> Weight {
-		(11_351_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(11_351_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(1 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(4 as RefTimeWeight))
 	}
 	// Storage: Claims Claims (r:1 w:1)
 	// Storage: Claims Signing (r:1 w:1)
@@ -60,9 +60,9 @@ impl<T: frame_system::Config> claims::WeightInfo for WeightInfo<T> {
 	// Storage: Balances Locks (r:1 w:1)
 	// Storage: Claims Rewards (r:1 w:0)
 	fn claim_attest() -> Weight {
-		(447_012_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+		Weight::from_ref_time(447_012_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(8 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(6 as RefTimeWeight))
 	}
 	// Storage: Claims Preclaims (r:1 w:1)
 	// Storage: Claims Signing (r:1 w:1)
@@ -74,17 +74,17 @@ impl<T: frame_system::Config> claims::WeightInfo for WeightInfo<T> {
 	// Storage: Balances Locks (r:1 w:1)
 	// Storage: Claims Rewards (r:1 w:0)
 	fn attest() -> Weight {
-		(108_304_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(108_304_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(9 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(7 as RefTimeWeight))
 	}
 	// Storage: Claims Claims (r:1 w:2)
 	// Storage: Claims Vesting (r:1 w:2)
 	// Storage: Claims Signing (r:1 w:2)
 	// Storage: Claims Preclaims (r:1 w:1)
 	fn move_claim() -> Weight {
-		(24_376_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(24_376_000 as RefTimeWeight)
+			.saturating_add(T::DbWeight::get().reads(4 as RefTimeWeight))
+			.saturating_add(T::DbWeight::get().writes(7 as RefTimeWeight))
 	}
 }
