@@ -142,7 +142,6 @@ pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/
 [features]
 default = ["cli", "xxnetwork"]
 cli = [
-	"node-executor/wasmi-errno",
 	"node-inspect",
 	"sc-cli",
 	"frame-benchmarking-cli",

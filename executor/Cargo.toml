@@ -11,7 +11,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "3.0.0" }
-scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
+scale-info = { version = "2.1.1", features = ["derive"] }
 node-primitives = { version = "0.2.0", path = "../primitives" }
 runtime-common = { version = "0.2.0", path = "../runtime/common" }
 xxnetwork-runtime = { version = "0.2.4", path = "../runtime/xxnetwork", optional=true }
@@ -44,12 +44,7 @@ futures = "0.3.21"
 
 [features]
 default = ["xxnetwork"]
-wasmtime = [
-	"sc-executor/wasmtime",
-]
-wasmi-errno = [
-	"sc-executor/wasmi-errno",
-]
+wasmtime = ["sc-executor/wasmtime"]
 stress-test = []
 xxnetwork = ["xxnetwork-runtime"]
 canary = ["canary-runtime"]

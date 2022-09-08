@@ -40,7 +40,7 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{RefTimeWeight, Weight, constants::RocksDbWeight}};
+use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for xx_public.
@@ -56,39 +56,39 @@ pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: XXSale TestnetManager (r:0 w:1)
 	fn set_testnet_manager_account() -> Weight {
-		Weight::from_ref_time(23_000_000 as RefTimeWeight)
-			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
+		Weight::from_ref_time(23_000_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXSale SaleManager (r:0 w:1)
 	fn set_sale_manager_account() -> Weight {
-		Weight::from_ref_time(23_000_000 as RefTimeWeight)
-			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
+		Weight::from_ref_time(23_000_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXSale TestnetManager (r:1 w:0)
 	// Storage: System Account (r:2 w:2)
 	// Storage: Vesting Vesting (r:1 w:1)
 	// Storage: Balances Locks (r:1 w:1)
 	fn testnet_distribute(n: u32, ) -> Weight {
-		Weight::from_ref_time(29_562_000 as RefTimeWeight)
+		Weight::from_ref_time(29_562_000 as u64)
 			// Standard Error: 207_000
-			.saturating_add(Weight::from_ref_time(156_832_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().reads(2 as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().reads((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
-			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().writes((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
+			.saturating_add(Weight::from_ref_time(156_832_000 as u64).saturating_mul(n as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(n as u64)))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 	// Storage: XXSale SaleManager (r:1 w:0)
 	// Storage: System Account (r:2 w:2)
 	// Storage: Vesting Vesting (r:1 w:1)
 	// Storage: Balances Locks (r:1 w:1)
 	fn sale_distribute(n: u32, ) -> Weight {
-		Weight::from_ref_time(28_017_000 as RefTimeWeight)
+		Weight::from_ref_time(28_017_000 as u64)
 			// Standard Error: 121_000
-			.saturating_add(Weight::from_ref_time(156_326_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().reads(2 as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().reads((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
-			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().writes((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
+			.saturating_add(Weight::from_ref_time(156_326_000 as u64).saturating_mul(n as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(n as u64)))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 }
 
@@ -96,38 +96,38 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 impl WeightInfo for () {
 	// Storage: XXSale TestnetManager (r:0 w:1)
 	fn set_testnet_manager_account() -> Weight {
-		Weight::from_ref_time(23_000_000 as RefTimeWeight)
-			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
+		Weight::from_ref_time(23_000_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXSale SaleManager (r:0 w:1)
 	fn set_sale_manager_account() -> Weight {
-		Weight::from_ref_time(23_000_000 as RefTimeWeight)
-			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
+		Weight::from_ref_time(23_000_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXSale TestnetManager (r:1 w:0)
 	// Storage: System Account (r:2 w:2)
 	// Storage: Vesting Vesting (r:1 w:1)
 	// Storage: Balances Locks (r:1 w:1)
 	fn testnet_distribute(n: u32, ) -> Weight {
-		Weight::from_ref_time(29_562_000 as RefTimeWeight)
+		Weight::from_ref_time(29_562_000 as u64)
 			// Standard Error: 207_000
-			.saturating_add(Weight::from_ref_time(156_832_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
-			.saturating_add(RocksDbWeight::get().reads(2 as RefTimeWeight))
-			.saturating_add(RocksDbWeight::get().reads((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
-			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
-			.saturating_add(RocksDbWeight::get().writes((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
+			.saturating_add(Weight::from_ref_time(156_832_000 as u64).saturating_mul(n as u64))
+			.saturating_add(RocksDbWeight::get().reads(2 as u64))
+			.saturating_add(RocksDbWeight::get().reads((3 as u64).saturating_mul(n as u64)))
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 	// Storage: XXSale SaleManager (r:1 w:0)
 	// Storage: System Account (r:2 w:2)
 	// Storage: Vesting Vesting (r:1 w:1)
 	// Storage: Balances Locks (r:1 w:1)
 	fn sale_distribute(n: u32, ) -> Weight {
-		Weight::from_ref_time(28_017_000 as RefTimeWeight)
+		Weight::from_ref_time(28_017_000 as u64)
 			// Standard Error: 121_000
-			.saturating_add(Weight::from_ref_time(156_326_000 as RefTimeWeight).saturating_mul(n as RefTimeWeight))
-			.saturating_add(RocksDbWeight::get().reads(2 as RefTimeWeight))
-			.saturating_add(RocksDbWeight::get().reads((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
-			.saturating_add(RocksDbWeight::get().writes(1 as RefTimeWeight))
-			.saturating_add(RocksDbWeight::get().writes((3 as RefTimeWeight).saturating_mul(n as RefTimeWeight)))
+			.saturating_add(Weight::from_ref_time(156_326_000 as u64).saturating_mul(n as u64))
+			.saturating_add(RocksDbWeight::get().reads(2 as u64))
+			.saturating_add(RocksDbWeight::get().reads((3 as u64).saturating_mul(n as u64)))
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 }

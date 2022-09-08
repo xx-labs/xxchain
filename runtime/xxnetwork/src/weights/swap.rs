@@ -23,7 +23,7 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{RefTimeWeight , Weight}};
+use frame_support::{traits::Get, weights::Weight};
 use sp_std::marker::PhantomData;
 
 /// Weight functions for `swap`.
@@ -34,24 +34,24 @@ impl<T: frame_system::Config> swap::WeightInfo for WeightInfo<T> {
 	// Storage: System Account (r:3 w:3)
 	// Storage: Swap FeeDestination (r:1 w:0)
 	fn transfer_native() -> Weight {
-		Weight::from_ref_time(91_302_000 as RefTimeWeight)
-			.saturating_add(T::DbWeight::get().reads(6 as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().writes(4 as RefTimeWeight))
+		Weight::from_ref_time(91_302_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	// Storage: System Account (r:2 w:2)
 	fn transfer() -> Weight {
-		Weight::from_ref_time(53_000_000 as RefTimeWeight)
-			.saturating_add(T::DbWeight::get().reads(2 as RefTimeWeight))
-			.saturating_add(T::DbWeight::get().writes(2 as RefTimeWeight))
+		Weight::from_ref_time(53_000_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: Swap SwapFee (r:0 w:1)
 	fn set_swap_fee() -> Weight {
-		Weight::from_ref_time(14_538_000 as RefTimeWeight)
-			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
+		Weight::from_ref_time(14_538_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Swap FeeDestination (r:0 w:1)
 	fn set_fee_destination() -> Weight {
-		Weight::from_ref_time(14_768_000 as RefTimeWeight)
-			.saturating_add(T::DbWeight::get().writes(1 as RefTimeWeight))
+		Weight::from_ref_time(14_768_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 }
