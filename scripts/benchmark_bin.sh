@@ -1,10 +1,12 @@
 #!/bin/bash
 
+make build-bench
+
 mkdir -p weights
 
 echo "Running xx network Runtime benchmarks"
 
-./target/release/xxnetwork-chain benchmark pallet \
+./target/production/xxnetwork-chain benchmark pallet \
     --chain "dev" \
     --list |\
   tail -n+2 |\
@@ -15,7 +17,7 @@ echo "Running xx network Runtime benchmarks"
 while read -r line; do
   pallet="$(echo "$line" | cut -d' ' -f1)";
   echo "Runtime: xxnetwork. Pallet: $pallet";
-./target/release/xxnetwork-chain benchmark pallet \
+./target/production/xxnetwork-chain benchmark pallet \
   --chain="dev" \
   --steps=50 \
   --repeat=20 \
