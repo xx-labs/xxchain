@@ -19,7 +19,7 @@ sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-ne
 node-executor = { version = "0.2.0", path = "../executor" }
 node-primitives = { version = "0.2.0", path = "../primitives" }
 runtime-common = { version = "0.2.0", path = "../runtime/common" }
-xxnetwork-runtime = { version = "0.2.4", path = "../runtime/xxnetwork" }
+xxnetwork-runtime = { version = "0.2.6", path = "../runtime/xxnetwork" }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
