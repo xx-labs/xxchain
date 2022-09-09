@@ -29,6 +29,7 @@ use frame_support::{
 	traits::{
 		KeyOwnerProofSystem,
 		U128CurrencyToVote, EqualPrivilegeOnly,
+		OnRuntimeUpgrade,
 	},
 	weights::{constants::RocksDbWeight, Weight},
 };
@@ -85,6 +86,9 @@ use sp_runtime::generic::Era;
 use sp_io::hashing::sha2_256;
 
 mod weights;
+
+/// Generated voter bag information.
+mod voter_bags;
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -149,7 +153,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Babe(_) | Call::Balances(_) | Call::Timestamp(_) |
 			// Consensus support
 			Call::Authorship(_) | Call::Staking(_) | Call::ElectionProviderMultiPhase(_) |
-			Call::Session(_) | Call::Grandpa(_) | Call::ImOnline(_) |
+			Call::Session(_) | Call::Grandpa(_) | Call::ImOnline(_) | Call::VoterList(_) |
 			// Governance
 			Call::Democracy(_) | Call::Council(_) | Call::TechnicalCommittee(_) |
 			Call::Elections(_) | Call::TechnicalMembership(_) | Call::Treasury(_) |
@@ -539,8 +543,8 @@ impl pallet_staking::Config for Runtime {
 	type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	type ElectionProvider = ElectionProviderMultiPhase;
 	type GenesisElectionProvider = onchain::UnboundedExecution<OnChainSeqPhragmen>;
-	// Use the nominator map to iter voter AND no-ops for all SortedListProvider hooks.
-	type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Runtime>;
+	// Use Bags List Pallet
+	type VoterList = VoterList;
 	type MaxUnlockingChunks = ConstU32<32>;
 	type OnStakerSlash = ();
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
@@ -602,6 +606,18 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type MaxElectingVoters = MaxElectingVoters;
 	type BenchmarkingConfig = BenchmarkConfig;
 	type WeightInfo = pallet_election_provider_multi_phase::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
+}
+
+impl pallet_bags_list::Config for Runtime {
+	type Event = Event;
+	type ScoreProvider = Staking;
+	type WeightInfo = pallet_bags_list::weights::SubstrateWeight<Runtime>;
+	type BagThresholds = BagThresholds;
+	type Score = sp_npos_elections::VoteWeight;
 }
 
 parameter_types! {
@@ -1056,6 +1072,7 @@ construct_runtime!(
 		Authorship: pallet_authorship::{Pallet, Call, Storage, Inherent} = 5,
 		Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>} = 6,
 		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 7,
+		VoterList: pallet_bags_list::{Pallet, Call, Storage, Event<T>} = 41,
 		Offences: pallet_offences::{Pallet, Storage, Event} = 8,
 		Historical: pallet_session_historical::{Pallet} = 25,
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
@@ -1144,8 +1161,30 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(),
+	(
+		SchedulerMigrationV3,
+		pallet_staking::migrations::v10::MigrateFromV7dot5ToV10<Runtime>,
+	),
 >;
+
+// Migration for scheduler pallet to move from a plain Call to a CallOrHash.
+pub struct SchedulerMigrationV3;
+
+impl OnRuntimeUpgrade for SchedulerMigrationV3 {
+	fn on_runtime_upgrade() -> frame_support::weights::Weight {
+		Scheduler::migrate_v2_to_v3()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		Scheduler::pre_migrate_to_v3()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		Scheduler::post_migrate_to_v3()
+	}
+}
 
 #[cfg(feature = "runtime-benchmarks")]
 #[macro_use]
@@ -1156,7 +1195,7 @@ mod benches {
 	define_benchmarks!(
 		[frame_benchmarking, BaselineBench::<Runtime>]
 		[pallet_assets, Assets]
-		[pallet_babe, Babe]
+		[pallet_bags_list, VoterList]
 		[pallet_balances, Balances]
 		[pallet_bounties, Bounties]
 		[pallet_child_bounties, ChildBounties]
@@ -1165,7 +1204,6 @@ mod benches {
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[pallet_election_provider_support_benchmarking, EPSBench::<Runtime>]
 		[pallet_elections_phragmen, Elections]
-		[pallet_grandpa, Grandpa]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_membership, TechnicalMembership]

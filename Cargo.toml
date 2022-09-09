@@ -19,5 +19,6 @@ members = [
     'xx-cmix',
     'xx-economics',
     'xx-public',
-    'xx-team-custody'
+    'xx-team-custody',
+    'utils/generate-bags'
 ]

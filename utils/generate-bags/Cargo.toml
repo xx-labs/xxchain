@@ -1,0 +1,12 @@
+[package]
+name = "xxnetwork-generate-bags"
+version = "0.2.4"
+authors = ["Bernardo Cardoso <bernardo@xx.network>"]
+edition = "2021"
+
+[dependencies]
+clap = { version = "3.1.18", features = ["derive"] }
+
+generate-bags = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+
+xxnetwork-runtime = { version = "0.2.4", path = "../../runtime/xxnetwork" }
