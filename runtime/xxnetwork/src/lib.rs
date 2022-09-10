@@ -630,13 +630,13 @@ parameter_types! {
 }
 
 type EnsureTwoThirdsTechnical = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>,
 	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>,
 >;
 
 type EnsureRootOrSixtyCouncil = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
 	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
 >;
 
 impl pallet_democracy::Config for Runtime {
