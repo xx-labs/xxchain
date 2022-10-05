@@ -37,6 +37,7 @@ libsecp256k1 = { version = "0.6", features = ["hmac"] }
 default = ["std"]
 std = [
 	"codec/std",
+	"scale-info/std",
 	"serde",
 	"sp-std/std",
 	"sp-runtime/std",

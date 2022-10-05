@@ -114,6 +114,8 @@ decl_module! {
 	    const TestnetAccount: T::AccountId = T::TestnetId::get().into_account();
 	    const SaleAccount: T::AccountId = T::SaleId::get().into_account();
 
+        type Error = Error<T>;
+
 	    fn deposit_event() = default;
 
         //----------------     ADMIN     ----------------//
