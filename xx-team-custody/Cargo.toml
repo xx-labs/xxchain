@@ -59,7 +59,8 @@ std = [
 	"frame-system/std",
 	"pallet-staking/std",
 	"pallet-staking-reward-fn/std",
-	"pallet-proxy/std"
+	"pallet-proxy/std",
+	"frame-benchmarking?/std",
 ]
-runtime-benchmarks = ["frame-benchmarking"]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = [ "frame-support/try-runtime" ]

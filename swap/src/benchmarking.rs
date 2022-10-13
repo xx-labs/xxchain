@@ -5,7 +5,7 @@ use super::*;
 
 use frame_benchmarking::{benchmarks, account, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
- use frame_support::dispatch::UnfilteredDispatchable;
+use frame_support::dispatch::UnfilteredDispatchable;
 use sp_runtime::traits::Bounded;
 
 const SEED: u32 = 0;

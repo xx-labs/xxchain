@@ -505,7 +505,7 @@ impl pallet_staking::Config for Runtime {
 	type GenesisElectionProvider = onchain::UnboundedExecution<OnChainSeqPhragmen>;
 	// Use the nominator map to iter voter AND no-ops for all SortedListProvider hooks.
 	type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Runtime>;
-	type TargetList = UseValidatorsMap<Self>;
+	type TargetList = pallet_staking::UseValidatorsMap<Self>;
 	type MaxUnlockingChunks = ConstU32<32>;
 	type HistoryDepth = ConstU32<84>;
 	type OnStakerSlash = ();

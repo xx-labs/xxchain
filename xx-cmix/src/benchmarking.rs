@@ -20,13 +20,13 @@ fn account_from_index<T: Config>(index: u32) -> T::AccountId {
 }
 
 fn set_scheduler<T: Config>(account: T::AccountId) {
-	XXCmix::<T>::set_scheduling_account(T::Origin::root(), account).ok();
+	XXCmix::<T>::set_scheduling_account(T::RuntimeOrigin::root(), account).ok();
 }
 
 // sets the admin permission way into the future so we can call certain extrinsics
 fn set_admin<T: Config>() {
 	let block = T::BlockNumber::max_value();
-	XXCmix::<T>::set_admin_permission(T::Origin::root(), block).ok();
+	XXCmix::<T>::set_admin_permission(T::RuntimeOrigin::root(), block).ok();
 }
 
 benchmarks!{

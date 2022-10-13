@@ -52,6 +52,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-staking/std",
+	"frame-benchmarking?/std",
 ]
-runtime-benchmarks = ["frame-benchmarking"]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = [ "frame-support/try-runtime" ]

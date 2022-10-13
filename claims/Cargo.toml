@@ -51,11 +51,12 @@ std = [
 	"pallet-vesting/std",
 	"frame-system/std",
 	"libsecp256k1/std",
+	"frame-benchmarking?/std",
 ]
 runtime-benchmarks = [
     "libsecp256k1/hmac",
     "libsecp256k1/static-context",
-	"frame-benchmarking",
+	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 ]

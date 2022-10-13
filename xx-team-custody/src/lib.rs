@@ -313,3 +313,12 @@ impl<T: Config> pallet_staking::CustodyHandler<T::AccountId, BalanceOf<T>> for M
         Self::total_custody()
     }
 }
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
+    }
+}
