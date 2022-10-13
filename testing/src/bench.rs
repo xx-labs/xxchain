@@ -37,7 +37,7 @@ use futures::executor;
 use node_primitives::Block;
 use runtime_common::{constants::currency::UNITS, ExistentialDeposit};
 use xxnetwork_runtime::{
-	Call,
+	RuntimeCall,
 	CheckedExtrinsic,
 	UncheckedExtrinsic,
 	MinimumPeriod,
@@ -316,19 +316,19 @@ impl<'a> Iterator for BlockContentIterator<'a> {
 				)),
 				function: match self.content.block_type {
 					BlockType::RandomTransfersKeepAlive =>
-						Call::Balances(BalancesCall::transfer_keep_alive {
+						RuntimeCall::Balances(BalancesCall::transfer_keep_alive {
 							dest: sp_runtime::MultiAddress::Id(receiver),
 							value: ExistentialDeposit::get() + 1,
 						}),
 					BlockType::RandomTransfersReaping => {
-						Call::Balances(BalancesCall::transfer {
+						RuntimeCall::Balances(BalancesCall::transfer {
 							dest: sp_runtime::MultiAddress::Id(receiver),
 							// Transfer so that ending balance would be 1 less than existential
 							// deposit so that we kill the sender account.
 							value: 100 * UNITS - (ExistentialDeposit::get() - 1),
 						})
 					},
-					BlockType::Noop => Call::System(SystemCall::remark { remark: Vec::new() }),
+					BlockType::Noop => RuntimeCall::System(SystemCall::remark { remark: Vec::new() }),
 				},
 			},
 			self.runtime_version.spec_version,
@@ -398,7 +398,7 @@ impl BenchDb {
 			trie_cache_maximum_size: Some(16 * 1024 * 1024),
 			state_pruning: Some(PruningMode::ArchiveAll),
 			source: database_type.into_settings(dir.into()),
-			blocks_pruning: sc_client_db::BlocksPruning::All,
+			blocks_pruning: sc_client_db::BlocksPruning::KeepAll,
 		};
 		let task_executor = TaskExecutor::new();
 

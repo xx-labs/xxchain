@@ -303,20 +303,16 @@ mod tests {
 		let b2 = ExtrinsicAddress::from_str("0 0");
 		let b3 = ExtrinsicAddress::from_str("0x0012345f");
 
-
-		assert_eq!(e0, Err("Extrinsic index missing: example \"5:0\"".into()));
-		assert_eq!(b0, Ok(ExtrinsicAddress::Block(
-			BlockAddress::Hash("3BfC20f0B9aFcAcE800D73D2191166FF16540258".parse().unwrap()),
-			5
-		)));
-		assert_eq!(b1, Ok(ExtrinsicAddress::Block(
-			BlockAddress::Number(1234),
-			0
-		)));
-		assert_eq!(b2, Ok(ExtrinsicAddress::Block(
-			BlockAddress::Number(0),
-			0
-		)));
+		assert_eq!(e0, Ok(ExtrinsicAddress::Bytes(vec![0x12, 0x34])));
+		assert_eq!(
+			b0,
+			Ok(ExtrinsicAddress::Block(
+				BlockAddress::Hash("3BfC20f0B9aFcAcE800D73D2191166FF16540258".parse().unwrap()),
+				5
+			))
+		);
+		assert_eq!(b1, Ok(ExtrinsicAddress::Block(BlockAddress::Number(1234), 0)));
+		assert_eq!(b2, Ok(ExtrinsicAddress::Bytes(vec![0, 0])));
 		assert_eq!(b3, Ok(ExtrinsicAddress::Bytes(vec![0, 0x12, 0x34, 0x5f])));
 	}
 }

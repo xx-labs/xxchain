@@ -99,7 +99,7 @@ impl Config for Test {
 }
 
 pub type Block = sp_runtime::generic::Block<Header, UncheckedExtrinsic>;
-pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, Call, ()>;
+pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, RuntimeCall, ()>;
 
 pub type AccountId = <Test as frame_system::Config>::AccountId;
 pub type Balance = <Test as balances::Config>::Balance;
@@ -156,22 +156,22 @@ pub fn new_test_ext(initial_balances: &[(AccountId, Balance)]) -> sp_io::TestExt
     ext
 }
 
-fn last_event() -> Event {
+fn last_event() -> RuntimeEvent {
     system::Pallet::<Test>::events()
         .pop()
         .map(|e| e.event)
         .expect("Event expected")
 }
 
-pub fn expect_event<E: Into<Event>>(e: E) {
+pub fn expect_event<E: Into<RuntimeEvent>>(e: E) {
     assert_eq!(last_event(), e.into());
 }
 
 
 // Checks events against the latest. A contiguous set of events must be provided. They must
 // include the most recent event, but do not have to include every past event.
-pub fn assert_events(mut expected: Vec<Event>) {
-    let mut actual: Vec<Event> = system::Pallet::<Test>::events()
+pub fn assert_events(mut expected: Vec<RuntimeEvent>) {
+    let mut actual: Vec<RuntimeEvent> = system::Pallet::<Test>::events()
         .iter()
         .map(|e| e.event.clone())
         .collect();

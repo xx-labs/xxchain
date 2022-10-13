@@ -671,7 +671,7 @@ mod tests {
     use sp_runtime::{traits::{BlakeTwo256, IdentityLookup, Identity}, testing::Header};
     use frame_support::{
         assert_ok, assert_err, assert_noop, parameter_types,
-        ord_parameter_types, traits::ExistenceRequirement,
+        ord_parameter_types, traits::{ExistenceRequirement, WithdrawReasons},
         dispatch::{DispatchError::BadOrigin, Pays, GetDispatchInfo},
     };
     use pallet_balances;
@@ -742,6 +742,8 @@ mod tests {
 
     parameter_types! {
 		pub const MinVestedTransfer: u64 = 0;
+        pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+            WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
 	}
 
     impl pallet_vesting::Config for Test {
@@ -750,6 +752,7 @@ mod tests {
         type BlockNumberToBalance = Identity;
         type MinVestedTransfer = MinVestedTransfer;
         type WeightInfo = ();
+        type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
         const MAX_VESTING_SCHEDULES: u32 = 2;
     }
 
@@ -962,7 +965,7 @@ mod tests {
     fn valid_attest_transactions_are_free() {
         new_test_ext().execute_with(|| {
             let p = PrevalidateAttests::<Test>::new();
-            let c = Call::Claims(ClaimsCall::attest { statement: StatementKind::Saft.to_text().to_vec() });
+            let c = RuntimeCall::Claims(ClaimsCall::attest { statement: StatementKind::Saft.to_text().to_vec() });
             let di = c.get_dispatch_info();
             assert_eq!(di.pays_fee, Pays::No);
             let r = p.validate(&42, &c, &di, 20);
@@ -974,11 +977,11 @@ mod tests {
     fn invalid_attest_transactions_are_recognised() {
         new_test_ext().execute_with(|| {
             let p = PrevalidateAttests::<Test>::new();
-            let c = Call::Claims(ClaimsCall::attest { statement: StatementKind::Regular.to_text().to_vec() });
+            let c = RuntimeCall::Claims(ClaimsCall::attest { statement: StatementKind::Regular.to_text().to_vec() });
             let di = c.get_dispatch_info();
             let r = p.validate(&42, &c, &di, 20);
             assert!(r.is_err());
-            let c = Call::Claims(ClaimsCall::attest { statement: StatementKind::Saft.to_text().to_vec() });
+            let c = RuntimeCall::Claims(ClaimsCall::attest { statement: StatementKind::Saft.to_text().to_vec() });
             let di = c.get_dispatch_info();
             let r = p.validate(&69, &c, &di, 20);
             assert!(r.is_err());

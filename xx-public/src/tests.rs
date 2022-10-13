@@ -14,7 +14,7 @@ fn set_testnet_manager_account_called_by_non_admin_fails() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_noop!(
-				XXPublic::set_testnet_manager_account(Origin::signed(1), 45),
+				XXPublic::set_testnet_manager_account(RuntimeOrigin::signed(1), 45),
 				BadOrigin
 			);
         })
@@ -25,7 +25,7 @@ fn set_testnet_manager_account_called_by_admin_works() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_ok!(
-				XXPublic::set_testnet_manager_account(Origin::signed(AdminAccount::get()), 45)
+				XXPublic::set_testnet_manager_account(RuntimeOrigin::signed(AdminAccount::get()), 45)
 			);
             assert_eq!(
                 XXPublic::testnet_manager().unwrap(),
@@ -45,7 +45,7 @@ fn set_sale_manager_account_called_by_non_admin_fails() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_noop!(
-				XXPublic::set_sale_manager_account(Origin::signed(1), 45),
+				XXPublic::set_sale_manager_account(RuntimeOrigin::signed(1), 45),
 				BadOrigin
 			);
         })
@@ -56,7 +56,7 @@ fn set_sale_manager_account_called_by_admin_works() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_ok!(
-				XXPublic::set_sale_manager_account(Origin::signed(AdminAccount::get()), 46)
+				XXPublic::set_sale_manager_account(RuntimeOrigin::signed(AdminAccount::get()), 46)
 			);
             assert_eq!(
                 XXPublic::sale_manager().unwrap(),
@@ -76,7 +76,7 @@ fn testnet_distribute_called_by_non_manager_fails() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_noop!(
-				XXPublic::testnet_distribute(Origin::signed(1), Default::default()),
+				XXPublic::testnet_distribute(RuntimeOrigin::signed(1), Default::default()),
 				Error::<Test>::MustBeTestnetManager
 			);
         })
@@ -87,7 +87,7 @@ fn testnet_distribute_called_by_sale_manager_fails() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_noop!(
-				XXPublic::testnet_distribute(Origin::signed(43), Default::default()),
+				XXPublic::testnet_distribute(RuntimeOrigin::signed(43), Default::default()),
 				Error::<Test>::MustBeTestnetManager
 			);
         })
@@ -100,7 +100,7 @@ fn testnet_distribute_called_by_manager_works() {
         .build_and_execute(|| {
             assert_ok!(
 				XXPublic::testnet_distribute(
-				    Origin::signed(42),
+				    RuntimeOrigin::signed(42),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 10,
@@ -122,7 +122,7 @@ fn sale_distribute_called_by_non_manager_fails() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_noop!(
-				XXPublic::sale_distribute(Origin::signed(1), Default::default()),
+				XXPublic::sale_distribute(RuntimeOrigin::signed(1), Default::default()),
 				Error::<Test>::MustBeSaleManager
 			);
         })
@@ -133,7 +133,7 @@ fn sale_distribute_called_by_testnet_manager_fails() {
     ExtBuilder::default()
         .build_and_execute(|| {
             assert_noop!(
-				XXPublic::sale_distribute(Origin::signed(42), Default::default()),
+				XXPublic::sale_distribute(RuntimeOrigin::signed(42), Default::default()),
 				Error::<Test>::MustBeSaleManager
 			);
         })
@@ -146,7 +146,7 @@ fn sale_distribute_called_by_manager_works() {
         .build_and_execute(|| {
             assert_ok!(
 				XXPublic::sale_distribute(
-				    Origin::signed(43),
+				    RuntimeOrigin::signed(43),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 10,
@@ -171,7 +171,7 @@ fn distributions_fail_when_not_enough_funds() {
         .build_and_execute(|| {
             assert_noop!(
 				XXPublic::testnet_distribute(
-				    Origin::signed(42),
+				    RuntimeOrigin::signed(42),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 10,
@@ -184,7 +184,7 @@ fn distributions_fail_when_not_enough_funds() {
 			);
             assert_noop!(
 				XXPublic::sale_distribute(
-				    Origin::signed(43),
+				    RuntimeOrigin::signed(43),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 10,
@@ -206,7 +206,7 @@ fn testnet_distribution_with_vesting() {
         .build_and_execute(|| {
             assert_ok!(
 				XXPublic::testnet_distribute(
-				    Origin::signed(42),
+				    RuntimeOrigin::signed(42),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 10,
@@ -251,7 +251,7 @@ fn sale_distribution_with_vesting() {
         .build_and_execute(|| {
             assert_ok!(
 				XXPublic::sale_distribute(
-				    Origin::signed(43),
+				    RuntimeOrigin::signed(43),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 10,
@@ -297,7 +297,7 @@ fn distribute_to_account_with_existing_vesting() {
         .build_and_execute(|| {
             assert_ok!(
 				XXPublic::sale_distribute(
-				    Origin::signed(43),
+				    RuntimeOrigin::signed(43),
 				    vec![
 				        TransferData::<AccountId, Balance, BlockNumber> {
 				            destination: 12,

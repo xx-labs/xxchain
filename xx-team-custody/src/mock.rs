@@ -28,7 +28,7 @@ use frame_support::{
     parameter_types,
     traits::{
         Currency, FindAuthor, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
-        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly, ConstU32
+        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly, ConstU32, ConstU128
     },
     weights::{Weight, constants::RocksDbWeight},
     RuntimeDebug,
@@ -98,6 +98,7 @@ frame_support::construct_runtime!(
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
         Historical: pallet_session::historical::{Pallet},
         Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+        Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>},
         Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
         Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
         XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>},
@@ -268,6 +269,15 @@ thread_local! {
     static XX_BLOCK_POINTS: RefCell<u32> = RefCell::new(20); // default block reward is 20. This is to stop existing tests from breaking
 }
 
+impl pallet_preimage::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<u64>;
+	type BaseDeposit = ConstU128<0>;
+	type ByteDeposit = ConstU128<0>;
+}
+
 parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(1_000_000_000_000_000);
 	pub const MaxScheduledPerBlock: u32 = 50;
@@ -283,8 +293,7 @@ impl pallet_scheduler::Config for Test {
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
     type WeightInfo = ();
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
-    type PreimageProvider = ();
-	type NoPreimagePostponement = ();
+    type Preimages = ();
 }
 
 pub struct OnChainSeqPhragmen;
@@ -321,7 +330,9 @@ impl pallet_staking::Config for Test {
     type GenesisElectionProvider = Self::ElectionProvider;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
     type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type TargetList = pallet_staking::UseValidatorsMap<Self>;
     type MaxUnlockingChunks = ConstU32<32>;
+    type HistoryDepth = ConstU32<84>;
 	type OnStakerSlash = ();
 	type BenchmarkingConfig = pallet_staking::TestBenchmarkingConfig;
 }
@@ -352,24 +363,24 @@ impl Default for ProxyType {
         Self::Any
     }
 }
-impl InstanceFilter<Call> for ProxyType {
-    fn filter(&self, c: &Call) -> bool {
+impl InstanceFilter<RuntimeCall> for ProxyType {
+    fn filter(&self, c: &RuntimeCall) -> bool {
         match self {
             ProxyType::Any => true,
             ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..)
+				RuntimeCall::Balances(..)
 			),
             ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..) |
-				Call::Elections(..)
+				RuntimeCall::Democracy(..) |
+				RuntimeCall::Elections(..)
 			),
-            ProxyType::Staking => matches!(c, Call::Staking(..)),
+            ProxyType::Staking => matches!(c, RuntimeCall::Staking(..)),
             ProxyType::Voting => matches!(
 				c,
-				Call::Democracy(pallet_democracy::Call::vote { .. } | pallet_democracy::Call::remove_vote { .. }) |
-				Call::Elections(pallet_elections_phragmen::Call::vote { .. } | pallet_elections_phragmen::Call::remove_voter { .. })
+				RuntimeCall::Democracy(pallet_democracy::Call::vote { .. } | pallet_democracy::Call::remove_vote { .. }) |
+				RuntimeCall::Elections(pallet_elections_phragmen::Call::vote { .. } | pallet_elections_phragmen::Call::remove_voter { .. })
 			),
         }
     }
@@ -404,7 +415,6 @@ parameter_types! {
 }
 
 impl pallet_democracy::Config for Test {
-    type Proposal = RuntimeCall;
     type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type EnactmentPeriod = EnactmentPeriod;
@@ -424,14 +434,15 @@ impl pallet_democracy::Config for Test {
     type CancelProposalOrigin = EnsureRoot<Self::AccountId>;
     type VetoOrigin = EnsureSigned<Self::AccountId>;
     type CooloffPeriod = CooloffPeriod;
-    type PreimageByteDeposit = PreimageByteDeposit;
-    type OperationalPreimageOrigin = EnsureSigned<Self::AccountId>;
     type Slash = ();
     type Scheduler = Scheduler;
     type PalletsOrigin = OriginCaller;
     type MaxVotes = MaxVotes;
     type WeightInfo = ();
     type MaxProposals = MaxProposals;
+    type Preimages = ();
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
 }
 
 parameter_types! {
@@ -485,13 +496,13 @@ impl xx_team_custody::Config for Test {
     type WeightInfo = weights::SubstrateWeight<Self>;
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
 where
-    Call: From<LocalCall>,
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -616,7 +627,7 @@ pub(crate) fn xx_team_custody_events() -> Vec<xx_team_custody::Event<Test>> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXCustody(inner) = e {
+            if let RuntimeEvent::XXCustody(inner) = e {
                 Some(inner)
             } else {
                 None
@@ -630,7 +641,7 @@ pub(crate) fn proxy_events() -> Vec<pallet_proxy::Event<Test>> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::Proxy(inner) = e {
+            if let RuntimeEvent::Proxy(inner) = e {
                 Some(inner)
             } else {
                 None

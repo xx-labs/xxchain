@@ -285,7 +285,9 @@ impl pallet_staking::Config for Test {
     type GenesisElectionProvider = Self::ElectionProvider;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
     type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type TargetList = pallet_staking::UseValidatorsMap<Self>;
     type MaxUnlockingChunks = ConstU32<32>;
+    type HistoryDepth = ConstU32<84>;
 	type OnStakerSlash = ();
 	type BenchmarkingConfig = pallet_staking::TestBenchmarkingConfig;
 }
@@ -297,13 +299,13 @@ impl xx_cmix::Config for Test {
     type WeightInfo = weights::SubstrateWeight<Self>;
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
 where
-    Call: From<LocalCall>,
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -487,7 +489,7 @@ pub(crate) fn xx_cmix_events() -> Vec<xx_cmix::Event<Test>> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXCmix(inner) = e {
+            if let RuntimeEvent::XXCmix(inner) = e {
                 Some(inner)
             } else {
                 None

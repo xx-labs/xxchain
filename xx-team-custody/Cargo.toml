@@ -44,7 +44,7 @@ pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "dev/x
 pallet-democracy = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 pallet-elections-phragmen = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 pallet-scheduler = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-
+pallet-preimage = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 [features]
 default = ["std"]

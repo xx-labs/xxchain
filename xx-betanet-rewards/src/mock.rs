@@ -4,7 +4,7 @@ use crate::*;
 use frame_support::{
     parameter_types,
     ord_parameter_types,
-    traits::{GenesisBuild, OnInitialize, Imbalance},
+    traits::{GenesisBuild, OnInitialize, Imbalance, WithdrawReasons},
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureSignedBy;
@@ -95,6 +95,8 @@ impl pallet_balances::Config for Test {
 
 parameter_types! {
     pub const MinVestedTransfer: u64 = 0;
+    pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+        WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
 }
 
 impl pallet_vesting::Config for Test {
@@ -103,6 +105,7 @@ impl pallet_vesting::Config for Test {
     type BlockNumberToBalance = ConvertInto;
     type MinVestedTransfer = MinVestedTransfer;
     type WeightInfo = ();
+    type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
     const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
@@ -180,13 +183,13 @@ impl xx_betanet_rewards::Config for Test {
     type WeightInfo = ();
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
 where
-    Call: From<LocalCall>,
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -385,7 +388,7 @@ pub(crate) fn xx_betanet_rewards_events() -> Vec<xx_betanet_rewards::Event<Test>
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXBetanetRewards(inner) = e {
+            if let RuntimeEvent::XXBetanetRewards(inner) = e {
                 Some(inner)
             } else {
                 None

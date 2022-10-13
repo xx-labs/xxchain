@@ -18,12 +18,12 @@
 use codec::{Encode, Joiner};
 use frame_support::{
 	traits::Currency,
-	weights::{GetDispatchInfo, constants::ExtrinsicBaseWeight, WeightToFee},
+	dispatch::GetDispatchInfo,
+	weights::{constants::ExtrinsicBaseWeight, WeightToFee},
 };
-use sp_core::NeverNativeValue;
 use sp_runtime::{Perbill, traits::One};
 use xxnetwork_runtime::{
-	CheckedExtrinsic, Call, Runtime, Balances, TransactionPayment, Multiplier,
+	CheckedExtrinsic, RuntimeCall, Runtime, Balances, TransactionPayment, Multiplier,
 };
 use runtime_common::{TransactionByteFee, constants::{time::SLOT_DURATION, currency::*, fee::WeightToFee as WeightToFeePoly}};
 use node_primitives::Balance;
@@ -56,11 +56,11 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 		vec![
 			CheckedExtrinsic {
 				signed: None,
-				function: Call::Timestamp(pallet_timestamp::Call::set { now: time1 }),
+				function: RuntimeCall::Timestamp(pallet_timestamp::Call::set { now: time1 }),
 			},
 			CheckedExtrinsic {
 				signed: Some((charlie(), signed_extra(0, 0))),
-				function: Call::System(frame_system::Call::fill_block { ratio: Perbill::from_percent(60) }),
+				function: RuntimeCall::System(frame_system::Call::fill_block { ratio: Perbill::from_percent(60) }),
 			}
 		],
 		(time1 / SLOT_DURATION).into(),
@@ -75,11 +75,11 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 		vec![
 			CheckedExtrinsic {
 				signed: None,
-				function: Call::Timestamp(pallet_timestamp::Call::set { now: time2 }),
+				function: RuntimeCall::Timestamp(pallet_timestamp::Call::set { now: time2 }),
 			},
 			CheckedExtrinsic {
 				signed: Some((charlie(), signed_extra(1, 0))),
-				function: Call::System(frame_system::Call::remark { remark: vec![0; 1] }),
+				function: RuntimeCall::System(frame_system::Call::remark { remark: vec![0; 1] }),
 			}
 		],
 		(time2 / SLOT_DURATION).into(),
@@ -92,13 +92,7 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 	);
 
 	// execute a big block.
-	executor_call::<NeverNativeValue, fn() -> _>(
-		&mut t,
-		"Core_execute_block",
-		&block1.0,
-		true,
-		None,
-	).0.unwrap();
+	executor_call(&mut t, "Core_execute_block", &block1.0, true).0.unwrap();
 
 	// weight multiplier is increased for next block.
 	t.execute_with(|| {
@@ -109,13 +103,7 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 	});
 
 	// execute a big block.
-	executor_call::<NeverNativeValue, fn() -> _>(
-		&mut t,
-		"Core_execute_block",
-		&block2.0,
-		true,
-		None,
-	).0.unwrap();
+	executor_call(&mut t, "Core_execute_block", &block2.0, true).0.unwrap();
 
 	// weight multiplier is increased for next block.
 	t.execute_with(|| {
@@ -155,25 +143,15 @@ fn transaction_fee_is_correct() {
 	let tip = 1_000_000;
 	let xt = sign(CheckedExtrinsic {
 		signed: Some((alice(), signed_extra(0, tip))),
-		function: Call::Balances(default_transfer_call()),
+		function: RuntimeCall::Balances(default_transfer_call()),
 	});
 
-	let r = executor_call::<NeverNativeValue, fn() -> _>(
-		&mut t,
-		"Core_initialize_block",
-		&vec![].and(&from_block_number(1u32)),
-		true,
-		None,
-	).0;
+	let r =
+		executor_call(&mut t, "Core_initialize_block", &vec![].and(&from_block_number(1u32)), true)
+			.0;
 
 	assert!(r.is_ok());
-	let r = executor_call::<NeverNativeValue, fn() -> _>(
-		&mut t,
-		"BlockBuilder_apply_extrinsic",
-		&vec![].and(&xt.clone()),
-		true,
-		None,
-	).0;
+	let r = executor_call(&mut t, "BlockBuilder_apply_extrinsic", &vec![].and(&xt.clone()), true).0;
 	assert!(r.is_ok());
 
 	t.execute_with(|| {

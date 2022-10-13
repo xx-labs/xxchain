@@ -21,7 +21,7 @@ use frame_support::Hashable;
 use node_executor::XXNetworkExecutorDispatch;
 use node_primitives::{BlockNumber, Hash};
 use xxnetwork_runtime::{
-	Block, BuildStorage, Call, CheckedExtrinsic, GenesisConfig, Header, UncheckedExtrinsic,
+	Block, BuildStorage, RuntimeCall, CheckedExtrinsic, GenesisConfig, Header, UncheckedExtrinsic,
 };
 use runtime_common::constants::currency::*;
 use node_testing::keyring::*;
@@ -31,7 +31,6 @@ use sc_executor::{Externalities, NativeElseWasmExecutor, RuntimeVersionOf, WasmE
 use sp_core::{
 	storage::well_known_keys,
 	traits::{CodeExecutor, RuntimeCode},
-	NativeOrEncoded, NeverNativeValue,
 };
 use sp_runtime::traits::BlakeTwo256;
 use sp_state_machine::TestExternalities as CoreTestExternalities;
@@ -110,46 +109,24 @@ fn construct_block<E: Externalities>(
 
 	// execute the block to get the real header.
 	executor
-		.call::<NeverNativeValue, fn() -> _>(
-			ext,
-			&runtime_code,
-			"Core_initialize_block",
-			&header.encode(),
-			true,
-			None,
-		)
+		.call(ext, &runtime_code, "Core_initialize_block", &header.encode(), true)
 		.0
 		.unwrap();
 
 	for i in extrinsics.iter() {
 		executor
-			.call::<NeverNativeValue, fn() -> _>(
-				ext,
-				&runtime_code,
-				"BlockBuilder_apply_extrinsic",
-				&i.encode(),
-				true,
-				None,
-			)
+			.call(ext, &runtime_code, "BlockBuilder_apply_extrinsic", &i.encode(), true)
 			.0
 			.unwrap();
 	}
 
-	let header = match executor
-		.call::<NeverNativeValue, fn() -> _>(
-			ext,
-			&runtime_code,
-			"BlockBuilder_finalize_block",
-			&[0u8; 0],
-			true,
-			None,
-		)
-		.0
-		.unwrap()
-	{
-		NativeOrEncoded::Native(_) => unreachable!(),
-		NativeOrEncoded::Encoded(h) => Header::decode(&mut &h[..]).unwrap(),
-	};
+	let header = Header::decode(
+		&mut &executor
+			.call(ext, &runtime_code, "BlockBuilder_finalize_block", &[0u8; 0], true)
+			.0
+			.unwrap()[..],
+	)
+	.unwrap();
 
 	let hash = header.blake2_256();
 	(Block { header, extrinsics }.encode(), hash.into())
@@ -163,11 +140,11 @@ fn test_blocks(
 	let mut test_ext = new_test_ext(genesis_config);
 	let mut block1_extrinsics = vec![CheckedExtrinsic {
 			signed: None,
-			function: Call::Timestamp(pallet_timestamp::Call::set { now: 0 }),
+			function: RuntimeCall::Timestamp(pallet_timestamp::Call::set { now: 0 }),
 	}];
 	block1_extrinsics.extend((0..20).map(|i| CheckedExtrinsic {
 			signed: Some((alice(), signed_extra(i, 0))),
-			function: Call::Balances(pallet_balances::Call::transfer {
+			function: RuntimeCall::Balances(pallet_balances::Call::transfer {
 				dest: bob().into(),
 				value: 1 * UNITS
 			}),
@@ -217,13 +194,12 @@ fn bench_execute_block(c: &mut Criterion) {
 				|test_ext| {
 					for block in blocks.iter() {
 						executor
-							.call::<NeverNativeValue, fn() -> _>(
+							.call(
 								&mut test_ext.ext(),
 								&runtime_code,
 								"Core_execute_block",
 								&block.0,
 								use_native,
-								None,
 							)
 							.0
 							.unwrap();

@@ -20,7 +20,7 @@ fn set_inflation_params_called_by_non_admin_fails() {
 	ExtBuilder::default()
 		.build_and_execute(|| {
 			assert_noop!(
-				XXEconomics::set_inflation_params(Origin::signed(1), Default::default()),
+				XXEconomics::set_inflation_params(RuntimeOrigin::signed(1), Default::default()),
 				BadOrigin
 			);
 		})
@@ -36,7 +36,7 @@ fn set_inflation_params_called_by_admin() {
 				..Default::default()
 			};
 			assert_ok!(
-				XXEconomics::set_inflation_params(Origin::signed(AdminAccount::get()), test_params.clone())
+				XXEconomics::set_inflation_params(RuntimeOrigin::signed(AdminAccount::get()), test_params.clone())
 			);
 			assert_eq!(
 				XXEconomics::inflation_params(),
@@ -56,7 +56,7 @@ fn set_interest_points_called_by_non_admin_fails() {
 	ExtBuilder::default()
 		.build_and_execute(|| {
 			assert_noop!(
-				XXEconomics::set_interest_points(Origin::signed(1), Default::default()),
+				XXEconomics::set_interest_points(RuntimeOrigin::signed(1), Default::default()),
 				BadOrigin
 			);
 		})
@@ -74,7 +74,7 @@ fn set_interest_points_called_by_admin() {
 				}
 			];
 			assert_ok!(
-				XXEconomics::set_interest_points(Origin::signed(AdminAccount::get()), test_points.clone())
+				XXEconomics::set_interest_points(RuntimeOrigin::signed(AdminAccount::get()), test_points.clone())
 			);
 			assert_eq!(
 				XXEconomics::interest_points(),
@@ -94,7 +94,7 @@ fn set_liquidity_rewards_stake_called_by_non_admin_fails() {
 	ExtBuilder::default()
 		.build_and_execute(|| {
 			assert_noop!(
-				XXEconomics::set_liquidity_rewards_stake(Origin::signed(1), Default::default()),
+				XXEconomics::set_liquidity_rewards_stake(RuntimeOrigin::signed(1), Default::default()),
 				BadOrigin
 			);
 		})
@@ -107,7 +107,7 @@ fn set_liquidity_rewards_stake_called_by_admin() {
 		.build_and_execute(|| {
 			let test_stake = 555;
 			assert_ok!(
-				XXEconomics::set_liquidity_rewards_stake(Origin::signed(AdminAccount::get()), test_stake.clone())
+				XXEconomics::set_liquidity_rewards_stake(RuntimeOrigin::signed(AdminAccount::get()), test_stake.clone())
 			);
 			assert_eq!(
 				XXEconomics::ideal_stake_rewards(),
@@ -127,7 +127,7 @@ fn set_liquidity_rewards_balance_called_by_non_admin_fails() {
 	ExtBuilder::default()
 		.build_and_execute(|| {
 			assert_noop!(
-				XXEconomics::set_liquidity_rewards_balance(Origin::signed(1), Default::default()),
+				XXEconomics::set_liquidity_rewards_balance(RuntimeOrigin::signed(1), Default::default()),
 				BadOrigin
 			);
 		})
@@ -140,7 +140,7 @@ fn set_liquidity_rewards_balance_called_by_admin() {
 		.build_and_execute(|| {
 			let test_balance = 123;
 			assert_ok!(
-				XXEconomics::set_liquidity_rewards_balance(Origin::signed(AdminAccount::get()), test_balance.clone())
+				XXEconomics::set_liquidity_rewards_balance(RuntimeOrigin::signed(AdminAccount::get()), test_balance.clone())
 			);
 			assert_eq!(
 				XXEconomics::liquidity_rewards(),
@@ -403,7 +403,7 @@ fn confirm_unordered_points_get_sorted_when_set_by_admin() {
 		.build_and_execute(|| {
 			assert_ok!(
 				XXEconomics::set_interest_points(
-					Origin::signed(AdminAccount::get()),
+					RuntimeOrigin::signed(AdminAccount::get()),
 					test_unordered_interest_curve_two()
 				)
 			);

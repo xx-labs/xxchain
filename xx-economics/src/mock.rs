@@ -167,13 +167,13 @@ impl xx_economics::Config for Test {
     type WeightInfo = weights::SubstrateWeight<Self>;
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
 where
-    Call: From<LocalCall>,
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -267,7 +267,7 @@ pub(crate) fn xx_economics_events() -> Vec<xx_economics::Event<Test>> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXEconomics(inner) = e {
+            if let RuntimeEvent::XXEconomics(inner) = e {
                 Some(inner)
             } else {
                 None

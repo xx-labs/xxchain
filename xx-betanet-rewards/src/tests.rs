@@ -10,13 +10,13 @@ fn approval_origin_must_be_root() {
         .build_and_execute(|| {
             // Signed origin fails
             assert_noop!(
-				XXBetanetRewards::approve(Origin::signed(1)),
+				XXBetanetRewards::approve(RuntimeOrigin::signed(1)),
 				BadOrigin
 			);
 
             // Root origin works
             assert_ok!(
-				XXBetanetRewards::approve(Origin::root())
+				XXBetanetRewards::approve(RuntimeOrigin::root())
 			);
 
             // Check events
@@ -33,12 +33,12 @@ fn set_option_origin_must_be_in_accounts() {
         .build_and_execute(|| {
             // Account 10 can select option
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(10), RewardOption::NoVesting)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(10), RewardOption::NoVesting)
 			);
 
             // Account 1 can't
             assert_noop!(
-				XXBetanetRewards::select_option(Origin::signed(1), RewardOption::NoVesting),
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(1), RewardOption::NoVesting),
 				Error::<Test>::NoRewards
 			);
 
@@ -56,7 +56,7 @@ fn nothing_happens_if_program_not_accepted() {
         .build_and_execute(|| {
             // Account 10 can select option
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(10), RewardOption::Vesting9Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(10), RewardOption::Vesting9Month)
 			);
 
             // Check events
@@ -102,18 +102,18 @@ fn all_functions_are_noop_after_enactment_block() {
 
             // Confirm accounts can't select options anymore
             assert_noop!(
-				XXBetanetRewards::select_option(Origin::signed(10), RewardOption::NoVesting),
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(10), RewardOption::NoVesting),
 				Error::<Test>::EnactmentBlockHasPassed
 			);
 
             // Confirm root can't approve program anymore
             assert_noop!(
-				XXBetanetRewards::approve(Origin::root()),
+				XXBetanetRewards::approve(RuntimeOrigin::root()),
 				Error::<Test>::EnactmentBlockHasPassed
 			);
 
             // Issue a claim that had potential rewards, and confirm account is not added to Accounts map
-            assert_ok!(Claims::claim(Origin::none(), 70, sig::<Test>(&alice(), &70u64.encode(), &[][..])));
+            assert_ok!(Claims::claim(RuntimeOrigin::none(), 70, sig::<Test>(&alice(), &70u64.encode(), &[][..])));
             assert_eq!(<Accounts<Test>>::contains_key(&70), false);
         })
 }
@@ -124,34 +124,34 @@ fn rewards_are_correct_for_genesis_accounts_no_vesting() {
         .build_and_execute(|| {
             // Account 10 selects option 1: No Vesting
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(10), RewardOption::NoVesting)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(10), RewardOption::NoVesting)
 			);
 
             // Account 20 selects option 2: 1 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(20), RewardOption::Vesting1Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(20), RewardOption::Vesting1Month)
 			);
 
             // Account 30 selects option 3: 3 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(30), RewardOption::Vesting3Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(30), RewardOption::Vesting3Month)
 			);
 
             // Account 40 selects option 4: 6 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(40), RewardOption::Vesting6Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(40), RewardOption::Vesting6Month)
 			);
 
             // Account 50 selects option 5: 9 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(50), RewardOption::Vesting9Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(50), RewardOption::Vesting9Month)
 			);
 
             // Account 60 doesn't select option, defaults to 4: 6 month vest
 
             // Approve program
             assert_ok!(
-				XXBetanetRewards::approve(Origin::root())
+				XXBetanetRewards::approve(RuntimeOrigin::root())
 			);
 
             // Keep original issuance
@@ -204,34 +204,34 @@ fn rewards_are_correct_for_genesis_accounts_with_vesting() {
         .build_and_execute(|| {
             // Account 10 selects option 1: No Vesting
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(10), RewardOption::NoVesting)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(10), RewardOption::NoVesting)
 			);
 
             // Account 20 selects option 2: 1 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(20), RewardOption::Vesting1Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(20), RewardOption::Vesting1Month)
 			);
 
             // Account 30 selects option 3: 3 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(30), RewardOption::Vesting3Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(30), RewardOption::Vesting3Month)
 			);
 
             // Account 40 selects option 4: 6 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(40), RewardOption::Vesting6Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(40), RewardOption::Vesting6Month)
 			);
 
             // Account 50 selects option 5: 9 month vest
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(50), RewardOption::Vesting9Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(50), RewardOption::Vesting9Month)
 			);
 
             // Account 60 doesn't select option, defaults to 4: 6 month vest
 
             // Approve program
             assert_ok!(
-				XXBetanetRewards::approve(Origin::root())
+				XXBetanetRewards::approve(RuntimeOrigin::root())
 			);
 
             // Keep original issuance
@@ -283,37 +283,37 @@ fn rewards_are_correct_for_claims() {
         .with_claims()
         .build_and_execute(|| {
             // Alice claims coins into account 70
-            assert_ok!(Claims::claim(Origin::none(), 70, sig::<Test>(&alice(), &70u64.encode(), &[][..])));
+            assert_ok!(Claims::claim(RuntimeOrigin::none(), 70, sig::<Test>(&alice(), &70u64.encode(), &[][..])));
 
             // Confirm rewards added to betanet rewards pallet
             confirm_claim_rewards_added(&70);
 
             // Bob claims coins into account 80
-            assert_ok!(Claims::claim(Origin::none(), 80, sig::<Test>(&bob(), &80u64.encode(), &[][..])));
+            assert_ok!(Claims::claim(RuntimeOrigin::none(), 80, sig::<Test>(&bob(), &80u64.encode(), &[][..])));
 
             // Confirm rewards added to betanet rewards pallet
             confirm_claim_rewards_added(&80);
 
             // Eve claims coins into account 90
-            assert_ok!(Claims::claim(Origin::none(), 90, sig::<Test>(&eve(), &90u64.encode(), &[][..])));
+            assert_ok!(Claims::claim(RuntimeOrigin::none(), 90, sig::<Test>(&eve(), &90u64.encode(), &[][..])));
 
             // Confirm no rewards added to betanet rewards pallet
             assert_eq!(<Accounts<Test>>::contains_key(&90), false);
 
             // Confirm Alice and Bob can choose options
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(70), RewardOption::Vesting1Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(70), RewardOption::Vesting1Month)
 			);
 
             assert_ok!(
-				XXBetanetRewards::select_option(Origin::signed(80), RewardOption::Vesting3Month)
+				XXBetanetRewards::select_option(RuntimeOrigin::signed(80), RewardOption::Vesting3Month)
 			);
 
             // Accounts 10, 20, 30, 40, 50 and 60 don't select option, defaults to 4: 6 month vest
 
             // Approve program
             assert_ok!(
-				XXBetanetRewards::approve(Origin::root())
+				XXBetanetRewards::approve(RuntimeOrigin::root())
 			);
 
             // Keep original issuance and claim total
@@ -372,7 +372,7 @@ fn rewards_are_correct_for_claims() {
             );
 
             // Issue one of the leftover claims, and confirm account is not added to Accounts map
-            assert_ok!(Claims::claim(Origin::none(), 100, sig::<Test>(&charlie(), &100u64.encode(), &[][..])));
+            assert_ok!(Claims::claim(RuntimeOrigin::none(), 100, sig::<Test>(&charlie(), &100u64.encode(), &[][..])));
             assert_eq!(<Accounts<Test>>::contains_key(&100), false);
         })
 }

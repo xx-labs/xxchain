@@ -25,7 +25,7 @@ fn set_cmix_hashes_can_call_with_admin_during_permission_period() {
                 ..Default::default()
             };
             assert_ok!(XXCmix::set_cmix_hashes(
-                Origin::root(),
+                RuntimeOrigin::root(),
                 new_hashes.clone()
             ));
 
@@ -44,7 +44,7 @@ fn set_cmix_hashes_fails_outside_permission_period() {
         .build_and_execute(|| {
             run_to_block(11);
             assert_noop!(
-                XXCmix::set_cmix_hashes(Origin::root(), Default::default()),
+                XXCmix::set_cmix_hashes(RuntimeOrigin::root(), Default::default()),
                 Error::<Test>::AdminPermissionExpired,
             );
         });
@@ -62,7 +62,7 @@ fn set_scheduling_account_can_call_with_admin_during_permission_period() {
         .build_and_execute(|| {
             run_to_block(10);
             assert_ok!(XXCmix::set_scheduling_account(
-                Origin::root(),
+                RuntimeOrigin::root(),
                 new_scheduling_account
             ));
             assert_eq!(XXCmix::scheduling_account().unwrap(), new_scheduling_account);
@@ -91,7 +91,7 @@ fn set_next_cmix_variables_can_call_with_cmix_vars_origin() {
 
         let init_cmix_vars = XXCmix::cmix_variables();
         assert_ok!(XXCmix::set_next_cmix_variables(
-            Origin::root(),
+            RuntimeOrigin::root(),
             new_variables.clone()
         ));
         assert_eq!(
@@ -121,11 +121,11 @@ fn set_next_cmix_variables_can_call_with_cmix_vars_origin() {
 fn cmix_points_fails_if_not_scheduling() {
     ExtBuilder::default().build_and_execute(|| {
         assert_noop!(
-            XXCmix::submit_cmix_points(Origin::signed(1), Vec::new()),
+            XXCmix::submit_cmix_points(RuntimeOrigin::signed(1), Vec::new()),
             Error::<Test>::MustBeScheduling,
         );
         assert_noop!(
-            XXCmix::submit_cmix_deductions(Origin::signed(1), Vec::new()),
+            XXCmix::submit_cmix_deductions(RuntimeOrigin::signed(1), Vec::new()),
             Error::<Test>::MustBeScheduling,
         );
     });
@@ -144,11 +144,11 @@ fn cmix_points_adds_remove_points_in_staking_pallet() {
             start_active_era(1);
 
             assert_ok!(XXCmix::submit_cmix_points(
-                Origin::signed(scheduling),
+                RuntimeOrigin::signed(scheduling),
                 vec![(a, first_addition)]
             ),);
             assert_ok!(XXCmix::submit_cmix_points(
-                Origin::signed(scheduling),
+                RuntimeOrigin::signed(scheduling),
                 vec![(a, second_addition)]
             ),);
             assert_eq!(
@@ -158,7 +158,7 @@ fn cmix_points_adds_remove_points_in_staking_pallet() {
 
             // now deduct. Should not go below 1
             assert_ok!(XXCmix::submit_cmix_deductions(
-                Origin::signed(scheduling),
+                RuntimeOrigin::signed(scheduling),
                 vec![(a, 99)]
             ),);
             assert_eq!(
@@ -185,7 +185,7 @@ fn cmix_points_adds_remove_points_in_staking_pallet() {
 fn set_cmix_address_space_fails_if_not_scheduling() {
     ExtBuilder::default().build_and_execute(|| {
         assert_noop!(
-            XXCmix::set_cmix_address_space(Origin::signed(1), 0x77),
+            XXCmix::set_cmix_address_space(RuntimeOrigin::signed(1), 0x77),
             Error::<Test>::MustBeScheduling,
         );
     });
@@ -199,7 +199,7 @@ fn set_cmix_address_space_sets_storage() {
         .with_scheduling_account(scheduling)
         .build_and_execute(|| {
             assert_ok!(XXCmix::set_cmix_address_space(
-                Origin::signed(1),
+                RuntimeOrigin::signed(1),
                 new_address_space
             ));
             assert_eq!(XXCmix::cmix_address_space(), new_address_space);
