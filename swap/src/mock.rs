@@ -27,8 +27,8 @@ parameter_types! {
 
 impl frame_system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
-    type Origin = Origin;
-    type Call = Call;
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeCall = RuntimeCall;
     type Index = u64;
     type BlockNumber = u64;
     type Hash = H256;
@@ -36,7 +36,7 @@ impl frame_system::Config for Test {
     type AccountId = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type DbWeight = ();
     type Version = ();
@@ -59,7 +59,7 @@ parameter_types! {
 impl pallet_balances::Config for Test {
     type Balance = u64;
     type DustRemoval = ();
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type MaxLocks = MaxLocks;
@@ -77,9 +77,9 @@ parameter_types! {
 }
 
 impl bridge::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
-    type Proposal = Call;
+    type Proposal = RuntimeCall;
     type ChainId = TestChainId;
     type ProposalLifetime = ProposalLifetime;
     type PalletId = ChainbridgePalletId;
@@ -90,7 +90,7 @@ parameter_types! {
 }
 
 impl Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BridgeOrigin = bridge::EnsureBridge<Test>;
     type AdminOrigin = bridge::EnsureBridge<Test>;
     type Currency = Balances;

@@ -28,10 +28,10 @@ type BalanceOf<T> =
 
 pub trait Config: system::Config + chainbridge::Config {
     /// The Event type
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// Specifies the origin check provided by the bridge for calls that can only be called by the bridge pallet
-    type BridgeOrigin: EnsureOrigin<Self::Origin, Success = Self::AccountId>;
+    type BridgeOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Self::AccountId>;
 
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId>;
@@ -40,7 +40,7 @@ pub trait Config: system::Config + chainbridge::Config {
     type NativeTokenId: Get<ResourceId>;
 
     /// Origin used to change fee and destination
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -99,7 +99,7 @@ decl_error! {
 }
 
 decl_module! {
-    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+    pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
         const NativeTokenId: ResourceId = T::NativeTokenId::get();
 
         fn deposit_event() = default;
@@ -191,7 +191,7 @@ impl<T: Config> Module<T> {
         <chainbridge::Module<T>>::set_relayer_threshold(*threshold)
     }
 
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;

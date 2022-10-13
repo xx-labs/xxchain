@@ -19,7 +19,6 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 ] }
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 static_assertions = "1.1.0"
-hex-literal = { version = "0.3.4", optional = true }
 log = { version = "0.4.17", default-features = false }
 
 # primitives
@@ -136,11 +135,13 @@ std = [
 	"runtime-common/std",
 	"sp-offchain/std",
 	"pallet-offences/std",
+	"pallet-offences-benchmarking?/std",
 	"pallet-proxy/std",
 	"sp-core/std",
 	"pallet-randomness-collective-flip/std",
 	"sp-std/std",
 	"pallet-session/std",
+	"pallet-session-benchmarking?/std",
 	"sp-api/std",
 	"sp-runtime/std",
 	"sp-staking/std",
@@ -148,9 +149,12 @@ std = [
 	"sp-keyring",
 	"sp-session/std",
 	"frame-support/std",
+	"frame-benchmarking?/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
+	"frame-system-benchmarking?/std",
 	"pallet-election-provider-multi-phase/std",
+	"pallet-election-provider-support-benchmarking?/std",
 	"pallet-timestamp/std",
 	"pallet-tips/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
@@ -161,7 +165,7 @@ std = [
 	"sp-version/std",
 	"pallet-vesting/std",
 	"log/std",
-	"frame-try-runtime/std",
+	"frame-try-runtime?/std",
 	"sp-npos-elections/std",
 	"sp-io/std",
 	"claims/std",
@@ -219,8 +223,7 @@ runtime-benchmarks = [
 	"xx-team-custody/runtime-benchmarks",
 	"xx-economics/runtime-benchmarks",
 	"xx-betanet-rewards/runtime-benchmarks",
-	"frame-system-benchmarking",
-	"hex-literal",
+	"frame-system-benchmarking/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime",

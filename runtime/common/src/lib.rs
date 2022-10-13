@@ -26,12 +26,12 @@ pub mod impls;
 use sp_std::prelude::*;
 use frame_support::{
 	parameter_types,
+	dispatch::DispatchClass,
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
-		DispatchClass,
 		Weight,
 	},
-	traits::{Currency, LockIdentifier},
+	traits::{Currency, LockIdentifier, WithdrawReasons},
 	PalletId,
 };
 use frame_system::limits;
@@ -75,6 +75,8 @@ parameter_types! {
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero`.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 10u128);
+	/// The maximum amount of the multiplier.
+	pub MaximumMultiplier: Multiplier = sp_runtime::traits::Bounded::max_value();
 	/// This value increases the priority of `Operational` transactions by adding
 	/// a "virtual tip" that's equal to the `OperationalFeeMultiplier * final_fee`.
 	pub const OperationalFeeMultiplier: u8 = 5;
@@ -241,6 +243,8 @@ parameter_types! {
 	///////////////////////////////////////////
 	/// Vesting constants
 	pub const MinVestedTransfer: Balance = 1 * UNITS;
+	pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+		WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
 
 	///////////////////////////////////////////
 	/// Multisig constants

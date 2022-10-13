@@ -133,8 +133,8 @@ impl frame_system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = ();
     type BlockLength = ();
-    type Origin = Origin;
-    type Call = Call;
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeCall = RuntimeCall;
     type Index = AccountIndex;
     type BlockNumber = BlockNumber;
     type Hash = H256;
@@ -142,7 +142,7 @@ impl frame_system::Config for Test {
     type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type DbWeight = RocksDbWeight;
     type Version = ();
@@ -158,7 +158,7 @@ impl frame_system::Config for Test {
 impl pallet_balances::Config for Test {
     type Balance = Balance;
     type DustRemoval = ();
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type WeightInfo = ();
@@ -175,7 +175,7 @@ sp_runtime::impl_opaque_keys! {
     }
 }
 impl pallet_session::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ValidatorId = AccountId;
     type ValidatorIdOf = StashOf<Test>;
     type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
@@ -274,10 +274,10 @@ parameter_types! {
 }
 
 impl pallet_scheduler::Config for Test {
-    type Event = Event;
-    type Origin = Origin;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeOrigin = RuntimeOrigin;
     type PalletsOrigin = OriginCaller;
-    type Call = Call;
+    type RuntimeCall = RuntimeCall;
     type MaximumWeight = MaximumSchedulerWeight;
     type ScheduleOrigin = EnsureRoot<Self::AccountId>;
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
@@ -302,7 +302,7 @@ impl pallet_staking::Config for Test {
     type UnixTime = Timestamp;
     type CurrencyToVote = frame_support::traits::SaturatingCurrencyToVote;
     type RewardRemainder = RewardRemainderMock;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Slash = ();
     type Reward = ();
     type SessionsPerEra = SessionsPerEra;
@@ -376,8 +376,8 @@ impl InstanceFilter<Call> for ProxyType {
 }
 
 impl pallet_proxy::Config for Test {
-    type Event = Event;
-    type Call = Call;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
     type Currency = Balances;
     type ProxyType = ProxyType;
     type ProxyDepositBase = ProxyDepositBase;
@@ -404,8 +404,8 @@ parameter_types! {
 }
 
 impl pallet_democracy::Config for Test {
-    type Proposal = Call;
-    type Event = Event;
+    type Proposal = RuntimeCall;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type EnactmentPeriod = EnactmentPeriod;
     type LaunchPeriod = LaunchPeriod;
@@ -454,7 +454,7 @@ parameter_types! {
 }
 
 impl pallet_elections_phragmen::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type PalletId = ElectionsPhragmenPalletId;
     type Currency = Balances;
     type ChangeMembers = ();
@@ -474,7 +474,7 @@ impl pallet_elections_phragmen::Config for Test {
 }
 
 impl xx_team_custody::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type PayoutFrequency = PayoutFrequency;
     type CustodyDuration = CustodyDuration;

@@ -128,16 +128,16 @@ impl frame_system::Config for Test {
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
-    type Origin = Origin;
+    type RuntimeOrigin = RuntimeOrigin;
     type Index = AccountIndex;
     type BlockNumber = BlockNumber;
-    type Call = Call;
+    type RuntimeCall = RuntimeCall;
     type Hash = H256;
     type Hashing = ::sp_runtime::traits::BlakeTwo256;
     type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type Version = ();
     type PalletInfo = PalletInfo;
@@ -152,7 +152,7 @@ impl frame_system::Config for Test {
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
     type Balance = Balance;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
@@ -173,7 +173,7 @@ impl pallet_session::Config for Test {
     type Keys = SessionKeys;
     type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
     type SessionHandler = (OtherSessionHandler,);
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ValidatorId = AccountId;
     type ValidatorIdOf = StashOf<Test>;
     type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
@@ -266,7 +266,7 @@ impl pallet_staking::Config for Test {
     type UnixTime = Timestamp;
     type CurrencyToVote = frame_support::traits::SaturatingCurrencyToVote;
     type RewardRemainder = RewardRemainderMock;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Slash = ();
     type Reward = ();
     type SessionsPerEra = SessionsPerEra;
@@ -291,7 +291,7 @@ impl pallet_staking::Config for Test {
 }
 
 impl xx_cmix::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type CmixVariablesOrigin = EnsureRoot<AccountId>;
     type AdminOrigin = EnsureRoot<AccountId>;
     type WeightInfo = weights::SubstrateWeight<Self>;

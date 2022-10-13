@@ -13,8 +13,8 @@ pub mod benchmarking;
 
 use frame_support::traits::{EnsureOrigin};
 use frame_support::{
-    decl_event, decl_error, decl_module, decl_storage, dispatch::DispatchResult, ensure,
-    weights::{DispatchClass, Pays},
+    decl_event, decl_error, decl_module, decl_storage,
+    dispatch::{DispatchResult, DispatchClass, Pays}, ensure,
 };
 
 use frame_system::{ensure_root, ensure_signed};
@@ -23,13 +23,13 @@ use sp_std::prelude::*;
 
 pub trait Config: frame_system::Config + pallet_staking::Config {
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The origin that is allowed to modify cmix variables.
-    type CmixVariablesOrigin: EnsureOrigin<Self::Origin>;
+    type CmixVariablesOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// The admin origin for the pallet (Tech Committee unanimity).
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -101,7 +101,7 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
 
         type Error = Error<T>;
 
@@ -234,7 +234,7 @@ decl_module! {
 impl<T: Config> Module<T> {
 
     /// Check if origin is admin
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
@@ -259,7 +259,7 @@ impl<T: Config> Module<T> {
     }
 
     /// Check if origin is cmix variables
-    fn ensure_cmix_variables(o: T::Origin) -> DispatchResult {
+    fn ensure_cmix_variables(o: T::RuntimeOrigin) -> DispatchResult {
         T::CmixVariablesOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;

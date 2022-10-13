@@ -51,16 +51,16 @@ impl frame_system::Config for Test {
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
-    type Origin = Origin;
+    type RuntimeOrigin = RuntimeOrigin;
     type Index = AccountIndex;
     type BlockNumber = BlockNumber;
-    type Call = Call;
+    type RuntimeCall = RuntimeCall;
     type Hash = H256;
     type Hashing = ::sp_runtime::traits::BlakeTwo256;
     type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type Version = ();
     type PalletInfo = PalletInfo;
@@ -75,7 +75,7 @@ impl frame_system::Config for Test {
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
     type Balance = Balance;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
@@ -89,7 +89,7 @@ parameter_types! {
 }
 
 impl pallet_vesting::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type BlockNumberToBalance = ConvertInto;
     type MinVestedTransfer = MinVestedTransfer;
@@ -109,7 +109,7 @@ ord_parameter_types! {
 pub type TestAdminOrigin = EnsureSignedBy<AdminAccount, AccountId>;
 
 impl xx_public::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type VestingSchedule = Vesting;
     type TestnetId = TestnetId;
     type SaleId = SaleId;

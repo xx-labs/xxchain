@@ -119,7 +119,7 @@ impl<Balance: Zero> Default for UserInfo<Balance> {
 pub trait Config: frame_system::Config + claims::Config {
 
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The enactment block to payout betanet staking rewards if approved
     type EnactmentBlock: Get<Self::BlockNumber>;
@@ -166,7 +166,7 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
         type Error = Error<T>;
 
 	    fn deposit_event() = default;

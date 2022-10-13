@@ -26,7 +26,7 @@ pub type BalanceOf<T> =
 pub trait Config: frame_system::Config + pallet_proxy::Config + pallet_staking::Config {
 
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId> + Inspect<Self::AccountId>;
@@ -51,7 +51,7 @@ pub trait Config: frame_system::Config + pallet_proxy::Config + pallet_staking::
     //----------------    ADMIN     ----------------//
 
     /// The admin origin for the pallet (Tech Committee unanimity).
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -135,7 +135,7 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
 
         type Error = Error<T>;
 
@@ -294,7 +294,7 @@ impl<T: Config> Module<T> {
     }
 
     /// Check if origin is admin
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
