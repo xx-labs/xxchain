@@ -10,13 +10,13 @@ repository = "https://github.com/xx-labs/xxchain/"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "2.0.0" }
-derive_more = "0.99"
-sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-structopt = "0.3.8"
+clap = { version = "3.1.6", features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3.0.0" }
+thiserror = "1.0"
+sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-service = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }

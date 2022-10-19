@@ -28,10 +28,10 @@ type BalanceOf<T> =
 
 pub trait Config: system::Config + chainbridge::Config {
     /// The Event type
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// Specifies the origin check provided by the bridge for calls that can only be called by the bridge pallet
-    type BridgeOrigin: EnsureOrigin<Self::Origin, Success = Self::AccountId>;
+    type BridgeOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Self::AccountId>;
 
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId>;
@@ -40,7 +40,7 @@ pub trait Config: system::Config + chainbridge::Config {
     type NativeTokenId: Get<ResourceId>;
 
     /// Origin used to change fee and destination
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -52,7 +52,7 @@ decl_storage! {
         pub SwapFee get(fn swap_fee) config(): BalanceOf<T>;
 
         /// Account to which the fee is paid to
-        pub FeeDestination get(fn fee_destination) config(): T::AccountId;
+        pub FeeDestination get(fn fee_destination): Option<T::AccountId>;
     }
 
     add_extra_genesis {
@@ -61,6 +61,7 @@ decl_storage! {
         config(resources): Vec<(ResourceId, Vec<u8>)>;
         config(threshold): u32;
         config(balance): BalanceOf<T>;
+        config(fee_destination): Option<T::AccountId>;
 
         build(|config: &GenesisConfig<T>| {
             /*
@@ -73,6 +74,10 @@ decl_storage! {
             // Create chainbridge account and set the balance from genesis
             let account_id = <chainbridge::Module<T>>::account_id();
             T::Currency::make_free_balance_be(&account_id, config.balance);
+            // Set fee destination
+            if let Some(dest) = &config.fee_destination {
+                <FeeDestination<T>>::put(dest);
+            }
         });
     }
 }
@@ -94,7 +99,7 @@ decl_error! {
 }
 
 decl_module! {
-    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+    pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
         const NativeTokenId: ResourceId = T::NativeTokenId::get();
 
         fn deposit_event() = default;
@@ -116,9 +121,10 @@ decl_module! {
             let balance = T::Currency::free_balance(&source);
             ensure!(balance >= amount + fee, Error::<T>::InsufficientBalance);
 
-            // Transfer fee to configured destination
-            let dest = <FeeDestination<T>>::get();
-            T::Currency::transfer(&source, &dest, fee, AllowDeath)?;
+            // Transfer fee to configured destination (if destination exists)
+            if let Some(dest) = <FeeDestination<T>>::get() {
+                T::Currency::transfer(&source, &dest, fee, AllowDeath)?;
+            };
 
             // Transfer amount to bridge
             let bridge_id = <chainbridge::Module<T>>::account_id();
@@ -185,10 +191,19 @@ impl<T: Config> Module<T> {
         <chainbridge::Module<T>>::set_relayer_threshold(*threshold)
     }
 
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
         Ok(())
+    }
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
     }
 }

@@ -37,7 +37,7 @@ use futures::executor;
 use node_primitives::Block;
 use runtime_common::{constants::currency::UNITS, ExistentialDeposit};
 use xxnetwork_runtime::{
-	Call,
+	RuntimeCall,
 	CheckedExtrinsic,
 	UncheckedExtrinsic,
 	MinimumPeriod,
@@ -53,7 +53,7 @@ use sc_client_api::{
 };
 use sc_client_db::PruningMode;
 use sc_consensus::{BlockImport, BlockImportParams, ForkChoiceStrategy, ImportResult, ImportedAux};
-use sc_executor::{NativeElseWasmExecutor, WasmExecutionMethod};
+use sc_executor::{NativeElseWasmExecutor, WasmExecutionMethod, WasmtimeInstantiationStrategy};
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_consensus::BlockOrigin;
@@ -316,19 +316,19 @@ impl<'a> Iterator for BlockContentIterator<'a> {
 				)),
 				function: match self.content.block_type {
 					BlockType::RandomTransfersKeepAlive =>
-						Call::Balances(BalancesCall::transfer_keep_alive {
+						RuntimeCall::Balances(BalancesCall::transfer_keep_alive {
 							dest: sp_runtime::MultiAddress::Id(receiver),
 							value: ExistentialDeposit::get() + 1,
 						}),
 					BlockType::RandomTransfersReaping => {
-						Call::Balances(BalancesCall::transfer {
+						RuntimeCall::Balances(BalancesCall::transfer {
 							dest: sp_runtime::MultiAddress::Id(receiver),
 							// Transfer so that ending balance would be 1 less than existential
 							// deposit so that we kill the sender account.
 							value: 100 * UNITS - (ExistentialDeposit::get() - 1),
 						})
 					},
-					BlockType::Noop => Call::System(SystemCall::remark { remark: Vec::new() }),
+					BlockType::Noop => RuntimeCall::System(SystemCall::remark { remark: Vec::new() }),
 				},
 			},
 			self.runtime_version.spec_version,
@@ -395,19 +395,24 @@ impl BenchDb {
 		keyring: &BenchKeyring,
 	) -> (Client, std::sync::Arc<Backend>, TaskExecutor) {
 		let db_config = sc_client_db::DatabaseSettings {
-			state_cache_size: 16*1024*1024,
-			state_cache_child_ratio: Some((0, 100)),
-			state_pruning: PruningMode::ArchiveAll,
+			trie_cache_maximum_size: Some(16 * 1024 * 1024),
+			state_pruning: Some(PruningMode::ArchiveAll),
 			source: database_type.into_settings(dir.into()),
-			keep_blocks: sc_client_db::KeepBlocks::All,
-			transaction_storage: sc_client_db::TransactionStorageMode::BlockBody,
+			blocks_pruning: sc_client_db::BlocksPruning::KeepAll,
 		};
 		let task_executor = TaskExecutor::new();
 
 		let backend = sc_service::new_db_backend(db_config).expect("Should not fail");
 		let client = sc_service::new_client(
 			backend.clone(),
-			NativeElseWasmExecutor::new(WasmExecutionMethod::Compiled, None, 8),
+			NativeElseWasmExecutor::new(
+				WasmExecutionMethod::Compiled {
+					instantiation_strategy: WasmtimeInstantiationStrategy::PoolingCopyOnWrite,
+				},
+				None,
+				8,
+				2,
+			),
 			&keyring.generate_genesis(),
 			None,
 			None,

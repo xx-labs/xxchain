@@ -119,7 +119,7 @@ impl<Balance: Zero> Default for UserInfo<Balance> {
 pub trait Config: frame_system::Config + claims::Config {
 
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The enactment block to payout betanet staking rewards if approved
     type EnactmentBlock: Get<Self::BlockNumber>;
@@ -166,7 +166,7 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
         type Error = Error<T>;
 
 	    fn deposit_event() = default;
@@ -212,10 +212,10 @@ decl_module! {
                     Self::deposit_event(RawEvent::ProgramEnacted);
                     T::BlockWeights::get().max_block
                 } else {
-                    0
+                    Weight::zero()
                 }
             } else {
-                0
+                Weight::zero()
             }
         }
     }
@@ -362,5 +362,14 @@ impl<T: Config> Module<T> {
         <claims::Rewards<T>>::drain().for_each(|(address, reward)| {
             Self::process_leftover_claim(address, reward)
         })
+    }
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
     }
 }

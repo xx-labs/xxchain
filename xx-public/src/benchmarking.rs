@@ -12,11 +12,11 @@ fn account_from_index<T: Config>(index: u32) -> T::AccountId {
 }
 
 fn set_testnet_manager<T: Config>(account: T::AccountId) {
-    XXPublic::<T>::set_testnet_manager_account(T::Origin::root(), account).ok();
+    XXPublic::<T>::set_testnet_manager_account(T::RuntimeOrigin::root(), account).ok();
 }
 
 fn set_sale_manager<T: Config>(account: T::AccountId) {
-    XXPublic::<T>::set_sale_manager_account(T::Origin::root(), account).ok();
+    XXPublic::<T>::set_sale_manager_account(T::RuntimeOrigin::root(), account).ok();
 }
 
 const MAX_DISTRIBUTIONS: u32 = 100;

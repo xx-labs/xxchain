@@ -13,8 +13,8 @@ pub mod benchmarking;
 
 use frame_support::traits::{EnsureOrigin};
 use frame_support::{
-    decl_event, decl_error, decl_module, decl_storage, dispatch::DispatchResult, ensure,
-    weights::{DispatchClass, Pays},
+    decl_event, decl_error, decl_module, decl_storage,
+    dispatch::{DispatchResult, DispatchClass, Pays}, ensure,
 };
 
 use frame_system::{ensure_root, ensure_signed};
@@ -23,13 +23,13 @@ use sp_std::prelude::*;
 
 pub trait Config: frame_system::Config + pallet_staking::Config {
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The origin that is allowed to modify cmix variables.
-    type CmixVariablesOrigin: EnsureOrigin<Self::Origin>;
+    type CmixVariablesOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// The admin origin for the pallet (Tech Committee unanimity).
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -45,7 +45,7 @@ decl_storage! {
         pub AdminPermission get(fn admin_permission) config(): T::BlockNumber;
 
         /// Scheduling server account
-        pub SchedulingAccount get(fn scheduling_account) config(): T::AccountId;
+        pub SchedulingAccount get(fn scheduling_account): Option<T::AccountId>;
 
         /// Cmix user ephemeral reception IDs address space size in bits
         pub CmixAddressSpace get(fn cmix_address_space) config(): u8;
@@ -55,6 +55,17 @@ decl_storage! {
 
         /// Current cmix variables
         pub CmixVariables get(fn cmix_variables) config(): cmix::Variables;
+    }
+
+    add_extra_genesis {
+        config(scheduling_account): Option<T::AccountId>;
+
+        build(|config: &GenesisConfig<T>| {
+            // Set scheduling account
+            if let Some(acct) = &config.scheduling_account {
+                <SchedulingAccount<T>>::put(acct);
+            }
+        });
     }
 }
 
@@ -90,7 +101,7 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
 
         type Error = Error<T>;
 
@@ -223,7 +234,7 @@ decl_module! {
 impl<T: Config> Module<T> {
 
     /// Check if origin is admin
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
@@ -240,11 +251,15 @@ impl<T: Config> Module<T> {
 
     /// Check if given account is scheduling server
     fn is_scheduling(who: T::AccountId) -> bool {
-        who == <SchedulingAccount<T>>::get()
+        if let Some(sched) = <SchedulingAccount<T>>::get() {
+            who == sched
+        } else {
+            false
+        }
     }
 
     /// Check if origin is cmix variables
-    fn ensure_cmix_variables(o: T::Origin) -> DispatchResult {
+    fn ensure_cmix_variables(o: T::RuntimeOrigin) -> DispatchResult {
         T::CmixVariablesOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
@@ -276,5 +291,14 @@ impl<T: Config> pallet_staking::CmixHandler for Module<T> {
             CmixVariables::put(next);
             Self::deposit_event(RawEvent::CmixVariablesUpdated);
         }
+    }
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
     }
 }

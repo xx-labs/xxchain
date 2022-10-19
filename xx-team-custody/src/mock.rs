@@ -23,18 +23,18 @@
 use crate as xx_team_custody;
 use crate::*;
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_election_provider_support::onchain;
+use frame_election_provider_support::{onchain, SequentialPhragmen};
 use frame_support::{
     parameter_types,
     traits::{
         Currency, FindAuthor, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
-        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly
+        OneSessionHandler, InstanceFilter, LockIdentifier, EqualPrivilegeOnly, ConstU32, ConstU128
     },
-    weights::constants::RocksDbWeight,
+    weights::{Weight, constants::RocksDbWeight},
     RuntimeDebug,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
-use pallet_staking::{ConvertCurve, EraIndex, Exposure, ExposureOf, StashOf};
+use pallet_staking::{ConvertCurve, Exposure, ExposureOf, StashOf};
 use sp_core::H256;
 pub use sp_runtime::{
     curve::PiecewiseLinear,
@@ -42,7 +42,7 @@ pub use sp_runtime::{
     traits::{IdentityLookup, Zero, BlakeTwo256, ConvertInto},
     Perbill,
 };
-use sp_staking::SessionIndex;
+use sp_staking::{EraIndex, SessionIndex};
 use std::{cell::RefCell, collections::HashSet};
 
 pub(crate) const INIT_TIMESTAMP: u64 = 30_000;
@@ -96,7 +96,9 @@ frame_support::construct_runtime!(
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
         Staking: pallet_staking::{Pallet, Call, Config<T>, Storage, Event<T>},
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
+        Historical: pallet_session::historical::{Pallet},
         Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+        Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>},
         Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
         Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
         XXCustody: xx_team_custody::{Pallet, Call, Storage, Config<T>, Event<T>},
@@ -132,8 +134,8 @@ impl frame_system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = ();
     type BlockLength = ();
-    type Origin = Origin;
-    type Call = Call;
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeCall = RuntimeCall;
     type Index = AccountIndex;
     type BlockNumber = BlockNumber;
     type Hash = H256;
@@ -141,7 +143,7 @@ impl frame_system::Config for Test {
     type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type DbWeight = RocksDbWeight;
     type Version = ();
@@ -152,11 +154,12 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type Balance = Balance;
     type DustRemoval = ();
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type WeightInfo = ();
@@ -173,7 +176,7 @@ sp_runtime::impl_opaque_keys! {
     }
 }
 impl pallet_session::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ValidatorId = AccountId;
     type ValidatorIdOf = StashOf<Test>;
     type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
@@ -266,53 +269,72 @@ thread_local! {
     static XX_BLOCK_POINTS: RefCell<u32> = RefCell::new(20); // default block reward is 20. This is to stop existing tests from breaking
 }
 
-impl onchain::Config for Test {
-    type Accuracy = Perbill;
-    type DataProvider = Staking;
+impl pallet_preimage::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<u64>;
+	type BaseDeposit = ConstU128<0>;
+	type ByteDeposit = ConstU128<0>;
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: u64 = 1_000_000_000_000_000;
+	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(1_000_000_000_000_000);
 	pub const MaxScheduledPerBlock: u32 = 50;
 }
 
 impl pallet_scheduler::Config for Test {
-    type Event = Event;
-    type Origin = Origin;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeOrigin = RuntimeOrigin;
     type PalletsOrigin = OriginCaller;
-    type Call = Call;
+    type RuntimeCall = RuntimeCall;
     type MaximumWeight = MaximumSchedulerWeight;
     type ScheduleOrigin = EnsureRoot<Self::AccountId>;
     type MaxScheduledPerBlock = MaxScheduledPerBlock;
     type WeightInfo = ();
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
+    type Preimages = ();
+}
+
+pub struct OnChainSeqPhragmen;
+impl onchain::Config for OnChainSeqPhragmen {
+	type System = Test;
+	type Solver = SequentialPhragmen<AccountId, Perbill>;
+	type DataProvider = Staking;
+	type WeightInfo = ();
 }
 
 impl pallet_staking::Config for Test {
+    type MaxNominations = ConstU32<16>;
     type Currency = Balances;
+    type CurrencyBalance = <Self as pallet_balances::Config>::Balance;
     type UnixTime = Timestamp;
     type CurrencyToVote = frame_support::traits::SaturatingCurrencyToVote;
-    type ElectionProvider = onchain::OnChainSequentialPhragmen<Self>;
-    type CmixHandler = CmixHandlerMock;
-    type CustodyHandler = CustodyHandlerMock;
-    type AdminOrigin = EnsureRoot<Self::AccountId>;
-    const MAX_NOMINATIONS: u32 = 16;
     type RewardRemainder = RewardRemainderMock;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Slash = ();
     type Reward = ();
     type SessionsPerEra = SessionsPerEra;
-    type BondingDuration = BondingDuration;
     type SlashDeferDuration = SlashDeferDuration;
-    type SlashCancelOrigin = EnsureRoot<Self::AccountId>;
+    type SlashCancelOrigin = frame_system::EnsureRoot<Self::AccountId>;
+    type BondingDuration = BondingDuration;
     type SessionInterface = Self;
     type EraPayout = ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+    type ElectionProvider = onchain::UnboundedExecution<OnChainSeqPhragmen>;
     type WeightInfo = ();
+    type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
+    type CmixHandler = CmixHandlerMock;
+    type CustodyHandler = CustodyHandlerMock;
     type GenesisElectionProvider = Self::ElectionProvider;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
-    type SortedListProvider = pallet_staking::UseNominatorsMap<Self>;
+    type VoterList = pallet_staking::UseNominatorsAndValidatorsMap<Self>;
+    type TargetList = pallet_staking::UseValidatorsMap<Self>;
+    type MaxUnlockingChunks = ConstU32<32>;
+    type HistoryDepth = ConstU32<84>;
+	type OnStakerSlash = ();
+	type BenchmarkingConfig = pallet_staking::TestBenchmarkingConfig;
 }
 
 parameter_types! {
@@ -341,32 +363,32 @@ impl Default for ProxyType {
         Self::Any
     }
 }
-impl InstanceFilter<Call> for ProxyType {
-    fn filter(&self, c: &Call) -> bool {
+impl InstanceFilter<RuntimeCall> for ProxyType {
+    fn filter(&self, c: &RuntimeCall) -> bool {
         match self {
             ProxyType::Any => true,
             ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..)
+				RuntimeCall::Balances(..)
 			),
             ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..) |
-				Call::Elections(..)
+				RuntimeCall::Democracy(..) |
+				RuntimeCall::Elections(..)
 			),
-            ProxyType::Staking => matches!(c, Call::Staking(..)),
+            ProxyType::Staking => matches!(c, RuntimeCall::Staking(..)),
             ProxyType::Voting => matches!(
 				c,
-				Call::Democracy(pallet_democracy::Call::vote { .. } | pallet_democracy::Call::remove_vote { .. }) |
-				Call::Elections(pallet_elections_phragmen::Call::vote { .. } | pallet_elections_phragmen::Call::remove_voter { .. })
+				RuntimeCall::Democracy(pallet_democracy::Call::vote { .. } | pallet_democracy::Call::remove_vote { .. }) |
+				RuntimeCall::Elections(pallet_elections_phragmen::Call::vote { .. } | pallet_elections_phragmen::Call::remove_voter { .. })
 			),
         }
     }
 }
 
 impl pallet_proxy::Config for Test {
-    type Event = Event;
-    type Call = Call;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
     type Currency = Balances;
     type ProxyType = ProxyType;
     type ProxyDepositBase = ProxyDepositBase;
@@ -393,8 +415,7 @@ parameter_types! {
 }
 
 impl pallet_democracy::Config for Test {
-    type Proposal = Call;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type EnactmentPeriod = EnactmentPeriod;
     type LaunchPeriod = LaunchPeriod;
@@ -413,14 +434,15 @@ impl pallet_democracy::Config for Test {
     type CancelProposalOrigin = EnsureRoot<Self::AccountId>;
     type VetoOrigin = EnsureSigned<Self::AccountId>;
     type CooloffPeriod = CooloffPeriod;
-    type PreimageByteDeposit = PreimageByteDeposit;
-    type OperationalPreimageOrigin = EnsureSigned<Self::AccountId>;
     type Slash = ();
     type Scheduler = Scheduler;
     type PalletsOrigin = OriginCaller;
     type MaxVotes = MaxVotes;
     type WeightInfo = ();
     type MaxProposals = MaxProposals;
+    type Preimages = ();
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
 }
 
 parameter_types! {
@@ -437,11 +459,13 @@ parameter_types! {
 	pub const TermDuration: BlockNumber = 10;
 	pub const DesiredMembers: u32 = 9;
 	pub const DesiredRunnersUp: u32 = 10;
+    pub const MaxVoters: u32 = 10 * 1000;
+	pub const MaxCandidates: u32 = 1000;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
 }
 
 impl pallet_elections_phragmen::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type PalletId = ElectionsPhragmenPalletId;
     type Currency = Balances;
     type ChangeMembers = ();
@@ -455,11 +479,13 @@ impl pallet_elections_phragmen::Config for Test {
     type DesiredMembers = DesiredMembers;
     type DesiredRunnersUp = DesiredRunnersUp;
     type TermDuration = TermDuration;
+    type MaxVoters = MaxVoters;
+	type MaxCandidates = MaxCandidates;
     type WeightInfo = ();
 }
 
 impl xx_team_custody::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type PayoutFrequency = PayoutFrequency;
     type CustodyDuration = CustodyDuration;
@@ -470,13 +496,13 @@ impl xx_team_custody::Config for Test {
     type WeightInfo = weights::SubstrateWeight<Self>;
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
 where
-    Call: From<LocalCall>,
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -601,7 +627,7 @@ pub(crate) fn xx_team_custody_events() -> Vec<xx_team_custody::Event<Test>> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXCustody(inner) = e {
+            if let RuntimeEvent::XXCustody(inner) = e {
                 Some(inner)
             } else {
                 None
@@ -615,7 +641,7 @@ pub(crate) fn proxy_events() -> Vec<pallet_proxy::Event<Test>> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::Proxy(inner) = e {
+            if let RuntimeEvent::Proxy(inner) = e {
                 Some(inner)
             } else {
                 None

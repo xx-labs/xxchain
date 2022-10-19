@@ -36,7 +36,7 @@ type NegativeImbalanceOf<T> = <<T as Config>::Currency as Currency<
 pub trait Config: frame_system::Config {
 
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId>;
@@ -61,7 +61,7 @@ pub trait Config: frame_system::Config {
     type EraDuration: Get<Self::BlockNumber>;
 
     /// The admin origin for the pallet (Tech Committee unanimity).
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -126,11 +126,11 @@ decl_event! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
 	    //---------------- REWARDS POOL ----------------//
 
 	    const RewardsPoolId: PalletId = T::RewardsPoolId::get();
-	    const RewardsPoolAccount: T::AccountId = T::RewardsPoolId::get().into_account();
+	    const RewardsPoolAccount: T::AccountId = T::RewardsPoolId::get().into_account_truncating();
 
 	    fn deposit_event() = default;
 
@@ -193,10 +193,19 @@ decl_module! {
 
 impl<T: Config> Module<T> {
     /// Check if origin is admin
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
         Ok(())
+    }
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
     }
 }

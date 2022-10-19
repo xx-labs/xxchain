@@ -59,25 +59,25 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Account (r:3 w:3)
 	// Storage: Swap SwapFee (r:1 w:0)
 	fn transfer_native() -> Weight {
-		(112_387_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(112_387_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	// Storage: System Account (r:2 w:2)
 	fn transfer() -> Weight {
-		(68_909_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(68_909_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: Swap SwapFee (r:0 w:1)
 	fn set_swap_fee() -> Weight {
-		(19_255_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(19_255_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Swap FeeDestination (r:0 w:1)
 	fn set_fee_destination() -> Weight {
-		(19_658_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(19_658_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 }
 
@@ -88,24 +88,24 @@ impl WeightInfo for () {
 	// Storage: System Account (r:3 w:3)
 	// Storage: Swap SwapFee (r:1 w:0)
 	fn transfer_native() -> Weight {
-		(112_387_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(112_387_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	// Storage: System Account (r:2 w:2)
 	fn transfer() -> Weight {
-		(68_909_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(68_909_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(2 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	// Storage: Swap SwapFee (r:0 w:1)
 	fn set_swap_fee() -> Weight {
-		(19_255_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(19_255_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: Swap FeeDestination (r:0 w:1)
 	fn set_fee_destination() -> Weight {
-		(19_658_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(19_658_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 }

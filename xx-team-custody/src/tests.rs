@@ -4,12 +4,11 @@
 use super::*;
 use mock::*;
 
-use frame_support::{assert_noop, assert_ok, dispatch::DispatchError};
+use frame_support::{assert_noop, assert_ok, traits::StorePreimage};
+use sp_runtime::{DispatchError, ModuleError};
 use pallet_proxy::ProxyDefinition;
-use pallet_democracy::{Vote, Conviction, AccountVote};
+use pallet_democracy::{Vote, Conviction, AccountVote, BoundedCallOf};
 use std::convert::TryInto;
-
-type Hash = <mock::Test as frame_system::Config>::Hash;
 
 fn reserve_ratio() -> Perbill {
     Perbill::from_rational(55_555_556u32, 1_000_000_000u32)
@@ -25,7 +24,7 @@ fn payout_fails_if_payee_is_not_team_member() {
     let payee = 2;
     ExtBuilder::default().build_and_execute(|| {
         assert_noop!(
-            XXCustody::payout(Origin::signed(caller), payee),
+            XXCustody::payout(RuntimeOrigin::signed(caller), payee),
             Error::<Test>::InvalidTeamMember
         );
     });
@@ -40,7 +39,7 @@ fn payout_fails_if_called_before_payout_available() {
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
             assert_noop!(
-                XXCustody::payout(Origin::signed(caller), payee),
+                XXCustody::payout(RuntimeOrigin::signed(caller), payee),
                 Error::<Test>::PayoutNotAvailable
             );
         });
@@ -55,7 +54,7 @@ fn payout_call_after_first_payout_frequency() {
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(caller), payee),);
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(caller), payee),);
             // expected payout fraction based on time elapsed
             let fraction = Perbill::from_rational(PayoutFrequency::get(), CustodyDuration::get());
             let expected_payout = fraction * allocation;
@@ -83,10 +82,10 @@ fn payout_cannot_collect_payout_twice() {
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(caller), payee),);
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(caller), payee),);
             // second call fails
             assert_noop!(
-                XXCustody::payout(Origin::signed(caller), payee),
+                XXCustody::payout(RuntimeOrigin::signed(caller), payee),
                 Error::<Test>::PayoutNotAvailable
             );
         });
@@ -101,7 +100,7 @@ fn payout_accumulates_with_multiple_frequencies() {
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
             run_to_block(PayoutFrequency::get() * 2);
-            assert_ok!(XXCustody::payout(Origin::signed(caller), payee),);
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(caller), payee),);
             // expected payout fraction based on time elapsed (2 periods)
             let fraction = Perbill::from_rational(PayoutFrequency::get(), CustodyDuration::get());
             let expected_payout = fraction * allocation * 2;
@@ -127,13 +126,13 @@ fn payout_call_after_staking_custody_coins() {
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_eq!(Balances::usable_balance(info.custody), custody_allocation);
             assert_eq!(Balances::usable_balance(info.reserve), reserve_allocation);
 
             // the custodian bonds all but one coin setting their own accout as controller
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 bond_amount                // amount to bond
@@ -148,7 +147,7 @@ fn payout_call_after_staking_custody_coins() {
 
             // actually do the payout
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
             // balance is tranferred to account
             assert_eq!(Balances::usable_balance(payee), expected_payout);
@@ -191,13 +190,13 @@ fn payout_call_after_staking_all_custody_coins() {
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_eq!(Balances::usable_balance(info.custody), custody_allocation);
             assert_eq!(Balances::usable_balance(info.reserve), reserve_allocation);
 
             // the custodian bonds all custody coins
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 bond_amount                // amount to bond
@@ -208,7 +207,7 @@ fn payout_call_after_staking_all_custody_coins() {
 
             // actually do the payout
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
             // balance is tranferred to account
             assert_eq!(Balances::usable_balance(payee), expected_payout);
@@ -242,14 +241,14 @@ fn payout_call_after_staking_all_custody_insufficient_reserve_funds_for_full_pay
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // set the reserve a fixed initial balance
             Balances::make_free_balance_be(&info.reserve, init_reserve_balance);
 
             // the custodian bonds all custody coins
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 bond_amount                // amount to bond
@@ -257,7 +256,7 @@ fn payout_call_after_staking_all_custody_insufficient_reserve_funds_for_full_pay
 
             // actually do the payout
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
             // Balance receives all of reserve minus existential amount
             let expected_payout = init_reserve_balance - ExistentialDeposit::get();
@@ -292,14 +291,14 @@ fn payout_call_after_staking_all_custody_reserve_depleted() {
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // set the reserve a fixed initial balance
             Balances::make_free_balance_be(&info.reserve, init_reserve_balance);
 
             // the custodian bonds all custody coins
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 bond_amount                // amount to bond
@@ -308,7 +307,7 @@ fn payout_call_after_staking_all_custody_reserve_depleted() {
             // Payout fails to do anything
             run_to_block(PayoutFrequency::get());
             assert_noop!(
-                XXCustody::payout(Origin::signed(custodian), payee),
+                XXCustody::payout(RuntimeOrigin::signed(custodian), payee),
                 Error::<Test>::PayoutFailedInsufficientFunds,
             );
         });
@@ -326,10 +325,11 @@ fn payout_call_after_custody_period_ended() {
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
+            let info = XXCustody::team_accounts(payee).unwrap();
             run_to_block(CustodyDuration::get() + 1);
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
-            assert_custody_ended(&[(payee, allocation, 0)]);
+            assert_custody_ended(&[(payee, allocation, 0, info.custody, info.reserve)]);
 
             assert_eq!(
                 xx_team_custody_events(),
@@ -354,11 +354,11 @@ fn payout_call_after_custody_period_ended_with_bonded() {
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // the custodian bonds all custody coins
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 custody_allocation         // amount to bond
@@ -366,9 +366,9 @@ fn payout_call_after_custody_period_ended_with_bonded() {
             assert_eq!(Staking::bonded(info.custody), Some(custodian));
 
             run_to_block(CustodyDuration::get() + 1);
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
-            assert_custody_ended(&[(payee, allocation, 0)]);
+            assert_custody_ended(&[(payee, allocation, 0, info.custody, info.reserve)]);
 
             assert_eq!(
                 xx_team_custody_events(),
@@ -394,10 +394,10 @@ fn payout_call_after_custody_period_ended_with_custodian_set_proxy() {
         .with_team_allocations(&[(payee, allocation)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian),
+                RuntimeOrigin::signed(custodian),
                 info.custody,
                 proxy,
             ));
@@ -405,9 +405,9 @@ fn payout_call_after_custody_period_ended_with_custodian_set_proxy() {
             assert_proxy(info.custody, proxy);
 
             run_to_block(CustodyDuration::get() + 1);
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
-            assert_custody_ended(&[(payee, allocation, 0)]);
+            assert_custody_ended(&[(payee, allocation, 0, info.custody, info.reserve)]);
 
             assert_eq!(
                 xx_team_custody_events(),
@@ -435,22 +435,22 @@ fn payout_call_after_custody_period_ended_with_team_set_proxy() {
         .with_custodians(&[custodian])
         .with_initial_balances(&[(payee, payee_initial_balance)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // need to wait until team governance period
             run_to_block(GovernanceCustodyDuration::get() + 1);
 
             assert_ok!(XXCustody::team_custody_set_proxy(
-                Origin::signed(payee),
+                RuntimeOrigin::signed(payee),
                 proxy,
             ));
 
             assert_proxy(info.custody, proxy);
 
             run_to_block(CustodyDuration::get() + 1);
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
 
-            assert_custody_ended(&[(payee, allocation, payee_initial_balance)]);
+            assert_custody_ended(&[(payee, allocation, payee_initial_balance, info.custody, info.reserve)]);
 
             assert_eq!(
                 xx_team_custody_events(),
@@ -477,14 +477,14 @@ fn payout_fails_if_team_member_deleted() {
             // member has vested balance to claim
             // they are then replaced
             assert_ok!(XXCustody::replace_team_member(
-                Origin::root(),
+                RuntimeOrigin::root(),
                 payee,
                 payee_replacement
             ));
 
             // can no longer payout to old team member account
             assert_noop!(
-                XXCustody::payout(Origin::signed(caller), payee),
+                XXCustody::payout(RuntimeOrigin::signed(caller), payee),
                 Error::<Test>::InvalidTeamMember
             );
         });
@@ -503,7 +503,7 @@ fn payout_pays_out_additional_contributions_to_custody_account() {
     ExtBuilder::default()
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // transfer additional to custody account
             assert_eq!(Balances::usable_balance(info.custody), custody_allocation);
@@ -512,7 +512,7 @@ fn payout_pays_out_additional_contributions_to_custody_account() {
 
             // payout one payout frequency. Should behave the same as normal
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee),);
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee),);
             // expected payout fraction based on time elapsed
             let fraction = Perbill::from_rational(PayoutFrequency::get(), CustodyDuration::get());
             let expected_payout = fraction * allocation;
@@ -527,13 +527,13 @@ fn payout_pays_out_additional_contributions_to_custody_account() {
             // payout at the end of the custody period
             run_to_block(CustodyDuration::get() + 1);
 
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
             // the custody account has been totally emptied
             assert_eq!(Balances::usable_balance(info.custody), 0);
             // All funds withdrawn to payee account
             assert_eq!(Balances::usable_balance(payee), allocation + additional);
 
-            assert_custody_ended(&[(payee, allocation, additional)]);
+            assert_custody_ended(&[(payee, allocation, additional, info.custody, info.reserve)]);
         });
 }
 
@@ -549,7 +549,7 @@ fn payout_pays_out_additional_contributions_to_reserve_account() {
     ExtBuilder::default()
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // transfer additional to reserve account
             assert_eq!(Balances::usable_balance(info.reserve), reserve_allocation);
@@ -558,7 +558,7 @@ fn payout_pays_out_additional_contributions_to_reserve_account() {
 
             // payout one payout frequency. Should behave the same as normal
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee),);
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee),);
             // expected payout fraction based on time elapsed
             let fraction = Perbill::from_rational(PayoutFrequency::get(), CustodyDuration::get());
             let expected_payout = fraction * allocation;
@@ -573,13 +573,13 @@ fn payout_pays_out_additional_contributions_to_reserve_account() {
             // payout at the end of the custody period
             run_to_block(CustodyDuration::get() + 1);
 
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
             // the custody account has been totally emptied
             assert_eq!(Balances::usable_balance(info.custody), 0);
             // All funds withdrawn to payee account
             assert_eq!(Balances::usable_balance(payee), allocation + additional);
 
-            assert_custody_ended(&[(payee, allocation, additional)]);
+            assert_custody_ended(&[(payee, allocation, additional, info.custody, info.reserve)]);
         });
 }
 
@@ -596,7 +596,7 @@ fn can_payout_if_custody_account_deducted() {
     ExtBuilder::default()
         .with_team_allocations(&[(payee, allocation)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // deduct from custody account
             // This could be caused by a proxy call if the
@@ -607,7 +607,7 @@ fn can_payout_if_custody_account_deducted() {
 
             // payout one payout frequency. Should behave the same as normal
             run_to_block(PayoutFrequency::get());
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee),);
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee),);
             // expected payout fraction based on time elapsed
             let fraction = Perbill::from_rational(PayoutFrequency::get(), CustodyDuration::get());
             let expected_payout = fraction * allocation;
@@ -622,13 +622,13 @@ fn can_payout_if_custody_account_deducted() {
             // payout at the end of the custody period
             run_to_block(CustodyDuration::get() + 1);
 
-            assert_ok!(XXCustody::payout(Origin::signed(custodian), payee));
+            assert_ok!(XXCustody::payout(RuntimeOrigin::signed(custodian), payee));
             // the custody account has been totally emptied
             assert_eq!(Balances::usable_balance(info.custody), 0);
             // All funds withdrawn to payee account
             assert_eq!(Balances::usable_balance(payee), allocation - deduction);
 
-            assert_custody_ended(&[(payee, allocation - deduction, 0)]);
+            assert_custody_ended(&[(payee, allocation - deduction, 0, info.custody, info.reserve)]);
         });
 }
 
@@ -644,10 +644,10 @@ fn custody_bond_call_from_non_custodian_fails() {
     ExtBuilder::default()
         .with_team_allocations(&[(payee, 10)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_noop!(
                 XXCustody::custody_bond(
-                    Origin::signed(not_custodian), // called by custodian
+                    RuntimeOrigin::signed(not_custodian), // called by custodian
                     info.custody,                  // team member's custody account
                     not_custodian,                 // controller of the bond
                     1                              // amount to bond
@@ -656,7 +656,7 @@ fn custody_bond_call_from_non_custodian_fails() {
             );
             assert_noop!(
                 XXCustody::custody_bond_extra(
-                    Origin::signed(not_custodian), // called by custodian
+                    RuntimeOrigin::signed(not_custodian), // called by custodian
                     not_custodian,                 // controller of the bond
                     1                              // amount to bond
                 ),
@@ -674,10 +674,10 @@ fn custody_bond_call_for_non_custody_account_fails() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_noop!(
                 XXCustody::custody_bond(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.reserve,              // team member's custody account
                     custodian,                 // controller of the bond
                     1                          // amount to bond
@@ -686,7 +686,7 @@ fn custody_bond_call_for_non_custody_account_fails() {
             );
             assert_noop!(
                 XXCustody::custody_bond_extra(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.reserve,              // controller of the bond
                     1                          // amount to bond
                 ),
@@ -704,9 +704,9 @@ fn custody_bond_can_bond_during_custody_period() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 1                          // amount to bond
@@ -718,7 +718,7 @@ fn custody_bond_can_bond_during_custody_period() {
 
             // add 1 extra
             assert_ok!(XXCustody::custody_bond_extra(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // controller of the bond
                 1                          // amount to bond
             ));
@@ -735,11 +735,11 @@ fn custody_bond_fails_after_custody_period() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             run_to_block(CustodyDuration::get() + 1);
             assert_noop!(
                 XXCustody::custody_bond(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.custody,              // team member's custody account
                     custodian,                 // controller of the bond
                     1                          // amount to bond
@@ -748,7 +748,7 @@ fn custody_bond_fails_after_custody_period() {
             );
             assert_noop!(
                 XXCustody::custody_bond_extra(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.custody,              // controller of the bond
                     1                          // amount to bond
                 ),
@@ -769,10 +769,10 @@ fn custody_set_controller_call_from_non_custodian_fails() {
     ExtBuilder::default()
         .with_team_allocations(&[(payee, 10)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_noop!(
                 XXCustody::custody_set_controller(
-                    Origin::signed(not_custodian), // called by custodian
+                    RuntimeOrigin::signed(not_custodian), // called by custodian
                     info.custody,                  // team member's custody account
                     not_custodian,                 // controller of the bond
                 ),
@@ -789,11 +789,10 @@ fn custody_set_controller_call_for_non_custody_account_fails() {
     ExtBuilder::default()
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
             assert_noop!(
                 XXCustody::custody_set_controller(
-                    Origin::signed(custodian), // called by custodian
-                    info.custody,              // team member's custody account
+                    RuntimeOrigin::signed(custodian), // called by custodian
+                    payee,                     // team member's custody account
                     custodian,                 // controller of the bond
                 ),
                 Error::<Test>::InvalidCustodyAccount
@@ -810,11 +809,11 @@ fn custody_set_controller_fails_after_custody_period() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             run_to_block(CustodyDuration::get() + 1);
             assert_noop!(
                 XXCustody::custody_set_controller(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.custody,              // team member's custody account
                     custodian,                 // controller of the bond
                 ),
@@ -836,10 +835,10 @@ fn custody_set_proxy_call_from_non_custodian_fails() {
     ExtBuilder::default()
         .with_team_allocations(&[(payee, 10)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_noop!(
                 XXCustody::custody_set_proxy(
-                    Origin::signed(not_custodian), // called by custodian
+                    RuntimeOrigin::signed(not_custodian), // called by custodian
                     info.custody,                  // team member's custody account
                     proxy,                         // proxy
                 ),
@@ -857,11 +856,10 @@ fn custody_set_proxy_call_for_non_custody_account_fails() {
     ExtBuilder::default()
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
             assert_noop!(
                 XXCustody::custody_set_proxy(
-                    Origin::signed(custodian), // called by custodian
-                    info.custody,              // team member's custody account
+                    RuntimeOrigin::signed(custodian), // called by custodian
+                    payee,              // team member's custody account
                     proxy,                     // proxy
                 ),
                 Error::<Test>::InvalidCustodyAccount
@@ -879,9 +877,9 @@ fn custody_set_proxy_can_set_proxy() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 proxy,                     // proxy
             ));
@@ -900,18 +898,18 @@ fn custody_set_proxy_fails_if_custody_fully_staked() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
 
             // fully stake the custody balance
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 10                         // amount to bond
             ));
 
             assert_noop!(XXCustody::custody_set_proxy(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.custody,              // team member's custody account
                     proxy,                     // proxy
                 ),
@@ -931,9 +929,9 @@ fn custody_set_proxy_can_set_then_redefine_proxy() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 proxy_1,                   // proxy
             ));
@@ -943,7 +941,7 @@ fn custody_set_proxy_can_set_then_redefine_proxy() {
             // set proxy to another account
             // This removes old proxy and sets new one
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 proxy_2,                   // proxy
             ));
@@ -961,11 +959,11 @@ fn custody_set_proxy_fails_after_governance_period() {
         .with_team_allocations(&[(payee, 10)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(payee);
+            let info = XXCustody::team_accounts(payee).unwrap();
             run_to_block(GovernanceCustodyDuration::get() + 1);
             assert_noop!(
                 XXCustody::custody_set_proxy(
-                    Origin::signed(custodian), // called by custodian
+                    RuntimeOrigin::signed(custodian), // called by custodian
                     info.custody,              // team member's custody account
                     proxy,                     // proxy
                 ),
@@ -984,10 +982,10 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
         .with_team_allocations(&[(team, 1000)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(team);
+            let info = XXCustody::team_accounts(team).unwrap();
 
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 proxy,                     // proxy
             ));
@@ -999,10 +997,10 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
             // NOTE: proxy call always succeeds
             assert_ok!(
                 Proxy::proxy(
-                    Origin::signed(proxy),
+                    RuntimeOrigin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Balances(
+                    Box::new(mock::RuntimeCall::Balances(
                         pallet_balances::Call::transfer_all { dest: proxy, keep_alive: false }))
                 )
             );
@@ -1011,9 +1009,16 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
             assert_eq!(
                 proxy_events(),
                 vec![
-                    pallet_proxy::Event::ProxyAdded(7793787273482591193, 3, ProxyType::Voting, 0),
+                    pallet_proxy::Event::ProxyAdded {
+                        delegator: 7793787273482591193,
+                        delegatee: proxy,
+                        proxy_type: ProxyType::Voting,
+                        delay: 0
+                    },
                     // Proxy calls without enough permissions fail with the error System::CallFiltered
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 0, error: 5, message: None })),
+                    pallet_proxy::Event::ProxyExecuted {
+                        result: Err(DispatchError::Module(ModuleError { index: 0, error: [5, 0, 0, 0], message: None })),
+                    },
                 ]
             );
         });
@@ -1021,6 +1026,12 @@ fn custody_set_proxy_not_allowed_to_transfer_funds() {
 
 fn aye(who: AccountId) -> AccountVote<Balance> {
     AccountVote::Standard { vote: Vote { aye: true, conviction: Conviction::None }, balance: Balances::free_balance(&who) }
+}
+
+fn set_balance_proposal(value: u128) -> BoundedCallOf<Test> {
+	let inner = pallet_balances::Call::set_balance { who: 42, new_free: value, new_reserved: 0 };
+	let outer = RuntimeCall::Balances(inner);
+	Preimage::bound(outer).unwrap()
 }
 
 #[test]
@@ -1033,10 +1044,10 @@ fn custody_set_proxy_only_allowed_to_vote() {
         .with_team_allocations(&[(team, 1000)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(team);
+            let info = XXCustody::team_accounts(team).unwrap();
 
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 proxy,                     // proxy
             ));
@@ -1048,10 +1059,10 @@ fn custody_set_proxy_only_allowed_to_vote() {
             // NOTE: proxy call always succeeds
             assert_ok!(
                 Proxy::proxy(
-                    Origin::signed(proxy),
+                    RuntimeOrigin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Elections(
+                    Box::new(mock::RuntimeCall::Elections(
                         pallet_elections_phragmen::Call::submit_candidacy { candidate_count: 0 }))
                 )
             );
@@ -1060,12 +1071,12 @@ fn custody_set_proxy_only_allowed_to_vote() {
             // NOTE: proxy call always succeeds
             assert_ok!(
                 Proxy::proxy(
-                    Origin::signed(proxy),
+                    RuntimeOrigin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Democracy(
+                    Box::new(mock::RuntimeCall::Democracy(
                         pallet_democracy::Call::propose {
-                            proposal_hash: Hash::repeat_byte(0x55),
+                            proposal: set_balance_proposal(1100),
                             value: 110,
                         }))
                 )
@@ -1075,10 +1086,10 @@ fn custody_set_proxy_only_allowed_to_vote() {
             // NOTE: proxy call always succeeds
             assert_ok!(
                 Proxy::proxy(
-                    Origin::signed(proxy),
+                    RuntimeOrigin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Elections(
+                    Box::new(mock::RuntimeCall::Elections(
                         pallet_elections_phragmen::Call::vote { votes: vec![team], value: 5 }))
                 )
             );
@@ -1087,10 +1098,10 @@ fn custody_set_proxy_only_allowed_to_vote() {
             // NOTE: proxy call always succeeds
             assert_ok!(
                 Proxy::proxy(
-                    Origin::signed(proxy),
+                    RuntimeOrigin::signed(proxy),
                     info.custody,
                     None,
-                    Box::new(mock::Call::Democracy(
+                    Box::new(mock::RuntimeCall::Democracy(
                         pallet_democracy::Call::vote { ref_index: 0, vote: aye(proxy) }))
                 )
             );
@@ -1099,17 +1110,30 @@ fn custody_set_proxy_only_allowed_to_vote() {
             assert_eq!(
                 proxy_events(),
                 vec![
-                    pallet_proxy::Event::ProxyAdded(7793787273482591193, 3, ProxyType::Voting, 0),
+                    pallet_proxy::Event::ProxyAdded {
+                        delegator: 7793787273482591193,
+                        delegatee: proxy,
+                        proxy_type: ProxyType::Voting,
+                        delay: 0
+                    },
                     // Elections::submit_candidacy not allowed
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 0, error: 5, message: None })),
+                    pallet_proxy::Event::ProxyExecuted {
+                        result: Err(DispatchError::Module(ModuleError { index: 0, error: [5, 0, 0, 0], message: None })),
+                    },
                     // Democracy::propose not allowed
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 0, error: 5, message: None })),
+                    pallet_proxy::Event::ProxyExecuted {
+                        result: Err(DispatchError::Module(ModuleError { index: 0, error: [5, 0, 0, 0], message: None })),
+                    },
                     // Elections::vote is allowed, but fails with UnableToVote (no candidates)
-                    // Elections has module index 9 in mock, and UnableToVote is error number 0
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 9, error: 0, message: None })),
+                    // Elections has module index 11 in mock, and UnableToVote is error number 0
+                    pallet_proxy::Event::ProxyExecuted {
+                        result: Err(DispatchError::Module(ModuleError { index: 11, error: [0, 0, 0, 0], message: None })),
+                    },
                     // Democracy::vote is allowed, but fails with ReferendumInvalid (no referendums)
-                    // Democracy has module index 8 in mock, and ReferendumInvalid is error number 14
-                    pallet_proxy::Event::ProxyExecuted(Err(DispatchError::Module { index: 8, error: 14, message: None })),
+                    // Democracy has module index 10 in mock, and ReferendumInvalid is error number 9
+                    pallet_proxy::Event::ProxyExecuted {
+                        result: Err(DispatchError::Module(ModuleError { index: 10, error: [9, 0, 0, 0], message: None })),
+                    },
                 ]
             );
         });
@@ -1126,7 +1150,7 @@ fn team_custody_set_proxy_call_for_non_team_member_fails() {
 
     ExtBuilder::default().build_and_execute(|| {
         assert_noop!(
-            XXCustody::team_custody_set_proxy(Origin::signed(not_team_member), proxy,),
+            XXCustody::team_custody_set_proxy(RuntimeOrigin::signed(not_team_member), proxy,),
             Error::<Test>::InvalidTeamMember
         );
     });
@@ -1142,7 +1166,7 @@ fn team_custody_set_proxy_call_before_governance_period_end_fails() {
         .build_and_execute(|| {
             run_to_block(GovernanceCustodyDuration::get() - 1);
             assert_noop!(
-                XXCustody::team_custody_set_proxy(Origin::signed(team_member), proxy,),
+                XXCustody::team_custody_set_proxy(RuntimeOrigin::signed(team_member), proxy,),
                 Error::<Test>::GovernanceCustodyActive
             );
         });
@@ -1157,12 +1181,12 @@ fn team_custody_set_proxy_call_after_governance_period() {
         .with_team_allocations(&[(team_member, 10)])
         .with_initial_balances(&[(team_member, 5)])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(team_member);
+            let info = XXCustody::team_accounts(team_member).unwrap();
 
             run_to_block(GovernanceCustodyDuration::get() + 1);
 
             assert_ok!(XXCustody::team_custody_set_proxy(
-                Origin::signed(team_member),
+                RuntimeOrigin::signed(team_member),
                 proxy,
             ),);
 
@@ -1186,11 +1210,11 @@ fn team_custody_set_proxy_call_after_governance_period_custody_fully_staked() {
         .with_initial_balances(&[(team_member, 5)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(team_member);
+            let info = XXCustody::team_accounts(team_member).unwrap();
 
             // fully stake the custody balance
             assert_ok!(XXCustody::custody_bond(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 custodian,                 // controller of the bond
                 custody_allocation         // amount to bond
@@ -1200,7 +1224,7 @@ fn team_custody_set_proxy_call_after_governance_period_custody_fully_staked() {
 
             assert_noop!(
                 XXCustody::team_custody_set_proxy(
-                    Origin::signed(team_member),
+                    RuntimeOrigin::signed(team_member),
                     proxy,
                 ),
                 pallet_balances::Error::<Test>::LiquidityRestrictions
@@ -1220,12 +1244,12 @@ fn team_custody_set_proxy_call_after_governance_period_with_existing_custodian_p
         .with_initial_balances(&[(team_member, 5)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(team_member);
+            let info = XXCustody::team_accounts(team_member).unwrap();
 
             // custody proxy set before custody governance period ends
 
             assert_ok!(XXCustody::custody_set_proxy(
-                Origin::signed(custodian), // called by custodian
+                RuntimeOrigin::signed(custodian), // called by custodian
                 info.custody,              // team member's custody account
                 proxy,                     // proxy
             ));
@@ -1235,7 +1259,7 @@ fn team_custody_set_proxy_call_after_governance_period_with_existing_custodian_p
             run_to_block(GovernanceCustodyDuration::get() + 1);
 
             assert_ok!(XXCustody::team_custody_set_proxy(
-                Origin::signed(team_member),
+                RuntimeOrigin::signed(team_member),
                 proxy,
             ),);
 
@@ -1256,12 +1280,12 @@ fn team_custody_set_proxy_call_after_governance_period_set_twice() {
         .with_initial_balances(&[(team_member, 5)])
         .with_custodians(&[custodian])
         .build_and_execute(|| {
-            let info = XXCustody::team_accounts(team_member);
+            let info = XXCustody::team_accounts(team_member).unwrap();
 
             run_to_block(GovernanceCustodyDuration::get() + 1);
 
             assert_ok!(XXCustody::team_custody_set_proxy(
-                Origin::signed(team_member),
+                RuntimeOrigin::signed(team_member),
                 proxy_1,
             ),);
 
@@ -1269,7 +1293,7 @@ fn team_custody_set_proxy_call_after_governance_period_set_twice() {
             assert_proxy(info.custody, proxy_1);
 
             assert_ok!(XXCustody::team_custody_set_proxy(
-                Origin::signed(team_member),
+                RuntimeOrigin::signed(team_member),
                 proxy_2,
             ),);
 
@@ -1282,8 +1306,8 @@ fn team_custody_set_proxy_call_after_governance_period_set_twice() {
 // admin functions  //
 //////////////////////
 
-fn admin_origin() -> mock::Origin {
-    Origin::root()
+fn admin_origin() -> mock::RuntimeOrigin {
+    RuntimeOrigin::root()
 }
 
 // add/remove custodian
@@ -1343,7 +1367,7 @@ fn replace_team_member() {
     .with_team_allocations(&[(team_member, 0)])
         .build_and_execute(|| {
 
-        let original_config = XXCustody::team_accounts(team_member);
+        let original_config = XXCustody::team_accounts(team_member).unwrap();
 
         assert!(<TeamAccounts<Test>>::contains_key(team_member),);
         assert!(!<TeamAccounts<Test>>::contains_key(replacement),);
@@ -1354,7 +1378,7 @@ fn replace_team_member() {
 
         assert!(!<TeamAccounts<Test>>::contains_key(team_member),);
         assert!(<TeamAccounts<Test>>::contains_key(replacement),);
-        assert_eq!(original_config, XXCustody::team_accounts(replacement));
+        assert_eq!(original_config, XXCustody::team_accounts(replacement).unwrap());
 
         assert_eq!(
             xx_team_custody_events(),
@@ -1383,17 +1407,15 @@ fn assert_proxy(account: AccountId, delegate: AccountId) {
     );
 }
 
-// accepts a slice of (account, allocation, initial_balance)
-fn assert_custody_ended(allocations: &[(AccountId, Balance, Balance)]) {
-    for (team_account, allocation, initial_balance) in allocations {
-        let info = XXCustody::team_accounts(team_account);
-
+// accepts a slice of (account, allocation, initial_balance, account, account)
+fn assert_custody_ended(allocations: &[(AccountId, Balance, Balance, AccountId, AccountId)]) {
+    for (team_account, allocation, initial_balance, custody, reserve) in allocations {
         // any bonding is removed
-        assert_eq!(Staking::bonded(info.custody), None);
+        assert_eq!(Staking::bonded(custody), None);
 
         // governance proxy was removed
         assert_eq!(
-            Proxy::proxies(info.custody),
+            Proxy::proxies(custody),
             (vec![].try_into().unwrap(), 0)
         );
 
@@ -1404,11 +1426,11 @@ fn assert_custody_ended(allocations: &[(AccountId, Balance, Balance)]) {
         );
         // All custody and reserve accounts are killed
         // custody account depleted and reaped
-        assert_eq!(Balances::total_balance(&info.custody), 0);
-        assert!(is_reaped(&info.custody));
+        assert_eq!(Balances::total_balance(&custody), 0);
+        assert!(is_reaped(&custody));
         // reserve account depleted and reaped
-        assert_eq!(Balances::total_balance(&info.reserve), 0);
-        assert!(is_reaped(&info.reserve));
+        assert_eq!(Balances::total_balance(&reserve), 0);
+        assert!(is_reaped(&reserve));
     }
 
     // total custody amount is zero

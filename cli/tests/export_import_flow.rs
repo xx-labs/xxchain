@@ -82,8 +82,8 @@ impl<'a> ExportImportRevertExecutor<'a> {
 		let sub_command_str = sub_command.to_string();
 		// Adding "--binary" if need be.
 		let arguments: Vec<&str> = match format_opt {
-			FormatOpt::Binary => vec![&sub_command_str, "--dev", "--pruning", "archive", "--binary", "-d"],
-			FormatOpt::Json => vec![&sub_command_str, "--dev", "--pruning", "archive", "-d"],
+			FormatOpt::Binary => vec![&sub_command_str, "--dev", "--binary", "-d"],
+			FormatOpt::Json => vec![&sub_command_str, "--dev", "-d"],
 		};
 
 		let tmp: TempDir;
@@ -166,7 +166,7 @@ impl<'a> ExportImportRevertExecutor<'a> {
 	/// Runs the `revert` command.
 	fn run_revert(&self) {
 		let output = Command::new(cargo_bin("xxnetwork-chain"))
-			.args(&["revert", "--dev", "--pruning", "archive", "-d"])
+			.args(&["revert", "--dev", "-d"])
 			.arg(&self.base_path.path())
 			.output()
 			.unwrap();
@@ -187,13 +187,13 @@ impl<'a> ExportImportRevertExecutor<'a> {
 	}
 }
 
-#[test]
-fn export_import_revert() {
+#[tokio::test]
+async fn export_import_revert() {
 	let base_path = tempdir().expect("could not create a temp dir");
 	let exported_blocks_file = base_path.path().join("exported_blocks");
 	let db_path = base_path.path().join("db");
 
-	common::run_dev_node_for_a_while(base_path.path());
+	common::run_node_for_a_while(base_path.path(), &["--dev", "--no-hardware-benchmarks"]).await;
 
 	let mut executor = ExportImportRevertExecutor::new(
 		&base_path,

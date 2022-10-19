@@ -10,13 +10,14 @@ use sp_runtime::{
     traits::{BlakeTwo256, IdentityLookup},
     Perbill,
 };
+use sp_std::convert::TryFrom;
 
 use crate::{self as bridge, Config};
 pub use pallet_balances as balances;
 
 parameter_types! {
     pub const BlockHashCount: u64 = 250;
-    pub const MaximumBlockWeight: Weight = 1024;
+    pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
     pub const MaximumBlockLength: u32 = 2 * 1024;
     pub const AvailableBlockRatio: Perbill = Perbill::one();
     pub const MaxLocks: u32 = 100;
@@ -24,8 +25,8 @@ parameter_types! {
 
 impl frame_system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
-    type Origin = Origin;
-    type Call = Call;
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeCall = RuntimeCall;
     type Index = u64;
     type BlockNumber = u64;
     type Hash = H256;
@@ -33,7 +34,7 @@ impl frame_system::Config for Test {
     type AccountId = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type DbWeight = ();
     type Version = ();
@@ -46,6 +47,7 @@ impl frame_system::Config for Test {
     type BlockLength = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -59,7 +61,7 @@ ord_parameter_types! {
 impl pallet_balances::Config for Test {
     type Balance = u64;
     type DustRemoval = ();
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type MaxLocks = MaxLocks;
@@ -77,16 +79,16 @@ parameter_types! {
 }
 
 impl Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
-    type Proposal = Call;
+    type Proposal = RuntimeCall;
     type ChainId = TestChainId;
     type ProposalLifetime = ProposalLifetime;
     type PalletId = ChainbridgePalletId;
 }
 
 pub type Block = sp_runtime::generic::Block<Header, UncheckedExtrinsic>;
-pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, Call, ()>;
+pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, RuntimeCall, ()>;
 
 frame_support::construct_runtime!(
     pub enum Test where
@@ -112,7 +114,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         .build_storage::<Test>()
         .unwrap();
     pallet_balances::GenesisConfig::<Test> {
-        balances: vec![(PALLET_ID.into_account(), ENDOWED_BALANCE)],
+        balances: vec![(PALLET_ID.into_account_truncating(), ENDOWED_BALANCE)],
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -129,16 +131,16 @@ pub fn new_test_ext_initialized(
     let mut t = new_test_ext();
     t.execute_with(|| {
         // Set and check threshold
-        assert_ok!(Bridge::set_threshold(Origin::root(), TEST_THRESHOLD));
+        assert_ok!(Bridge::set_threshold(RuntimeOrigin::root(), TEST_THRESHOLD));
         assert_eq!(Bridge::relayer_threshold(), TEST_THRESHOLD);
         // Add relayers
-        assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_A));
-        assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_B));
-        assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_C));
+        assert_ok!(Bridge::add_relayer(RuntimeOrigin::root(), RELAYER_A));
+        assert_ok!(Bridge::add_relayer(RuntimeOrigin::root(), RELAYER_B));
+        assert_ok!(Bridge::add_relayer(RuntimeOrigin::root(), RELAYER_C));
         // Whitelist chain
-        assert_ok!(Bridge::whitelist_chain(Origin::root(), src_id));
+        assert_ok!(Bridge::whitelist_chain(RuntimeOrigin::root(), src_id));
         // Set and check resource ID mapped to some junk data
-        assert_ok!(Bridge::set_resource(Origin::root(), r_id, resource));
+        assert_ok!(Bridge::set_resource(RuntimeOrigin::root(), r_id, resource));
         assert_eq!(Bridge::resource_exists(r_id), true);
     });
     t
@@ -146,8 +148,8 @@ pub fn new_test_ext_initialized(
 
 // Checks events against the latest. A contiguous set of events must be provided. They must
 // include the most recent event, but do not have to include every past event.
-pub fn assert_events(mut expected: Vec<Event>) {
-    let mut actual: Vec<Event> = system::Pallet::<Test>::events()
+pub fn assert_events(mut expected: Vec<RuntimeEvent>) {
+    let mut actual: Vec<RuntimeEvent> = system::Pallet::<Test>::events()
         .iter()
         .map(|e| e.event.clone())
         .collect();

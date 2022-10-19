@@ -4,11 +4,10 @@ use crate::*;
 use frame_support::{
     parameter_types,
     ord_parameter_types,
-    traits::{GenesisBuild, OnInitialize, Imbalance},
+    traits::{GenesisBuild, OnInitialize, Imbalance, WithdrawReasons},
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureSignedBy;
-use pallet_staking::EraIndex;
 use sp_runtime::{
     testing::{Header, TestXt, H256},
     traits::{IdentityLookup, ConvertInto},
@@ -51,7 +50,7 @@ parameter_types! {
         );
     pub const MaxLocks: u32 = 1024;
     pub static ExistentialDeposit: Balance = 1;
-    pub static SlashDeferDuration: EraIndex = 0;
+    pub static SlashDeferDuration: sp_staking::EraIndex = 0;
     pub static Period: BlockNumber = 5;
     pub static Offset: BlockNumber = 0;
 }
@@ -61,16 +60,16 @@ impl frame_system::Config for Test {
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
-    type Origin = Origin;
+    type RuntimeOrigin = RuntimeOrigin;
     type Index = AccountIndex;
     type BlockNumber = BlockNumber;
-    type Call = Call;
+    type RuntimeCall = RuntimeCall;
     type Hash = H256;
     type Hashing = ::sp_runtime::traits::BlakeTwo256;
     type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type Version = ();
     type PalletInfo = PalletInfo;
@@ -80,11 +79,12 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
     type Balance = Balance;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
@@ -95,14 +95,17 @@ impl pallet_balances::Config for Test {
 
 parameter_types! {
     pub const MinVestedTransfer: u64 = 0;
+    pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+        WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
 }
 
 impl pallet_vesting::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type BlockNumberToBalance = ConvertInto;
     type MinVestedTransfer = MinVestedTransfer;
     type WeightInfo = ();
+    type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
     const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
@@ -115,7 +118,7 @@ ord_parameter_types!{
 }
 
 impl claims::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type VestingSchedule = Vesting;
     type Prefix = Prefix;
     type MoveClaimOrigin = EnsureSignedBy<Six, AccountId>;
@@ -174,19 +177,19 @@ impl RewardMock {
 }
 
 impl xx_betanet_rewards::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type EnactmentBlock = BetanetStakingRewardsBlock;
     type Reward = RewardMock;
     type WeightInfo = ();
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
 where
-    Call: From<LocalCall>,
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -385,7 +388,7 @@ pub(crate) fn xx_betanet_rewards_events() -> Vec<xx_betanet_rewards::Event<Test>
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXBetanetRewards(inner) = e {
+            if let RuntimeEvent::XXBetanetRewards(inner) = e {
                 Some(inner)
             } else {
                 None

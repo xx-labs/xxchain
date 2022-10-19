@@ -26,7 +26,7 @@ pub type BalanceOf<T> =
 pub trait Config: frame_system::Config + pallet_proxy::Config + pallet_staking::Config {
 
     /// The Event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The currency mechanism.
     type Currency: Currency<Self::AccountId> + Inspect<Self::AccountId>;
@@ -51,7 +51,7 @@ pub trait Config: frame_system::Config + pallet_proxy::Config + pallet_staking::
     //----------------    ADMIN     ----------------//
 
     /// The admin origin for the pallet (Tech Committee unanimity).
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -61,7 +61,7 @@ decl_storage! {
     trait Store for Module<T: Config> as XXCustody {
         /// Keep track of team members'accounts custody info
         pub TeamAccounts get(fn team_accounts): map hasher(twox_64_concat)
-            T::AccountId => custody::CustodyInfo<T::AccountId, BalanceOf<T>>;
+            T::AccountId => Option<custody::CustodyInfo<T::AccountId, BalanceOf<T>>>;
 
         /// Keep track of custody accounts
         pub CustodyAccounts get(fn custody_accounts): map hasher(twox_64_concat)
@@ -135,7 +135,7 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
 
         type Error = Error<T>;
 
@@ -294,7 +294,7 @@ impl<T: Config> Module<T> {
     }
 
     /// Check if origin is admin
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
@@ -311,5 +311,14 @@ impl<T: Config> pallet_staking::CustodyHandler<T::AccountId, BalanceOf<T>> for M
 
     fn total_custody() -> BalanceOf<T> {
         Self::total_custody()
+    }
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
     }
 }

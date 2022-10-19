@@ -22,10 +22,10 @@
 
 use futures::prelude::*;
 use node_primitives::{AccountId, Block, Balance, Index};
-use sc_client_api::ExecutorProvider;
+use sc_client_api::BlockBackend;
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network::Event;
+use sc_network_common::{protocol::event::Event, service::NetworkEventStream};
 use sc_service::{
 	config::Configuration, error::Error as ServiceError, TaskManager,
 };
@@ -49,7 +49,7 @@ pub use canary_runtime::RuntimeApi as CanaryRuntimeApi;
 // Common types
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
-type FullClient<RuntimeApi, ExecutorDispatch> = sc_service::TFullClient<
+pub type FullClient<RuntimeApi, ExecutorDispatch> = sc_service::TFullClient<
 	Block,
 	RuntimeApi,
 	NativeElseWasmExecutor<ExecutorDispatch>
@@ -109,7 +109,7 @@ pub fn new_partial<RuntimeApi, ExecutorDispatch>(
 			impl Fn(
 				node_rpc::DenyUnsafe,
 				sc_rpc::SubscriptionTaskExecutor,
-			) -> Result<node_rpc::IoHandler, sc_service::Error>,
+			) -> Result<jsonrpsee::RpcModule<()>, sc_service::Error>,
 			(
 				sc_consensus_babe::BabeBlockImport<
 					Block,
@@ -146,11 +146,12 @@ where
 		config.wasm_method,
 		config.default_heap_pages,
 		config.max_runtime_instances,
+		config.runtime_cache_size,
 	);
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
-			&config,
+			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 		)?;
@@ -180,7 +181,7 @@ where
 	let justification_import = grandpa_block_import.clone();
 
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
-		sc_consensus_babe::Config::get_or_compute(&*client)?,
+		sc_consensus_babe::configuration(&*client)?,
 		grandpa_block_import,
 		client.clone(),
 	)?;
@@ -196,7 +197,7 @@ where
 				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 				let slot =
-					sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
+					sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
 						*timestamp,
 						slot_duration,
 					);
@@ -204,11 +205,10 @@ where
 				let uncles =
 					sp_authorship::InherentDataProvider::<<Block as BlockT>::Header>::check_inherents();
 
-				Ok((timestamp, slot, uncles))
+				Ok((slot, timestamp, uncles))
 		},
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
-		sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone()),
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
 
@@ -220,7 +220,7 @@ where
 		let justification_stream = grandpa_link.justification_stream();
 		let shared_authority_set = grandpa_link.shared_authority_set().clone();
 		let shared_voter_state = grandpa::SharedVoterState::empty();
-		let rpc_setup = shared_voter_state.clone();
+		let shared_voter_state2 = shared_voter_state.clone();
 
 		let finality_proof_provider = grandpa::FinalityProofProvider::new_for_service(
 			backend.clone(),
@@ -260,7 +260,7 @@ where
 			node_rpc::create_full(deps).map_err(Into::into)
 		};
 
-		(rpc_extensions_builder, rpc_setup)
+		(rpc_extensions_builder, shared_voter_state2)
 	};
 
 	Ok(sc_service::PartialComponents {
@@ -276,8 +276,10 @@ where
 }
 
 /// Creates a full service from the configuration for a given runtime and executor runtime.
-pub fn new_full_base<RuntimeApi, ExecutorDispatch>
-	(mut config: Configuration) -> Result<TaskManager, ServiceError>
+pub fn new_full_base<RuntimeApi, ExecutorDispatch>(
+	mut config: Configuration,
+	disable_hardware_benchmarks: bool,
+) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, ExecutorDispatch>>
 	+ Send
@@ -286,6 +288,15 @@ where
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	ExecutorDispatch: NativeExecutionDispatch + 'static,
 {
+	let hwbench = if !disable_hardware_benchmarks {
+		config.database.path().map(|database_path| {
+			let _ = std::fs::create_dir_all(&database_path);
+			sc_sysinfo::gather_hwbench(Some(database_path))
+		})
+	} else {
+		None
+	};
+
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -294,20 +305,27 @@ where
 		keystore_container,
 		select_chain,
 		transaction_pool,
-		other: (rpc_extensions_builder, import_setup, rpc_setup, mut telemetry),
+		other: (rpc_builder, import_setup, rpc_setup, mut telemetry),
 	} = new_partial::<RuntimeApi, ExecutorDispatch>(&config)?;
 
 	let shared_voter_state = rpc_setup;
 	let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
+	let grandpa_protocol_name = grandpa::protocol_standard_name(
+		&client.block_hash(0).ok().flatten().expect("Genesis block exists; qed"),
+		&config.chain_spec,
+	);
 
-	config.network.extra_sets.push(grandpa::grandpa_peers_set_config());
+	config
+		.network
+		.extra_sets
+		.push(grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone()));
 	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
 		Vec::default(),
 	));
 
-	let (network, system_rpc_tx, network_starter) =
+	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -341,12 +359,26 @@ where
 			client: client.clone(),
 			keystore: keystore_container.sync_keystore(),
 			network: network.clone(),
-			rpc_extensions_builder: Box::new(rpc_extensions_builder),
+			rpc_builder: Box::new(rpc_builder),
 			transaction_pool: transaction_pool.clone(),
 			task_manager: &mut task_manager,
 			system_rpc_tx,
+			tx_handler_controller,
 			telemetry: telemetry.as_mut(),
 		})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
 
 	let (block_import, grandpa_link, babe_link) = import_setup;
 
@@ -358,9 +390,6 @@ where
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
-
-		let can_author_with =
-			sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone());
 
 		let client_clone = client.clone();
 		let slot_duration = babe_link.config().slot_duration();
@@ -383,7 +412,7 @@ where
 					let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 					let slot =
-						sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
+						sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
 							*timestamp,
 							slot_duration,
 						);
@@ -394,13 +423,12 @@ where
 							&parent,
 						)?;
 
-					Ok((timestamp, slot, uncles, storage_proof))
+					Ok((slot, timestamp, uncles, storage_proof))
 				}
 			},
 			force_authoring,
 			backoff_authoring_blocks,
 			babe_link,
-			can_author_with,
 			block_proposal_slot_portion: SlotProportion::new(0.5),
 			max_block_proposal_slot_portion: None,
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
@@ -459,6 +487,7 @@ where
 		keystore,
 		local_role: role,
 		telemetry: telemetry.as_ref().map(|x| x.handle()),
+		protocol_name: grandpa_protocol_name,
 	};
 
 	if enable_grandpa {
@@ -494,15 +523,16 @@ where
 /// Builds a new service for a full client.
 pub fn new_full(
 	config: Configuration,
+	disable_hardware_benchmarks: bool,
 ) -> Result<TaskManager, ServiceError> {
 	#[cfg(feature = "canary")]
 	if config.chain_spec.is_canary() {
-		return new_full_base::<CanaryRuntimeApi, CanaryExecutorDispatch>(config)
+		return new_full_base::<CanaryRuntimeApi, CanaryExecutorDispatch>(config, disable_hardware_benchmarks)
 	}
 
 	#[cfg(feature = "xxnetwork")]
 	{
-		return new_full_base::<XXNetworkRuntimeApi, XXNetworkExecutorDispatch>(config)
+		return new_full_base::<XXNetworkRuntimeApi, XXNetworkExecutorDispatch>(config, disable_hardware_benchmarks)
 	}
 
 	#[cfg(not(feature = "xxnetwork"))]

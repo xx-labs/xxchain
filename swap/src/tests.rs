@@ -7,7 +7,7 @@ use super::mock::*;
 use super::*;
 
 
-use super::mock::Event;
+use super::mock::RuntimeEvent;
 
 use frame_support::dispatch::DispatchError;
 use frame_support::{assert_noop, assert_ok};
@@ -26,7 +26,7 @@ fn transfer_native_non_whitelisted_destination_chain_fails() {
         let amount: u64 = 1000;
         assert_noop!(
             Swap::transfer_native(
-                Origin::signed(ACCOUNT_A),
+                RuntimeOrigin::signed(ACCOUNT_A),
                 amount.clone(),
                 TEST_RECIPIENT_ADDR.to_vec(),
                 TEST_DESTINATION_CHAIN,
@@ -41,10 +41,10 @@ fn transfer_native_insufficient_balance_for_fee_and_amount_fails() {
     let amount: u64 = 1000;
     // preload account_a with one less than the amount plus swap fee
     new_test_ext(&[(ACCOUNT_A, amount + SWAP_FEE - 1)]).execute_with(|| {
-        assert_ok!(Bridge::whitelist_chain(Origin::root(), TEST_DESTINATION_CHAIN));
+        assert_ok!(Bridge::whitelist_chain(RuntimeOrigin::root(), TEST_DESTINATION_CHAIN));
         assert_noop!(
             Swap::transfer_native(
-                Origin::signed(ACCOUNT_A),
+                RuntimeOrigin::signed(ACCOUNT_A),
                 amount.clone(),
                 TEST_RECIPIENT_ADDR.to_vec(),
                 TEST_DESTINATION_CHAIN,
@@ -58,10 +58,10 @@ fn transfer_native_insufficient_balance_for_fee_and_amount_fails() {
 fn transfer_native_successful() {
     let amount: u64 = 1000;
     new_test_ext(&[(ACCOUNT_A, amount + SWAP_FEE), (FEE_DESTINATION, 0)]).execute_with(|| {
-        assert_ok!(Bridge::whitelist_chain(Origin::root(), TEST_DESTINATION_CHAIN));
+        assert_ok!(Bridge::whitelist_chain(RuntimeOrigin::root(), TEST_DESTINATION_CHAIN));
         assert_ok!(
             Swap::transfer_native(
-                Origin::signed(ACCOUNT_A),
+                RuntimeOrigin::signed(ACCOUNT_A),
                 amount.clone(),
                 TEST_RECIPIENT_ADDR.to_vec(),
                 TEST_DESTINATION_CHAIN,
@@ -92,7 +92,7 @@ fn transfer_fails_for_non_bridge_origin() {
         let amount: u64 = 1000;
         assert_noop!(
             Swap::transfer(
-                Origin::signed(ACCOUNT_A),
+                RuntimeOrigin::signed(ACCOUNT_A),
                 ACCOUNT_A,
                 amount,
             ),
@@ -107,7 +107,7 @@ fn transfer_successful_with_bridge_origin() {
     new_test_ext(&[(Bridge::account_id(), amount), (ACCOUNT_A, 0)]).execute_with(|| {
         assert_ok!(
             Swap::transfer(
-                Origin::signed(Bridge::account_id()),
+                RuntimeOrigin::signed(Bridge::account_id()),
                 ACCOUNT_A,
                 amount,
             )
@@ -128,7 +128,7 @@ fn set_swap_fee_fails_for_non_admin_origin() {
     new_test_ext(&[]).execute_with(|| {
         assert_noop!(
             Swap::set_swap_fee(
-                Origin::signed(ACCOUNT_A),
+                RuntimeOrigin::signed(ACCOUNT_A),
                 fee,
             ),
             DispatchError::BadOrigin
@@ -142,7 +142,7 @@ fn set_swap_fee_successful_with_admin_origin() {
     new_test_ext(&[]).execute_with(|| {
         assert_ok!(
             Swap::set_swap_fee(
-                Origin::root(), // in the mock the admin origin is root
+                RuntimeOrigin::root(), // in the mock the admin origin is root
                 fee,
             )
         );
@@ -163,7 +163,7 @@ fn set_fee_destination_fails_for_non_admin_origin() {
     new_test_ext(&[]).execute_with(|| {
         assert_noop!(
             Swap::set_fee_destination(
-                Origin::signed(ACCOUNT_A),
+                RuntimeOrigin::signed(ACCOUNT_A),
                 dest,
             ),
             DispatchError::BadOrigin
@@ -177,12 +177,12 @@ fn set_fee_destination_successful_with_admin_origin() {
     new_test_ext(&[]).execute_with(|| {
         assert_ok!(
             Swap::set_fee_destination(
-                Origin::root(), // in the mock the admin origin is root
+                RuntimeOrigin::root(), // in the mock the admin origin is root
                 dest,
             )
         );
         // amount transferred from bridge account to account A
-        assert_eq!(Swap::fee_destination(), dest);
+        assert_eq!(Swap::fee_destination().unwrap(), dest);
         // fee change event emitted
         expect_event(swap::RawEvent::FeeDestinationChanged(dest));
     })
@@ -205,18 +205,18 @@ fn sucessful_transfer_proposal() {
         let r_id = <Test as swap::Config>::NativeTokenId::get(); // resource ID
 
         // The proposal for execution that a relayer will submit. Calling transfer of amount to account A.
-        let proposal = super::mock::Call::Swap(swap::Call::transfer { to: ACCOUNT_A, amount: amount.into() });
+        let proposal = super::mock::RuntimeCall::Swap(swap::Call::transfer { to: ACCOUNT_A, amount: amount.into() });
 
-        assert_ok!(Bridge::set_threshold(Origin::root(), RELAYER_THRESHOLD,));
-        assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_A));
-        assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_B));
-        assert_ok!(Bridge::add_relayer(Origin::root(), RELAYER_C));
-        assert_ok!(Bridge::whitelist_chain(Origin::root(), TEST_DESTINATION_CHAIN));
-        assert_ok!(Bridge::set_resource(Origin::root(), r_id, b"xx coin".to_vec()));
+        assert_ok!(Bridge::set_threshold(RuntimeOrigin::root(), RELAYER_THRESHOLD,));
+        assert_ok!(Bridge::add_relayer(RuntimeOrigin::root(), RELAYER_A));
+        assert_ok!(Bridge::add_relayer(RuntimeOrigin::root(), RELAYER_B));
+        assert_ok!(Bridge::add_relayer(RuntimeOrigin::root(), RELAYER_C));
+        assert_ok!(Bridge::whitelist_chain(RuntimeOrigin::root(), TEST_DESTINATION_CHAIN));
+        assert_ok!(Bridge::set_resource(RuntimeOrigin::root(), r_id, b"xx coin".to_vec()));
 
         // Create proposal (& vote)
         assert_ok!(Bridge::acknowledge_proposal(
-            Origin::signed(RELAYER_A),
+            RuntimeOrigin::signed(RELAYER_A),
             prop_id,
             TEST_DESTINATION_CHAIN,
             r_id,
@@ -233,7 +233,7 @@ fn sucessful_transfer_proposal() {
 
         // Second relayer votes against
         assert_ok!(Bridge::reject_proposal(
-            Origin::signed(RELAYER_B),
+            RuntimeOrigin::signed(RELAYER_B),
             prop_id,
             TEST_DESTINATION_CHAIN,
             r_id,
@@ -250,7 +250,7 @@ fn sucessful_transfer_proposal() {
 
         // Third relayer votes in favour
         assert_ok!(Bridge::acknowledge_proposal(
-            Origin::signed(RELAYER_C),
+            RuntimeOrigin::signed(RELAYER_C),
             prop_id,
             TEST_DESTINATION_CHAIN,
             r_id,
@@ -273,16 +273,16 @@ fn sucessful_transfer_proposal() {
         );
 
         assert_events(vec![
-            Event::Bridge(bridge::RawEvent::VoteFor(TEST_DESTINATION_CHAIN, prop_id, RELAYER_A)),
-            Event::Bridge(bridge::RawEvent::VoteAgainst(TEST_DESTINATION_CHAIN, prop_id, RELAYER_B)),
-            Event::Bridge(bridge::RawEvent::VoteFor(TEST_DESTINATION_CHAIN, prop_id, RELAYER_C)),
-            Event::Bridge(bridge::RawEvent::ProposalApproved(TEST_DESTINATION_CHAIN, prop_id)),
-            Event::Balances(balances::Event::Transfer(
-                Bridge::account_id(),
-                ACCOUNT_A,
-                amount,
-            )),
-            Event::Bridge(bridge::RawEvent::ProposalSucceeded(TEST_DESTINATION_CHAIN, prop_id)),
+            RuntimeEvent::Bridge(bridge::RawEvent::VoteFor(TEST_DESTINATION_CHAIN, prop_id, RELAYER_A)),
+            RuntimeEvent::Bridge(bridge::RawEvent::VoteAgainst(TEST_DESTINATION_CHAIN, prop_id, RELAYER_B)),
+            RuntimeEvent::Bridge(bridge::RawEvent::VoteFor(TEST_DESTINATION_CHAIN, prop_id, RELAYER_C)),
+            RuntimeEvent::Bridge(bridge::RawEvent::ProposalApproved(TEST_DESTINATION_CHAIN, prop_id)),
+            RuntimeEvent::Balances(balances::Event::Transfer {
+                from: Bridge::account_id(),
+                to: ACCOUNT_A,
+                amount: amount,
+            }),
+            RuntimeEvent::Bridge(bridge::RawEvent::ProposalSucceeded(TEST_DESTINATION_CHAIN, prop_id)),
         ]);
     })
 }
@@ -309,7 +309,7 @@ fn config_sets_expected_storage_items() {
         threshold: 2,
         balance: initial_bridge_balance,
         swap_fee: SWAP_FEE,
-        fee_destination: FEE_DESTINATION,
+        fee_destination: Some(FEE_DESTINATION),
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -317,7 +317,7 @@ fn config_sets_expected_storage_items() {
     let mut ext = sp_io::TestExternalities::new(t);
     ext.execute_with(|| {
         assert_eq!(Swap::swap_fee(), SWAP_FEE);
-        assert_eq!(Swap::fee_destination(), FEE_DESTINATION);
+        assert_eq!(Swap::fee_destination().unwrap(), FEE_DESTINATION);
         assert_eq!(Balances::free_balance(Bridge::account_id()), initial_bridge_balance);
         assert!(Bridge::chain_whitelisted(TEST_DESTINATION_CHAIN));
         assert!(Bridge::is_relayer(&RELAYER_A));

@@ -5,10 +5,10 @@ use sp_std::prelude::*;
 
 use frame_support::{
     decl_error, decl_event, decl_module, decl_storage,
-    dispatch::DispatchResult,
+    dispatch::{DispatchResult, GetDispatchInfo, Pays},
     ensure,
     traits::{EnsureOrigin, Get},
-    weights::{GetDispatchInfo, Pays},
+    weights::{Weight},
     PalletId, Parameter,
 };
 
@@ -16,6 +16,7 @@ use frame_system::{self as system, ensure_root, ensure_signed};
 use sp_core::U256;
 use sp_runtime::traits::{AccountIdConversion, Dispatchable};
 use sp_runtime::RuntimeDebug;
+use sp_std::convert::TryInto;
 
 use codec::{Decode, Encode, EncodeLike};
 use scale_info::TypeInfo;
@@ -101,11 +102,11 @@ impl<AccountId, BlockNumber: Default> Default for ProposalVotes<AccountId, Block
 pub trait Config: system::Config {
     /// The ChainBridge's module id, used for deriving account ID
     type PalletId: Get<PalletId>;
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event<Self>> + Into<<Self as frame_system::Config>::RuntimeEvent>;
     /// Origin used to administer the pallet
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
     /// Proposed dispatchable call
-    type Proposal: Parameter + Dispatchable<Origin = Self::Origin> + EncodeLike + GetDispatchInfo;
+    type Proposal: Parameter + Dispatchable<RuntimeOrigin = Self::RuntimeOrigin> + EncodeLike + GetDispatchInfo;
     /// The identifier for this chain.
     /// This must be unique and must not collide with existing IDs within a set of bridged chains.
     type ChainId: Get<ChainId>;
@@ -206,7 +207,7 @@ decl_storage! {
 }
 
 decl_module! {
-    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+    pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
         type Error = Error<T>;
 
         const ChainIdentity: ChainId = T::ChainId::get();
@@ -296,7 +297,7 @@ decl_module! {
         /// # <weight>
         /// - weight of proposed call, regardless of whether execution is performed
         /// # </weight>
-        #[weight = (call.get_dispatch_info().weight + 195_000_000, call.get_dispatch_info().class, Pays::Yes)]
+        #[weight = (call.get_dispatch_info().weight + Weight::from_ref_time(195_000_000), call.get_dispatch_info().class, Pays::Yes)]
         pub fn acknowledge_proposal(origin, nonce: DepositNonce, src_id: ChainId, r_id: ResourceId, call: Box<<T as Config>::Proposal>) -> DispatchResult {
             let who = ensure_signed(origin)?;
             ensure!(Self::is_relayer(&who), Error::<T>::MustBeRelayer);
@@ -329,7 +330,7 @@ decl_module! {
         /// # <weight>
         /// - weight of proposed call, regardless of whether execution is performed
         /// # </weight>
-        #[weight = (prop.get_dispatch_info().weight + 195_000_000, prop.get_dispatch_info().class, Pays::Yes)]
+        #[weight = (prop.get_dispatch_info().weight + Weight::from_ref_time(195_000_000), prop.get_dispatch_info().class, Pays::Yes)]
         pub fn eval_vote_state(origin, nonce: DepositNonce, src_id: ChainId, prop: Box<<T as Config>::Proposal>) -> DispatchResult {
             ensure_signed(origin)?;
 
@@ -341,7 +342,7 @@ decl_module! {
 impl<T: Config> Module<T> {
     // *** Utility methods ***
 
-    pub fn ensure_admin(o: T::Origin) -> DispatchResult {
+    pub fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         T::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
@@ -356,7 +357,7 @@ impl<T: Config> Module<T> {
     /// Provides an AccountId for the pallet.
     /// This is used both as an origin check and deposit/withdrawal account.
     pub fn account_id() -> T::AccountId {
-        T::PalletId::get().into_account()
+        T::PalletId::get().into_account_truncating()
     }
 
     /// Asserts if a resource is registered
@@ -608,13 +609,13 @@ impl<T: Config> Module<T> {
 
 /// Simple ensure origin for the bridge account
 pub struct EnsureBridge<T>(sp_std::marker::PhantomData<T>);
-impl<T: Config> EnsureOrigin<T::Origin> for EnsureBridge<T> {
+impl<T: Config> EnsureOrigin<T::RuntimeOrigin> for EnsureBridge<T> {
     type Success = T::AccountId;
-    fn try_origin(o: T::Origin) -> Result<Self::Success, T::Origin> {
+    fn try_origin(o: T::RuntimeOrigin) -> Result<Self::Success, T::RuntimeOrigin> {
         let bridge_id = <Module<T>>::account_id();
         o.into().and_then(|o| match o {
             frame_system::RawOrigin::Signed(who) if who == bridge_id => Ok(bridge_id),
-            r => Err(T::Origin::from(r)),
+            r => Err(T::RuntimeOrigin::from(r)),
         })
     }
 
@@ -622,10 +623,19 @@ impl<T: Config> EnsureOrigin<T::Origin> for EnsureBridge<T> {
     ///
     /// ** Should be used for benchmarking only!!! **
     #[cfg(feature = "runtime-benchmarks")]
-    fn successful_origin() -> T::Origin {
-        T::Origin::from(
+    fn successful_origin() -> T::RuntimeOrigin {
+        T::RuntimeOrigin::from(
             frame_system::RawOrigin::Signed(<Module<T>>::account_id())
         )
     }
 
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
+    }
 }

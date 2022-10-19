@@ -1,24 +1,24 @@
 #!/bin/bash
 
+make build-bench
+
 mkdir -p weights
 
 echo "Running xx network Runtime benchmarks"
 
-./xxnetwork-chain benchmark \
-    --chain "xxnetwork-dev" \
+./target/production/xxnetwork-chain benchmark pallet \
+    --chain "dev" \
     --list |\
   tail -n+2 |\
   cut -d',' -f1 |\
-  uniq |\
-  grep -v frame_benchmarking |\
-  grep -v pallet_offences > "xxnetwork_pallets"
+  uniq > "xxnetwork_pallets"
 
 # For each pallet found in the previous command, run benches on each function
 while read -r line; do
   pallet="$(echo "$line" | cut -d' ' -f1)";
   echo "Runtime: xxnetwork. Pallet: $pallet";
-./xxnetwork-chain benchmark \
-  --chain="xxnetwork-dev" \
+./target/production/xxnetwork-chain benchmark pallet \
+  --chain="dev" \
   --steps=50 \
   --repeat=20 \
   --pallet="$pallet" \

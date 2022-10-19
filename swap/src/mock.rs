@@ -19,7 +19,7 @@ pub use pallet_balances as balances;
 
 parameter_types! {
     pub const BlockHashCount: u64 = 250;
-    pub const MaximumBlockWeight: Weight = 1024;
+    pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
     pub const MaximumBlockLength: u32 = 2 * 1024;
     pub const AvailableBlockRatio: Perbill = Perbill::one();
     pub const MaxLocks: u32 = 100;
@@ -27,8 +27,8 @@ parameter_types! {
 
 impl frame_system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
-    type Origin = Origin;
-    type Call = Call;
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeCall = RuntimeCall;
     type Index = u64;
     type BlockNumber = u64;
     type Hash = H256;
@@ -36,7 +36,7 @@ impl frame_system::Config for Test {
     type AccountId = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type DbWeight = ();
     type Version = ();
@@ -49,6 +49,7 @@ impl frame_system::Config for Test {
     type BlockLength = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -58,7 +59,7 @@ parameter_types! {
 impl pallet_balances::Config for Test {
     type Balance = u64;
     type DustRemoval = ();
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
     type MaxLocks = MaxLocks;
@@ -76,9 +77,9 @@ parameter_types! {
 }
 
 impl bridge::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
-    type Proposal = Call;
+    type Proposal = RuntimeCall;
     type ChainId = TestChainId;
     type ProposalLifetime = ProposalLifetime;
     type PalletId = ChainbridgePalletId;
@@ -89,7 +90,7 @@ parameter_types! {
 }
 
 impl Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BridgeOrigin = bridge::EnsureBridge<Test>;
     type AdminOrigin = bridge::EnsureBridge<Test>;
     type Currency = Balances;
@@ -98,7 +99,7 @@ impl Config for Test {
 }
 
 pub type Block = sp_runtime::generic::Block<Header, UncheckedExtrinsic>;
-pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, Call, ()>;
+pub type UncheckedExtrinsic = sp_runtime::generic::UncheckedExtrinsic<u32, u64, RuntimeCall, ()>;
 
 pub type AccountId = <Test as frame_system::Config>::AccountId;
 pub type Balance = <Test as balances::Config>::Balance;
@@ -139,7 +140,7 @@ pub fn new_test_ext(initial_balances: &[(AccountId, Balance)]) -> sp_io::TestExt
         threshold: 2,
         balance: 0,
         swap_fee: SWAP_FEE,
-        fee_destination: FEE_DESTINATION,
+        fee_destination: Some(FEE_DESTINATION),
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -155,22 +156,22 @@ pub fn new_test_ext(initial_balances: &[(AccountId, Balance)]) -> sp_io::TestExt
     ext
 }
 
-fn last_event() -> Event {
+fn last_event() -> RuntimeEvent {
     system::Pallet::<Test>::events()
         .pop()
         .map(|e| e.event)
         .expect("Event expected")
 }
 
-pub fn expect_event<E: Into<Event>>(e: E) {
+pub fn expect_event<E: Into<RuntimeEvent>>(e: E) {
     assert_eq!(last_event(), e.into());
 }
 
 
 // Checks events against the latest. A contiguous set of events must be provided. They must
 // include the most recent event, but do not have to include every past event.
-pub fn assert_events(mut expected: Vec<Event>) {
-    let mut actual: Vec<Event> = system::Pallet::<Test>::events()
+pub fn assert_events(mut expected: Vec<RuntimeEvent>) {
+    let mut actual: Vec<RuntimeEvent> = system::Pallet::<Test>::events()
         .iter()
         .map(|e| e.event.clone())
         .collect();

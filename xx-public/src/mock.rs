@@ -4,7 +4,7 @@ use crate::*;
 use frame_support::{
     parameter_types,
     ord_parameter_types,
-    traits::GenesisBuild,
+    traits::{GenesisBuild, ConstU32, WithdrawReasons},
     weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureSignedBy;
@@ -51,16 +51,16 @@ impl frame_system::Config for Test {
     type BlockWeights = ();
     type BlockLength = ();
     type DbWeight = RocksDbWeight;
-    type Origin = Origin;
+    type RuntimeOrigin = RuntimeOrigin;
     type Index = AccountIndex;
     type BlockNumber = BlockNumber;
-    type Call = Call;
+    type RuntimeCall = RuntimeCall;
     type Hash = H256;
     type Hashing = ::sp_runtime::traits::BlakeTwo256;
     type AccountId = AccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type BlockHashCount = BlockHashCount;
     type Version = ();
     type PalletInfo = PalletInfo;
@@ -70,11 +70,12 @@ impl frame_system::Config for Test {
     type SystemWeightInfo = ();
     type SS58Prefix = ();
     type OnSetCode = ();
+    type MaxConsumers = ConstU32<16>;
 }
 impl pallet_balances::Config for Test {
     type MaxLocks = MaxLocks;
     type Balance = Balance;
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
@@ -85,14 +86,17 @@ impl pallet_balances::Config for Test {
 
 parameter_types! {
     pub const MinVestedTransfer: u64 = 0;
+    pub UnvestedFundsAllowedWithdrawReasons: WithdrawReasons =
+        WithdrawReasons::except(WithdrawReasons::TRANSFER | WithdrawReasons::RESERVE);
 }
 
 impl pallet_vesting::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type BlockNumberToBalance = ConvertInto;
     type MinVestedTransfer = MinVestedTransfer;
     type WeightInfo = ();
+    type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
     const MAX_VESTING_SCHEDULES: u32 = 2;
 }
 
@@ -108,7 +112,7 @@ ord_parameter_types! {
 pub type TestAdminOrigin = EnsureSignedBy<AdminAccount, AccountId>;
 
 impl xx_public::Config for Test {
-    type Event = Event;
+    type RuntimeEvent = RuntimeEvent;
     type VestingSchedule = Vesting;
     type TestnetId = TestnetId;
     type SaleId = SaleId;
@@ -117,13 +121,13 @@ impl xx_public::Config for Test {
     type WeightInfo = ();
 }
 
-pub type Extrinsic = TestXt<Call, ()>;
+pub type Extrinsic = TestXt<RuntimeCall, ()>;
 
 impl<LocalCall> frame_system::offchain::SendTransactionTypes<LocalCall> for Test
-    where
-        Call: From<LocalCall>,
+where
+    RuntimeCall: From<LocalCall>,
 {
-    type OverarchingCall = Call;
+    type OverarchingCall = RuntimeCall;
     type Extrinsic = Extrinsic;
 }
 
@@ -186,8 +190,8 @@ impl ExtBuilder {
         }
 
         xx_public::GenesisConfig::<Test> {
-            testnet_manager: 42u64,
-            sale_manager: 43u64,
+            testnet_manager: Some(42u64),
+            sale_manager: Some(43u64),
             testnet_balance: self.testnet_balance,
             sale_balance: self.sale_balance,
         }.assimilate_storage(&mut storage).unwrap();
@@ -218,7 +222,7 @@ pub(crate) fn xx_public_events() -> Vec<xx_public::Event> {
         .into_iter()
         .map(|r| r.event)
         .filter_map(|e| {
-            if let Event::XXPublic(inner) = e {
+            if let RuntimeEvent::XXPublic(inner) = e {
                 Some(inner)
             } else {
                 None

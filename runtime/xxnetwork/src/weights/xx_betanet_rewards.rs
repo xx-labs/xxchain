@@ -31,13 +31,13 @@ pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> xx_betanet_rewards::WeightInfo for WeightInfo<T> {
 	// Storage: XXBetanetRewards Accounts (r:1 w:1)
 	fn select_option() -> Weight {
-		(22_071_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(22_071_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXBetanetRewards Approved (r:0 w:1)
 	fn approve() -> Weight {
-		(15_409_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(15_409_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 }

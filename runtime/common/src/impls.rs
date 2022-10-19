@@ -28,7 +28,7 @@ where
 	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 	<R as frame_system::Config>::AccountId: From<node_primitives::AccountId>,
 	<R as frame_system::Config>::AccountId: Into<node_primitives::AccountId>,
-	<R as frame_system::Config>::Event: From<pallet_balances::Event<R>>,
+	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item=NegativeImbalance<R>>) {
 		if let Some(fees) = fees_then_tips.next() {
@@ -39,7 +39,9 @@ where
 				tips.merge_into(&mut split.1);
 			}
 			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(split.0);
-			<pallet_balances::Pallet<R>>::resolve_creating(&<pallet_authorship::Pallet<R>>::author(), split.1);
+			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+				<pallet_balances::Pallet<R>>::resolve_creating(&author, split.1);
+			}
 		}
 	}
 }

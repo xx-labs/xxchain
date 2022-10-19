@@ -16,8 +16,7 @@ use frame_support::traits::{
 };
 use frame_support::{
     decl_event, decl_module, decl_error, decl_storage, ensure,
-    PalletId, dispatch::DispatchResult,
-    weights::{DispatchClass, Pays},
+    PalletId, dispatch::{DispatchResult, DispatchClass, Pays},
 };
 use sp_runtime::{
     traits::{Zero, AccountIdConversion}, RuntimeDebug
@@ -48,8 +47,8 @@ pub trait PublicAccountsHandler<AccountId> {
 
 pub trait Config: frame_system::Config {
     /// The Event type.
-    type Event: From<Event>
-        + Into<<Self as frame_system::Config>::Event>;
+    type RuntimeEvent: From<Event>
+        + Into<<Self as frame_system::Config>::RuntimeEvent>;
 
     /// The Vesting mechanism.
     type VestingSchedule: VestingSchedule<Self::AccountId, Moment=Self::BlockNumber>;
@@ -61,7 +60,7 @@ pub trait Config: frame_system::Config {
     type SaleId: Get<PalletId>;
 
     /// The admin origin for the pallet
-    type AdminOrigin: EnsureOrigin<Self::Origin>;
+    type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
     /// Weight information for extrinsics in this pallet.
     type WeightInfo: WeightInfo;
@@ -70,14 +69,23 @@ pub trait Config: frame_system::Config {
 decl_storage! {
     trait Store for Module<T: Config> as XXSale {
         /// Testnet Manager account
-        pub TestnetManager get(fn testnet_manager) config(): T::AccountId;
+        pub TestnetManager get(fn testnet_manager): Option<T::AccountId>;
         /// Sale Manager account
-        pub SaleManager get(fn sale_manager) config(): T::AccountId;
+        pub SaleManager get(fn sale_manager): Option<T::AccountId>;
     }
 	add_extra_genesis {
+        config(testnet_manager): Option<T::AccountId>;
 	    config(testnet_balance): BalanceOf<T>;
+        config(sale_manager): Option<T::AccountId>;
 	    config(sale_balance): BalanceOf<T>;
 		build(|config| {
+            // Set managers
+            if let Some(manager) = &config.testnet_manager {
+                <TestnetManager<T>>::put(manager);
+            }
+            if let Some(manager) = &config.sale_manager {
+                <SaleManager<T>>::put(manager);
+            }
 		    // Create Testnet account and set balance from genesis
 		    let testnet_account_id = <Module<T>>::testnet_account_id();
             let _ = <CurrencyOf<T>>::make_free_balance_be(&testnet_account_id, config.testnet_balance);
@@ -110,9 +118,9 @@ decl_error! {
 }
 
 decl_module! {
-	pub struct Module<T: Config> for enum Call where origin: T::Origin {
-	    const TestnetAccount: T::AccountId = T::TestnetId::get().into_account();
-	    const SaleAccount: T::AccountId = T::SaleId::get().into_account();
+	pub struct Module<T: Config> for enum Call where origin: T::RuntimeOrigin {
+	    const TestnetAccount: T::AccountId = T::TestnetId::get().into_account_truncating();
+	    const SaleAccount: T::AccountId = T::SaleId::get().into_account_truncating();
 
 	    fn deposit_event() = default;
 
@@ -182,16 +190,16 @@ decl_module! {
 impl<T: Config> Module<T> {
     /// Get the Testnet AccountId
     pub fn testnet_account_id() -> T::AccountId {
-        T::TestnetId::get().into_account()
+        T::TestnetId::get().into_account_truncating()
     }
 
     /// Get the Sale AccountId
     pub fn sale_account_id() -> T::AccountId {
-        T::SaleId::get().into_account()
+        T::SaleId::get().into_account_truncating()
     }
 
     /// Check if origin is admin
-    fn ensure_admin(o: T::Origin) -> DispatchResult {
+    fn ensure_admin(o: T::RuntimeOrigin) -> DispatchResult {
         <T as Config>::AdminOrigin::try_origin(o)
             .map(|_| ())
             .or_else(ensure_root)?;
@@ -200,12 +208,20 @@ impl<T: Config> Module<T> {
 
     /// Check if given account is the testnet manager
     fn is_testnet_manager(who: T::AccountId) -> bool {
-        who == <TestnetManager<T>>::get()
+        if let Some(manager) = <TestnetManager<T>>::get() {
+            who == manager
+        } else {
+            false
+        }
     }
 
     /// Check if given account is the sale manager
     fn is_sale_manager(who: T::AccountId) -> bool {
-        who == <SaleManager<T>>::get()
+        if let Some(manager) = <SaleManager<T>>::get() {
+            who == manager
+        } else {
+            false
+        }
     }
 
     /// Do a testnet distribution
@@ -270,5 +286,14 @@ impl<T: Config> PublicAccountsHandler<T::AccountId> for Module<T> {
         let testnet_account = Self::testnet_account_id();
         let sale_account = Self::sale_account_id();
         vec![testnet_account, sale_account]
+    }
+}
+
+// Manual implementation of WhitelistedStorageKeys for runtime benchmarks
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: Config> frame_support::traits::WhitelistedStorageKeys for Module<T> {
+    fn whitelisted_storage_keys() -> frame_support::sp_std::vec::Vec<frame_benchmarking::TrackedStorageKey> {
+        use frame_support::sp_std::vec;
+        vec![]
     }
 }

@@ -80,24 +80,17 @@ impl<TBlock: Block> PrettyPrinter<TBlock> for DebugPrinter {
 }
 
 /// Aggregated error for `Inspector` operations.
-#[derive(Debug, derive_more::From, derive_more::Display)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
 	/// Could not decode Block or Extrinsic.
-	Codec(codec::Error),
+	#[error(transparent)]
+	Codec(#[from] codec::Error),
 	/// Error accessing blockchain DB.
-	Blockchain(sp_blockchain::Error),
+	#[error(transparent)]
+	Blockchain(#[from] sp_blockchain::Error),
 	/// Given block has not been found.
+	#[error("{0}")]
 	NotFound(String),
-}
-
-impl std::error::Error for Error {
-	fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-		match *self {
-			Self::Codec(ref e) => Some(e),
-			Self::Blockchain(ref e) => Some(e),
-			Self::NotFound(_) => None,
-		}
-	}
 }
 
 /// A helper trait to access block headers and bodies.
@@ -310,20 +303,16 @@ mod tests {
 		let b2 = ExtrinsicAddress::from_str("0 0");
 		let b3 = ExtrinsicAddress::from_str("0x0012345f");
 
-
-		assert_eq!(e0, Err("Extrinsic index missing: example \"5:0\"".into()));
-		assert_eq!(b0, Ok(ExtrinsicAddress::Block(
-			BlockAddress::Hash("3BfC20f0B9aFcAcE800D73D2191166FF16540258".parse().unwrap()),
-			5
-		)));
-		assert_eq!(b1, Ok(ExtrinsicAddress::Block(
-			BlockAddress::Number(1234),
-			0
-		)));
-		assert_eq!(b2, Ok(ExtrinsicAddress::Block(
-			BlockAddress::Number(0),
-			0
-		)));
+		assert_eq!(e0, Ok(ExtrinsicAddress::Bytes(vec![0x12, 0x34])));
+		assert_eq!(
+			b0,
+			Ok(ExtrinsicAddress::Block(
+				BlockAddress::Hash("3BfC20f0B9aFcAcE800D73D2191166FF16540258".parse().unwrap()),
+				5
+			))
+		);
+		assert_eq!(b1, Ok(ExtrinsicAddress::Block(BlockAddress::Number(1234), 0)));
+		assert_eq!(b2, Ok(ExtrinsicAddress::Bytes(vec![0, 0])));
 		assert_eq!(b3, Ok(ExtrinsicAddress::Bytes(vec![0, 0x12, 0x34, 0x5f])));
 	}
 }

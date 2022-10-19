@@ -63,9 +63,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: XXCustody TotalCustody (r:1 w:1)
 	// Storage: XXCustody TeamAccounts (r:1 w:1)
 	fn payout() -> Weight {
-		(127_699_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(127_699_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Storage: Staking HistoryDepth (r:1 w:0)
@@ -76,9 +76,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: XXCustody CustodyAccounts (r:1 w:0)
 	// Storage: Balances Locks (r:1 w:1)
 	fn custody_bond() -> Weight {
-		(94_786_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(94_786_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(8 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	// Storage: Balances Locks (r:1 w:1)
 	// Storage: XXCustody Custodians (r:1 w:0)
@@ -87,51 +87,51 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Staking Ledger (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	fn custody_bond_extra() -> Weight {
-		(77_928_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(77_928_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	// Storage: Staking Bonded (r:1 w:1)
 	// Storage: XXCustody Custodians (r:1 w:0)
 	// Storage: Staking Ledger (r:2 w:2)
 	// Storage: XXCustody CustodyAccounts (r:1 w:0)
 	fn custody_set_controller() -> Weight {
-		(45_799_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(45_799_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Storage: Proxy Proxies (r:1 w:1)
 	// Storage: XXCustody CustodyAccounts (r:1 w:0)
 	// Storage: XXCustody Custodians (r:1 w:0)
 	fn custody_set_proxy() -> Weight {
-		(54_788_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(54_788_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: Proxy Proxies (r:1 w:1)
 	// Storage: System Account (r:2 w:2)
 	// Storage: XXCustody TeamAccounts (r:1 w:1)
 	fn team_custody_set_proxy() -> Weight {
-		(89_382_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(89_382_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	// Storage: XXCustody Custodians (r:0 w:1)
 	fn add_custodian() -> Weight {
-		(20_959_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(20_959_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXCustody Custodians (r:0 w:1)
 	fn remove_custodian() -> Weight {
-		(21_083_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(21_083_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXCustody TeamAccounts (r:2 w:2)
 	fn replace_team_member() -> Weight {
-		(36_760_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(36_760_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 }
 
@@ -141,9 +141,9 @@ impl WeightInfo for () {
 	// Storage: XXCustody TotalCustody (r:1 w:1)
 	// Storage: XXCustody TeamAccounts (r:1 w:1)
 	fn payout() -> Weight {
-		(127_699_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(127_699_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(5 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Storage: Staking HistoryDepth (r:1 w:0)
@@ -154,9 +154,9 @@ impl WeightInfo for () {
 	// Storage: XXCustody CustodyAccounts (r:1 w:0)
 	// Storage: Balances Locks (r:1 w:1)
 	fn custody_bond() -> Weight {
-		(94_786_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(94_786_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(8 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	// Storage: Balances Locks (r:1 w:1)
 	// Storage: XXCustody Custodians (r:1 w:0)
@@ -165,50 +165,50 @@ impl WeightInfo for () {
 	// Storage: Staking Ledger (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	fn custody_bond_extra() -> Weight {
-		(77_928_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(77_928_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 	}
 	// Storage: Staking Bonded (r:1 w:1)
 	// Storage: XXCustody Custodians (r:1 w:0)
 	// Storage: Staking Ledger (r:2 w:2)
 	// Storage: XXCustody CustodyAccounts (r:1 w:0)
 	fn custody_set_controller() -> Weight {
-		(45_799_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(45_799_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Storage: Proxy Proxies (r:1 w:1)
 	// Storage: XXCustody CustodyAccounts (r:1 w:0)
 	// Storage: XXCustody Custodians (r:1 w:0)
 	fn custody_set_proxy() -> Weight {
-		(54_788_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(54_788_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	// Storage: Proxy Proxies (r:1 w:1)
 	// Storage: System Account (r:2 w:2)
 	// Storage: XXCustody TeamAccounts (r:1 w:1)
 	fn team_custody_set_proxy() -> Weight {
-		(89_382_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(89_382_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	// Storage: XXCustody Custodians (r:0 w:1)
 	fn add_custodian() -> Weight {
-		(20_959_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(20_959_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXCustody Custodians (r:0 w:1)
 	fn remove_custodian() -> Weight {
-		(21_083_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(21_083_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: XXCustody TeamAccounts (r:2 w:2)
 	fn replace_team_member() -> Weight {
-		(36_760_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(36_760_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(2 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 }

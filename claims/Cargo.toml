@@ -5,25 +5,25 @@ authors = ["Parity Technologies <admin@parity.io>", "xxlabs <admin@xx.network>"]
 edition = "2021"
 
 [dependencies]
-parity-scale-codec = { version = "2.2.0", default-features = false, features = [
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [
     "derive",
     "max-encoded-len",
 ] }
-scale-info = { version = "1.0", default-features = false, features = ["derive"] }
-log = { version = "0.4.13", default-features = false }
+scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
+log = { version = "0.4.17", default-features = false }
 serde = { version = "1.0.126", default-features = false }
 rustc-hex = { version = "2.1.0", default-features = false }
 
-sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
-pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
-pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 
-frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", default-features = false, optional = true }
+frame-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, optional = true }
 
 libsecp256k1 = { version = "0.7.0", default-features = false }
 
@@ -31,7 +31,7 @@ libsecp256k1 = { version = "0.7.0", default-features = false }
 [dev-dependencies]
 hex-literal = "0.3.4"
 serde_json = "1.0.69"
-sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 libsecp256k1 = "0.7.0"
 
 [features]
@@ -51,15 +51,17 @@ std = [
 	"pallet-vesting/std",
 	"frame-system/std",
 	"libsecp256k1/std",
+	"frame-benchmarking?/std",
 ]
 runtime-benchmarks = [
     "libsecp256k1/hmac",
     "libsecp256k1/static-context",
-	"frame-benchmarking",
+	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 ]
 try-runtime = [
+	"frame-support/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-vesting/try-runtime",
 ]

@@ -200,7 +200,7 @@ pub fn canary_testnet_genesis(
 		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, canary::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
-			let limit = (runtime_common::MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let limit = (runtime_common::MaxNominations::get() as usize).min(initial_authorities.len());
 			let count = rng.gen::<usize>() % limit;
 			let nominations = initial_authorities
 				.as_slice()
@@ -278,7 +278,7 @@ pub fn canary_testnet_genesis(
 		vesting: Default::default(),
 		swap: canary::SwapConfig {
 			swap_fee: 1 * UNITS,
-			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			fee_destination: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			resources: vec![
@@ -294,7 +294,7 @@ pub fn canary_testnet_genesis(
 			admin_permission: 0,
 			cmix_address_space: 18,
 			cmix_hashes: Default::default(),
-			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			scheduling_account: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
 			cmix_variables: Default::default(),
 		},
 		xx_economics: canary::XXEconomicsConfig {
@@ -333,6 +333,7 @@ pub fn canary_development_config() -> CanaryChainSpec {
 		ChainType::Development,
 		canary_development_config_genesis,
 		vec![],
+		None,
 		None,
 		None,
 		None,
@@ -385,7 +386,7 @@ pub fn xxnetwork_testnet_genesis(
 		.map(|(i, x)| (x.0.clone(), x.1.clone(), STASH, xxnetwork::StakerStatus::Validator(Some(Hash::repeat_byte(i as u8)))))
 		.chain(initial_nominators.iter().map(|x| {
 			use rand::{seq::SliceRandom, Rng};
-			let limit = (runtime_common::MAX_NOMINATIONS as usize).min(initial_authorities.len());
+			let limit = (runtime_common::MaxNominations::get() as usize).min(initial_authorities.len());
 			let count = rng.gen::<usize>() % limit;
 			let nominations = initial_authorities
 				.as_slice()
@@ -465,7 +466,7 @@ pub fn xxnetwork_testnet_genesis(
 		claims: Default::default(),
 		swap: xxnetwork::SwapConfig {
 			swap_fee: 1 * UNITS,
-			fee_destination: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			fee_destination: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
 			chains: vec![1],
 			relayers: vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			resources: vec![
@@ -481,7 +482,7 @@ pub fn xxnetwork_testnet_genesis(
 			admin_permission: 0,
 			cmix_address_space: 18,
 			cmix_hashes: Default::default(),
-			scheduling_account: get_account_id_from_seed::<sr25519::Public>("Alice"),
+			scheduling_account: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
 			cmix_variables: Default::default(),
 		},
 		xx_economics: xxnetwork::XXEconomicsConfig {
@@ -509,8 +510,8 @@ pub fn xxnetwork_testnet_genesis(
 			]
 		},
 		xx_public: xxnetwork::XXPublicConfig {
-			testnet_manager: get_account_id_from_seed::<sr25519::Public>("Alice"),
-			sale_manager: get_account_id_from_seed::<sr25519::Public>("Bob"),
+			testnet_manager: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
+			sale_manager: Some(get_account_id_from_seed::<sr25519::Public>("Bob")),
 			testnet_balance: 1000000 * UNITS,
 			sale_balance: 1000000 * UNITS,
 		},
@@ -538,6 +539,7 @@ pub fn xxnetwork_development_config() -> XXNetworkChainSpec {
 		ChainType::Development,
 		xxnetwork_development_config_genesis,
 		vec![],
+		None,
 		None,
 		None,
 		None,
