@@ -122,6 +122,8 @@ decl_module! {
 	    const TestnetAccount: T::AccountId = T::TestnetId::get().into_account_truncating();
 	    const SaleAccount: T::AccountId = T::SaleId::get().into_account_truncating();
 
+        type Error = Error<T>;
+
 	    fn deposit_event() = default;
 
         //----------------     ADMIN     ----------------//
