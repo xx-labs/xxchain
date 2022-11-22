@@ -126,7 +126,7 @@ soketto = "0.7.1"
 criterion = { version = "0.3.5", features = ["async_tokio"] }
 tokio = { version = "1.17.0", features = ["macros", "time", "parking_lot"] }
 wait-timeout = "0.2"
-remote-externalities = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+substrate-rpc-client = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 [build-dependencies]
 clap = { version = "4.0.9", optional = true }
