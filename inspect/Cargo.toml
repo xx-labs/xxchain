@@ -10,7 +10,7 @@ repository = "https://github.com/xx-labs/xxchain/"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-clap = { version = "3.1.6", features = ["derive"] }
+clap = { version = "4.0.9", features = ["derive"] }
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 thiserror = "1.0"
 sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
