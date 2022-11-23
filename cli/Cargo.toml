@@ -1,6 +1,6 @@
 [package]
 name = "xxnetwork-cli"
-version = "0.2.5-1"
+version = "0.2.5-2"
 authors = ["xxlabs <admin@xx.network>"]
 description = "Substrate based, xxnetwork blockchain node implementation in Rust."
 build = "build.rs"

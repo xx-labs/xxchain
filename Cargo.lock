@@ -10008,7 +10008,7 @@ dependencies = [
 
 [[package]]
 name = "xxnetwork-cli"
-version = "0.2.5-1"
+version = "0.2.5-2"
 dependencies = [
  "assert_cmd",
  "async-std",
