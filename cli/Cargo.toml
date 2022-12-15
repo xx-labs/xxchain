@@ -162,7 +162,7 @@ runtime-benchmarks = [
 try-runtime = [
 	"xxnetwork-runtime/try-runtime",
 	"canary-runtime/try-runtime",
-	"try-runtime-cli",
+	"try-runtime-cli/try-runtime",
 ]
 
 xxnetwork = ["xxnetwork-runtime", "node-executor/xxnetwork"]

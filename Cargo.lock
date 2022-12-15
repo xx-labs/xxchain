@@ -9089,6 +9089,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/xx-labs/substrate?branch=dev/xx-network#4cc9bedcfbf0140869b51dbb06ee9972f9409f34"
 dependencies = [
  "clap 4.0.26",
+ "frame-try-runtime",
  "log",
  "parity-scale-codec",
  "remote-externalities",
