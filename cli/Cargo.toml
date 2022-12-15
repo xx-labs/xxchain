@@ -8,6 +8,7 @@ edition = "2021"
 default-run = "xxnetwork-chain"
 homepage = "https://xx.network"
 repository = "https://github.com/xx-labs/xxchain/"
+publish = false
 
 [package.metadata.wasm-pack.profile.release]
 # `wasm-opt` has some problems on linux, see
@@ -30,7 +31,7 @@ crate-type = ["cdylib", "rlib"]
 clap = { version = "4.0.9", features = ["derive"], optional = true }
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 serde = { version = "1.0.136", features = ["derive"] }
-jsonrpsee = { version = "0.15.1", features = ["server"] }
+jsonrpsee = { version = "0.16.2", features = ["server"] }
 futures = "0.3.21"
 hex-literal = "0.3.4"
 log = "0.4.17"
@@ -98,12 +99,6 @@ node-inspect = { version = "0.2.0", optional = true, path = "../inspect" }
 try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
 serde_json = "1.0.79"
 
-[target.'cfg(any(target_arch="x86_64", target_arch="aarch64"))'.dependencies]
-node-executor = { version = "0.2.0", path = "../executor", features = [ "wasmtime" ] }
-sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true, features = [ "wasmtime" ] }
-sc-service = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, features = [ "wasmtime" ] }
-sp-trie = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, features = ["memory-tracker"] }
-
 [dev-dependencies]
 sc-keystore = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-client-db = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
@@ -119,12 +114,12 @@ tempfile = "3.1.0"
 assert_cmd = "2.0.2"
 nix = "0.23"
 serde_json = "1.0"
-regex = "1.5.5"
+regex = "1.6.0"
 platforms = "2.0"
-async-std = { version = "1.11.0", features = ["attributes"] }
 soketto = "0.7.1"
 criterion = { version = "0.3.5", features = ["async_tokio"] }
-tokio = { version = "1.17.0", features = ["macros", "time", "parking_lot"] }
+tokio = { version = "1.22.0", features = ["macros", "time", "parking_lot"] }
+tokio-util = { version = "0.7.4", features = ["compat"] }
 wait-timeout = "0.2"
 substrate-rpc-client = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
@@ -155,7 +150,7 @@ cli = [
 runtime-benchmarks = [
 	"xxnetwork-runtime/runtime-benchmarks",
 	"canary-runtime/runtime-benchmarks",
-	"frame-benchmarking-cli",
+	"frame-benchmarking-cli/runtime-benchmarks",
 ]
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
