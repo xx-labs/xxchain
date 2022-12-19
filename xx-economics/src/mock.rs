@@ -27,7 +27,7 @@ use frame_support::{
     traits::{
         OnUnbalanced,
     },
-    weights::constants::RocksDbWeight,
+    weights::{Weight, constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND}},
 };
 use frame_system::{EnsureSignedBy};
 use sp_runtime::{
@@ -63,7 +63,7 @@ parameter_types! {
     pub const BlockHashCount: u64 = 250;
     pub BlockWeights: frame_system::limits::BlockWeights =
         frame_system::limits::BlockWeights::simple_max(
-            frame_support::weights::constants::WEIGHT_PER_SECOND * 2
+            Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2))
         );
     pub const MaxLocks: u32 = 1024;
     pub static ExistentialDeposit: Balance = 1;

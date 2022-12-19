@@ -21,7 +21,7 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	weights::{constants::ExtrinsicBaseWeight, WeightToFee},
 };
-use sp_runtime::{Perbill, traits::One};
+use sp_runtime::{traits::One};
 use xxnetwork_runtime::{
 	CheckedExtrinsic, RuntimeCall, Runtime, Balances, TransactionPayment, Multiplier,
 };
@@ -57,10 +57,6 @@ fn fee_multiplier_increases_and_decreases_on_big_weight() {
 			CheckedExtrinsic {
 				signed: None,
 				function: RuntimeCall::Timestamp(pallet_timestamp::Call::set { now: time1 }),
-			},
-			CheckedExtrinsic {
-				signed: Some((charlie(), signed_extra(0, 0))),
-				function: RuntimeCall::System(frame_system::Call::fill_block { ratio: Perbill::from_percent(60) }),
 			}
 		],
 		(time1 / SLOT_DURATION).into(),
