@@ -55,6 +55,7 @@ sp-transaction-storage-proof = { git = "https://github.com/xx-labs/substrate", b
 sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-offchain = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-session = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 
 # client dependencies
 sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
