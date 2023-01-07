@@ -28,7 +28,7 @@ use frame_support::{
         Currency, FindAuthor, Get, Imbalance, OnFinalize, OnInitialize, OnUnbalanced,
         OneSessionHandler, GenesisBuild, ConstU32,
     },
-    weights::constants::RocksDbWeight,
+    weights::{Weight, constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND}},
 };
 use frame_system::EnsureRoot;
 use pallet_staking::{ConvertCurve, Exposure, ExposureOf, StashOf, StakerStatus};
@@ -113,7 +113,7 @@ parameter_types! {
     pub const BlockHashCount: u64 = 250;
     pub BlockWeights: frame_system::limits::BlockWeights =
         frame_system::limits::BlockWeights::simple_max(
-            frame_support::weights::constants::WEIGHT_PER_SECOND * 2
+            Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2))
         );
     pub const MaxLocks: u32 = 1024;
     pub static SessionsPerEra: SessionIndex = 3;
@@ -257,6 +257,9 @@ impl onchain::Config for OnChainSeqPhragmen {
 	type Solver = SequentialPhragmen<AccountId, Perbill>;
 	type DataProvider = Staking;
 	type WeightInfo = ();
+    type MaxWinners = ConstU32<100>;
+	type VotersBound = ConstU32<{ u32::MAX }>;
+	type TargetsBound = ConstU32<{ u32::MAX }>;
 }
 
 impl pallet_staking::Config for Test {
@@ -277,7 +280,7 @@ impl pallet_staking::Config for Test {
     type EraPayout = ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
-    type ElectionProvider = onchain::UnboundedExecution<OnChainSeqPhragmen>;
+    type ElectionProvider = onchain::OnChainExecution<OnChainSeqPhragmen>;
     type WeightInfo = ();
     type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type CmixHandler = xx_cmix::Module<Test>; // connect up the staking and xx pallets

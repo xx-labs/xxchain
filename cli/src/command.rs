@@ -318,6 +318,7 @@ pub fn run() -> Result<()> {
 		},
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
+			use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
 			let runner = cli.create_runner(cmd)?;
 			#[cfg(feature = "canary")]
 			{
@@ -332,7 +333,13 @@ pub fn run() -> Result<()> {
 							registry,
 						).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
-						Ok((cmd.run::<chain_spec::canary::Block, service::CanaryExecutorDispatch>(config), task_manager))
+						Ok((
+							cmd.run::<chain_spec::canary::Block, ExtendedHostFunctions<
+								sp_io::SubstrateHostFunctions,
+								<service::CanaryExecutorDispatch as NativeExecutionDispatch>::ExtendHostFunctions,
+							>>(),
+							task_manager,
+						))
 					})
 				};
 				#[cfg(not(feature = "xxnetwork"))]
@@ -349,7 +356,13 @@ pub fn run() -> Result<()> {
 						registry,
 					).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
-					Ok((cmd.run::<chain_spec::xxnetwork::Block, service::XXNetworkExecutorDispatch>(config), task_manager))
+					Ok((
+						cmd.run::<chain_spec::xxnetwork::Block, ExtendedHostFunctions<
+							sp_io::SubstrateHostFunctions,
+							<service::XXNetworkExecutorDispatch as NativeExecutionDispatch>::ExtendHostFunctions,
+						>>(),
+						task_manager,
+					))
 				})
 			}
 		},

@@ -23,7 +23,7 @@ xxnetwork-runtime = { version = "0.2.6", path = "../runtime/xxnetwork" }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
-sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network", features = ["wasmtime"] }
+sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
 substrate-test-client = { git = "https://github.com/xx-labs/substrate", branch = "xx-network" }
