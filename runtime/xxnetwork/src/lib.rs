@@ -1177,6 +1177,7 @@ pub type Executive = frame_executive::Executive<
 		SchedulerMigrationV2ToV4,
 		pallet_democracy::migrations::v1::Migration<Runtime>,
 		pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
+		pallet_election_provider_multi_phase::migrations::v1::MigrateToV1<Runtime>,
 	),
 >;
 
