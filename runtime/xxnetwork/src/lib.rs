@@ -519,7 +519,6 @@ impl pallet_staking::Config for Runtime {
 	type CurrencyToVote = U128CurrencyToVote;
 	type CmixHandler = XXCmix;
 	type CustodyHandler = XXCustody;
-	type AdminOrigin = EnsureTechnicalUnanimity;
 	type RewardRemainder = xx_economics::rewards::RewardRemainderAdapter<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Slash = Treasury; // send the slashed funds to the treasury.
@@ -528,7 +527,7 @@ impl pallet_staking::Config for Runtime {
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
 	/// A super-majority of the council can cancel the slash.
-	type SlashCancelOrigin = EitherOfDiverse<
+	type AdminOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>
 	>;
@@ -1029,6 +1028,7 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = StringLimit;
 	type Freezer = ();
 	type Extra = ();
+	type CallbackHandle = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 	type RemoveItemsLimit = ConstU32<1000>;
 	#[cfg(feature = "runtime-benchmarks")]
@@ -1165,21 +1165,24 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(
-		pallet_staking::migrations::v10::MigrateFromV7dot5ToV10<Runtime>,
-		pallet_staking::migrations::v11::MigrateToV11<
-			Runtime,
-			VoterList,
-			StakingMigrationV11OldPallet,
-		>,
-		pallet_staking::migrations::v12::MigrateToV12<Runtime>,
-		pallet_preimage::migration::v1::Migration<Runtime>,
-		SchedulerMigrationV2ToV4,
-		pallet_democracy::migrations::v1::Migration<Runtime>,
-		pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
-		pallet_election_provider_multi_phase::migrations::v1::MigrateToV1<Runtime>,
-	),
+	Migrations,
 >;
+
+pub type Migrations = (
+	pallet_staking::migrations::v10::MigrateFromV7dot5ToV10<Runtime>,
+	pallet_staking::migrations::v11::MigrateToV11<
+		Runtime,
+		VoterList,
+		StakingMigrationV11OldPallet,
+	>,
+	pallet_staking::migrations::v12::MigrateToV12<Runtime>,
+	pallet_staking::migrations::v13::MigrateToV13<Runtime>,
+	pallet_preimage::migration::v1::Migration<Runtime>,
+	SchedulerMigrationV2ToV4,
+	pallet_democracy::migrations::v1::Migration<Runtime>,
+	pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
+	pallet_election_provider_multi_phase::migrations::v1::MigrateToV1<Runtime>,
+);
 
 pub struct StakingMigrationV11OldPallet;
 impl Get<&'static str> for StakingMigrationV11OldPallet {
@@ -1422,7 +1425,7 @@ impl_runtime_apis! {
 
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
-		fn on_runtime_upgrade(checks: bool) -> (frame_support::weights::Weight, frame_support::weights::Weight) {
+		fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (frame_support::weights::Weight, frame_support::weights::Weight) {
 			// NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
 			// have a backtrace here. If any of the pre/post migration checks fail, we shall stop
 			// right here and right now.
