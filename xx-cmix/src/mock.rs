@@ -274,7 +274,7 @@ impl pallet_staking::Config for Test {
     type Reward = ();
     type SessionsPerEra = SessionsPerEra;
     type SlashDeferDuration = SlashDeferDuration;
-    type SlashCancelOrigin = frame_system::EnsureRoot<Self::AccountId>;
+    type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type BondingDuration = BondingDuration;
     type SessionInterface = Self;
     type EraPayout = ConvertCurve<RewardCurve>;
@@ -282,7 +282,6 @@ impl pallet_staking::Config for Test {
     type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
     type ElectionProvider = onchain::OnChainExecution<OnChainSeqPhragmen>;
     type WeightInfo = ();
-    type AdminOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type CmixHandler = xx_cmix::Module<Test>; // connect up the staking and xx pallets
     type CustodyHandler = CustodyHandlerMock;
     type GenesisElectionProvider = Self::ElectionProvider;
