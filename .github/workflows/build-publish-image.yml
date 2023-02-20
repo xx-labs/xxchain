@@ -1,4 +1,3 @@
-# This is an example GitHub action that will build and publish a Docker image to DockerHub, then automatically update OnFinality's network spec
 # You need to add the following secrets to your GitHub Repository or Organization to make this work
 # - DOCKER_USERNAME: The username of the DockerHub account. E.g. parity
 # - DOCKER_TOKEN: Access token for DockerHub, see https://docs.docker.com/docker-hub/access-tokens/. E.g. VVVVVVVV-WWWW-XXXXXX-YYYY-ZZZZZZZZZ
@@ -6,29 +5,19 @@
 # - ONF_ACCESS_KEY: The unique access key to OnFinality
 # - ONF_SECRET_KEY: A secret access key to OnFinality
 # - ONF_WORKSPACE_ID: The workspace ID of your OnFinality workspace, you can retrieve this from your workspace settings. E.g. 6683212593101979648
-# - ONF_NETWORK_KEY: The network ID of your OnFinality workspace, you can retrieve this from the URL when viewing the network. E.g. f987705c-fe75-4069-99b4-77d62c4fe58k
+# - ONF_NETWORK_KEY: The network ID of your OnFinality workspace, you can retrieve this from the URL when viewing the network. E.g  f987705c-fe75-4069-99b4-77d62c4fe58k
 
 name: Build & Publish Docker Image
 
 # Controls when the action will run.
 on:
-    # Triggers the workflow on push events but only for the main branch
-    push:
-        tags:
-            - "*"
+    # Triggers the workflow on events but only for release published tags
+    release:
+        types:
+            - published
 
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
-        inputs:
-            logLevel:
-                description: "Log level"
-                required: false
-                default: "warning"
-                type: choice
-                options:
-                    - info
-                    - warning
-                    - debug
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -60,7 +49,7 @@ jobs:
               with:
                   context: .
                   push: true
-                  tags: xxnetwork/chain:${{ steps.rev.outputs.value }}, xxnetwork/chain:latest
+                  tags: xxnetwork/chain:v${{ github.event.release.tag_name }}, xxnetwork/chain:latest
 
             - name: Update image version of the existing network spec
               uses: "OnFinality-io/action-onf-release@v1"
@@ -74,4 +63,18 @@ jobs:
                   # Add a new image version to network spec
                   onf-sub-command: image
                   onf-action: add
-                  image-version: ${{ steps.rev.outputs.value }}
+                  image-version: v${{ github.event.release.tag_name }}
+
+            - name: Update image version of public network spec
+              uses: "OnFinality-io/action-onf-release@v1"
+              with:
+                  # These keys should be in your GitHub secrets
+                  # https://documentation.onfinality.io/support/onfinality-cli-tool-and-access-keys
+                  onf-access-key: ${{ secrets.ONF_ACCESS_KEY }}
+                  onf-secret-key: ${{ secrets.ONF_SECRET_KEY }}
+                  onf-workspace-id: ${{ secrets.ONF_WORKSPACE_ID }}
+                  onf-network-key: ${{ secrets.ONF_NETWORK_KEY_PUBLIC }}
+                  # Add a new image version to network spec
+                  onf-sub-command: image
+                  onf-action: add
+                  image-version: v${{ github.event.release.tag_name }}
