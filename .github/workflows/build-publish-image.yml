@@ -31,10 +31,6 @@ on:
                     - warning
                     - debug
 
-# Set an environment variable (that can be overriden) for the Docker Repo
-env:
-    DOCKER_REPO: xxnetwork/chain
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
     build:
@@ -65,7 +61,7 @@ jobs:
               with:
                   context: .
                   push: true
-                  tags: ${{ env.DOCKER_REPO }}:${{ steps.rev.outputs.value }}, ${{ env.DOCKER_REPO }}:latest
+                  tags: ${{ secrets.DOCKER_REPO }}:${{ steps.rev.outputs.value }}, ${{ secrets.DOCKER_REPO }}:latest
 
             - name: Update image version of the existing network spec
               uses: "OnFinality-io/action-onf-release@v1"
