@@ -2,7 +2,6 @@
 # You need to add the following secrets to your GitHub Repository or Organization to make this work
 # - DOCKER_USERNAME: The username of the DockerHub account. E.g. parity
 # - DOCKER_TOKEN: Access token for DockerHub, see https://docs.docker.com/docker-hub/access-tokens/. E.g. VVVVVVVV-WWWW-XXXXXX-YYYY-ZZZZZZZZZ
-# - DOCKER_REPO: The unique name of the DockerHub repository. E.g. parity/polkadot
 # OnFinality access credential instructions https://documentation.onfinality.io/support/onfinality-cli-tool-and-access-keys
 # - ONF_ACCESS_KEY: The unique access key to OnFinality
 # - ONF_SECRET_KEY: A secret access key to OnFinality
@@ -61,7 +60,7 @@ jobs:
               with:
                   context: .
                   push: true
-                  tags: ${{ secrets.DOCKER_REPO }}:${{ steps.rev.outputs.value }}, ${{ secrets.DOCKER_REPO }}:latest
+                  tags: xxnetwork/chain:${{ steps.rev.outputs.value }}, xxnetwork/chain:latest
 
             - name: Update image version of the existing network spec
               uses: "OnFinality-io/action-onf-release@v1"
