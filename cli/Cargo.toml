@@ -45,7 +45,6 @@ sp-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-networ
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-authorship = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
@@ -67,7 +66,6 @@ sc-network = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-ne
 sc-network-common = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-consensus-slots = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus-uncles = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sc-finality-grandpa" }
 sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-basic-authorship = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
