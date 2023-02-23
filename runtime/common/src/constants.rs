@@ -44,7 +44,7 @@ macro_rules! prod_or_fast {
 pub mod currency {
 	use node_primitives::Balance;
 
-	pub const UNITS: Balance = 1_000_000_000;    // 1_000_000_000
+	pub const UNITS: Balance = 1_000_000_000_000_000_000;    // 1_000_000_000
 	pub const CENTS: Balance = UNITS / 100;      //    10_000_000
 	pub const MILLICENTS: Balance = CENTS / 1_000; //        10_000
 

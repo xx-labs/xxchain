@@ -32,3 +32,12 @@ sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "de
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-transaction-pool-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 substrate-frame-rpc-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+
+# EVM support
+sc-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-network = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+fc-db = { git = "https://github.com/AstarNetwork/frontier", branch = "polkadot-v0.9.37" }
+fc-rpc = { git = "https://github.com/AstarNetwork/frontier", branch = "polkadot-v0.9.37", features = ["rpc-binary-search-estimate"] }
+fc-rpc-core = { git = "https://github.com/AstarNetwork/frontier", branch = "polkadot-v0.9.37" }
+fp-rpc = { git = "https://github.com/AstarNetwork/frontier", branch = "polkadot-v0.9.37" }
+fp-storage = { git = "https://github.com/AstarNetwork/frontier", branch = "polkadot-v0.9.37" }

@@ -404,6 +404,12 @@ pub fn xxnetwork_testnet_genesis(
 	const STASH: Balance = ENDOWMENT / 1000;
 	const TEAM_ALLOCATION: Balance = 10_000_000 * UNITS;
 
+    // This is supposed the be the simplest bytecode to revert without returning any data.
+    // We will pre-deploy it under all of our precompiles to ensure they can be called from
+    // within contracts.
+    // (PUSH1 0x00 PUSH1 0x00 REVERT)
+    let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
+
 	xxnetwork::GenesisConfig {
 		system: xxnetwork::SystemConfig {
 			code: xxnetwork::wasm_binary_unwrap().to_vec(),
@@ -516,6 +522,29 @@ pub fn xxnetwork_testnet_genesis(
 			sale_balance: 1000000 * UNITS,
 		},
 		assets: Default::default(),
+		// EVM Support
+		evm: xxnetwork::EVMConfig {
+            // We need _some_ code inserted at the precompile address so that
+            // the evm will actually call the address.
+            accounts: xxnetwork::Precompiles::used_addresses()
+                .map(|addr| {
+                    (
+                        addr,
+                        fp_evm::GenesisAccount {
+                            nonce: Default::default(),
+                            balance: Default::default(),
+                            storage: Default::default(),
+                            code: revert_bytecode.clone(),
+                        },
+                    )
+                })
+                .collect(),
+        },
+        ethereum: Default::default(),
+        base_fee: xxnetwork::BaseFeeConfig::new(
+            sp_core::U256::from(1_000_000_000u64),
+            sp_runtime::Permill::zero(),
+        ),
 	}
 }
 
@@ -533,6 +562,10 @@ fn xxnetwork_development_config_genesis() -> xxnetwork::GenesisConfig {
 /// `xxnetwork` development config (single validator Alice)
 #[cfg(feature = "xxnetwork")]
 pub fn xxnetwork_development_config() -> XXNetworkChainSpec {
+	let mut properties = serde_json::map::Map::new();
+	properties.insert("ss58Format".into(), "55".into());
+    properties.insert("tokenSymbol".into(), "xx".into());
+    properties.insert("tokenDecimals".into(), 18.into());
 	XXNetworkChainSpec::from_genesis(
 		"xx network Development",
 		"xxnetwork_dev",
@@ -542,7 +575,7 @@ pub fn xxnetwork_development_config() -> XXNetworkChainSpec {
 		None,
 		None,
 		None,
-		None,
+		Some(properties),
 		Default::default(),
 	)
 }
