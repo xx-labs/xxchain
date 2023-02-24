@@ -1167,6 +1167,10 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
+parameter_types! {
+	pub const InactiveAccounts: Vec<AccountId> = Vec::new();
+}
+
 pub type Migrations = (
 	pallet_staking::migrations::v10::MigrateFromV7dot5ToV10<Runtime>,
 	pallet_staking::migrations::v11::MigrateToV11<
@@ -1181,6 +1185,13 @@ pub type Migrations = (
 	pallet_democracy::migrations::v1::Migration<Runtime>,
 	pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
 	pallet_election_provider_multi_phase::migrations::v1::MigrateToV1<Runtime>,
+	pallet_assets::migration::v1::MigrateToV1<Runtime>,
+	pallet_balances::migration::MigrateManyToTrackInactive<Runtime, InactiveAccounts>,
+	// Remove stale entries in the set id -> session index storage map (after
+	// this release they will be properly pruned after the bonding duration has
+	// elapsed)
+	pallet_grandpa::migrations::CleanupSetIdSessionMap<Runtime>,
+	UniquesMigration,
 );
 
 pub struct StakingMigrationV11OldPallet;
@@ -1196,6 +1207,15 @@ pub struct SchedulerMigrationV2ToV4;
 impl OnRuntimeUpgrade for SchedulerMigrationV2ToV4 {
 	fn on_runtime_upgrade() -> Weight {
 		Scheduler::migrate_v2_to_v4()
+	}
+}
+
+// Uniques pallet migration
+pub struct UniquesMigration;
+
+impl OnRuntimeUpgrade for UniquesMigration {
+	fn on_runtime_upgrade() -> Weight {
+		pallet_uniques::migration::migrate_to_v1::<Runtime, (), Uniques>()
 	}
 }
 
