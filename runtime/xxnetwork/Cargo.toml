@@ -70,7 +70,6 @@ pallet-membership = { git = "https://github.com/xx-labs/substrate", branch = "de
 pallet-offences = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 pallet-offences-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, optional = true }
 pallet-proxy = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
-pallet-randomness-collective-flip = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
 pallet-session = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", features = ["historical"], default-features = false }
 pallet-session-benchmarking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false, optional = true }
 pallet-staking = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
@@ -140,7 +139,6 @@ std = [
 	"pallet-offences-benchmarking?/std",
 	"pallet-proxy/std",
 	"sp-core/std",
-	"pallet-randomness-collective-flip/std",
 	"sp-std/std",
 	"pallet-session/std",
 	"pallet-session-benchmarking?/std",
@@ -253,7 +251,6 @@ try-runtime = [
 	"pallet-offences/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-proxy/try-runtime",
-	"pallet-randomness-collective-flip/try-runtime",
 	"pallet-recovery/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-staking/try-runtime",

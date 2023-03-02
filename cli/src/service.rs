@@ -25,7 +25,7 @@ use node_primitives::{AccountId, Block, Balance, Index};
 use sc_client_api::BlockBackend;
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network_common::{protocol::event::Event, service::NetworkEventStream};
+use sc_network_common::{protocol::event::Event, service::NetworkEventStream, sync::warp::WarpSyncParams};
 use sc_service::{
 	config::Configuration, error::Error as ServiceError, TaskManager,
 };
@@ -330,7 +330,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync: Some(warp_sync),
+			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
 		})?;
 
 	if config.offchain_worker.enabled {
