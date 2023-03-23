@@ -25,7 +25,8 @@ use node_primitives::{AccountId, Block, Balance, Index};
 use sc_client_api::BlockBackend;
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network_common::{protocol::event::Event, service::NetworkEventStream, sync::warp::WarpSyncParams};
+use sc_network::{event::Event, NetworkEventStream};
+use sc_network_common::sync::warp::WarpSyncParams;
 use sc_service::{
 	config::Configuration, error::Error as ServiceError, TaskManager,
 };
@@ -322,7 +323,7 @@ where
 		Vec::default(),
 	));
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
+	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -361,6 +362,7 @@ where
 			task_manager: &mut task_manager,
 			system_rpc_tx,
 			tx_handler_controller,
+			sync_service: sync_service.clone(),
 			telemetry: telemetry.as_mut(),
 		})?;
 
@@ -396,8 +398,8 @@ where
 			select_chain,
 			env: proposer,
 			block_import,
-			sync_oracle: network.clone(),
-			justification_sync_link: network.clone(),
+			sync_oracle: sync_service.clone(),
+			justification_sync_link: sync_service.clone(),
 			create_inherent_data_providers: move |parent, ()| {
 				let client_clone = client_clone.clone();
 				async move {
@@ -493,6 +495,7 @@ where
 			config,
 			link: grandpa_link,
 			network: network.clone(),
+			sync: Arc::new(sync_service),
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 			voting_rule: grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry,
