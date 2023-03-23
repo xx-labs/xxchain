@@ -40,7 +40,7 @@ rand = "0.8"
 # primitives
 sp-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-grandpa-primitives = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sp-finality-grandpa" }
+grandpa-primitives = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sp-consensus-grandpa" }
 sp-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
@@ -66,7 +66,7 @@ sc-network = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-ne
 sc-network-common = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-consensus-slots = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sc-finality-grandpa" }
+grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sc-consensus-grandpa" }
 sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-basic-authorship = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-service = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }

@@ -18,8 +18,8 @@ sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "de
 sc-consensus-babe-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-consensus-epochs = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-chain-spec = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-finality-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-finality-grandpa-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-consensus-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-consensus-grandpa-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-rpc-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
 sc-sync-state-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
