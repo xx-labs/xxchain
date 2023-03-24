@@ -33,12 +33,12 @@ use frame_support::{
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 };
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureRoot, EnsureSigned, EnsureRootWithSuccess, EnsureWithSuccess};
 use frame_support::{
 	traits::{
 	ConstU32,
 	InstanceFilter, Contains,
-	EitherOfDiverse, AsEnsureOriginWithArg,
+	EitherOf, EitherOfDiverse, AsEnsureOriginWithArg,
 }, PalletId};
 use codec::{Encode, Decode, MaxEncodedLen};
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
@@ -741,6 +741,11 @@ impl pallet_membership::Config<pallet_membership::Instance1> for Runtime {
 	type WeightInfo = pallet_membership::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const RootSpendOriginMaxAmount: Balance = Balance::MAX;
+	pub const CouncilSpendOriginMaxAmount: Balance = Balance::MAX;
+}
+
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
 	type ApproveOrigin = EnsureRootOrSixtyCouncil;
@@ -757,7 +762,14 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = Bounties;
 	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<u128>;
+	type SpendOrigin = EitherOf<
+		EnsureRootWithSuccess<AccountId, RootSpendOriginMaxAmount>,
+		EnsureWithSuccess<
+			pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
+			AccountId,
+			CouncilSpendOriginMaxAmount,
+		>,
+	>;
 }
 
 impl pallet_bounties::Config for Runtime {
