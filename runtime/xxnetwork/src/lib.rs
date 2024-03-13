@@ -37,7 +37,7 @@ use frame_system::{EnsureRoot, EnsureSigned, EnsureRootWithSuccess, EnsureWithSu
 use frame_support::{
 	traits::{
 	ConstU32,
-	InstanceFilter, Contains,
+	InstanceFilter, Everything,
 	EitherOf, EitherOfDiverse, AsEnsureOriginWithArg,
 }, PalletId};
 use codec::{Encode, Decode, MaxEncodedLen};
@@ -137,40 +137,8 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 55;
 }
 
-pub struct BaseFilter;
-impl Contains<RuntimeCall> for BaseFilter {
-	fn contains(call: &RuntimeCall) -> bool {
-		// These modules are all allowed to be called by transactions
-		match call {
-			// ChainBridge and Swap disabled at genesis
-			RuntimeCall::ChainBridge(_) | RuntimeCall::Swap(_) => false,
-
-			// System pallets
-			RuntimeCall::System(_) | RuntimeCall::Scheduler(_) | RuntimeCall::Preimage(_) |
-			// Block production and Balances
-			RuntimeCall::Babe(_) | RuntimeCall::Balances(_) | RuntimeCall::Timestamp(_) |
-			// Consensus support
-			RuntimeCall::Staking(_) | RuntimeCall::ElectionProviderMultiPhase(_) |
-			RuntimeCall::Session(_) | RuntimeCall::Grandpa(_) | RuntimeCall::ImOnline(_) | RuntimeCall::VoterList(_) |
-			// Governance
-			RuntimeCall::Democracy(_) | RuntimeCall::Council(_) | RuntimeCall::TechnicalCommittee(_) |
-			RuntimeCall::Elections(_) | RuntimeCall::TechnicalMembership(_) | RuntimeCall::Treasury(_) |
-			// Claims
-			RuntimeCall::Claims(_) |
-			// Misc
-			RuntimeCall::Vesting(_) | RuntimeCall::Utility(_) | RuntimeCall::Identity(_) |
-			RuntimeCall::Proxy(_) | RuntimeCall::Bounties(_) | RuntimeCall::ChildBounties(_) | RuntimeCall::Tips(_) |
-			RuntimeCall::Multisig(_) | RuntimeCall::Recovery(_) | RuntimeCall::Assets(_) | RuntimeCall::Uniques(_) |
-			// XX Network
-			RuntimeCall::XXCmix(_) | RuntimeCall::XXCustody(_) | RuntimeCall::XXEconomics(_) |
-			RuntimeCall::XXBetanetRewards(_) | RuntimeCall::XXPublic(_)
-			=> true,
-		}
-	}
-}
-
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = BaseFilter;
+	type BaseCallFilter = Everything;
 	type BlockWeights = BlockWeights;
 	type BlockLength = BlockLength;
 	type RuntimeOrigin = RuntimeOrigin;
