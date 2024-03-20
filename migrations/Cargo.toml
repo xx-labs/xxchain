@@ -10,12 +10,12 @@ edition = "2021"
 log = { version = "0.4.17", default-features = false  }
 
 # primitives
-sp-std = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+sp-std = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
 
 # frame dependencies
-frame-support = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
-frame-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
-pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-support = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
+pallet-vesting = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
 
 [features]
 default = ["std"]

@@ -38,50 +38,50 @@ log = "0.4.17"
 rand = "0.8"
 
 # primitives
-sp-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-grandpa-primitives = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sp-consensus-grandpa" }
-sp-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-core = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-transaction-storage-proof = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-offchain = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-session = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-io = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sp-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+grandpa-primitives = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", package = "sp-consensus-grandpa" }
+sp-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-core = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-runtime = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-timestamp = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-inherents = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-keyring = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-transaction-storage-proof = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-offchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-session = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-io = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
 
 # client dependencies
-sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-chain-spec = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-transaction-pool-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-network = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-network-common = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus-slots = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-grandpa = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", package = "sc-consensus-grandpa" }
-sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-basic-authorship = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-service = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
-sc-telemetry = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-sync-state-rpc = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-sysinfo = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-client-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-chain-spec = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-transaction-pool = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-transaction-pool-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-network = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-network-common = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-consensus-slots = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+grandpa = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", package = "sc-consensus-grandpa" }
+sc-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-basic-authorship = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-service = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
+sc-telemetry = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-executor = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-authority-discovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-sync-state-rpc = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-sysinfo = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
 
 # frame dependencies
-frame-system = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-frame-system-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", default-features = false }
+frame-system = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+frame-system-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+pallet-transaction-payment = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+pallet-im-online = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
 
 # node-specific dependencies
 xxnetwork-runtime = { version = "0.2.6", path = "../runtime/xxnetwork", optional = true }
@@ -92,22 +92,22 @@ node-executor = { version = "0.2.0", path = "../executor" }
 runtime-common = { version = "0.2.0", path = "../runtime/common" }
 
 # CLI-specific dependencies
-sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
-frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
+sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
+frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
 node-inspect = { version = "0.2.0", optional = true, path = "../inspect" }
-try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
+try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
 serde_json = "1.0.85"
 
 [dev-dependencies]
-sc-keystore = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-client-db = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-consensus-epochs = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-service-test = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sc-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
-sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+sc-keystore = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-client-db = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-consensus = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-consensus-babe = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-consensus-epochs = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-service-test = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sc-block-builder = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-tracing = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
+sp-blockchain = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
 futures = "0.3.21"
 tempfile = "3.1.0"
 assert_cmd = "2.0.2"
@@ -120,18 +120,18 @@ criterion = { version = "0.3.5", features = ["async_tokio"] }
 tokio = { version = "1.22.0", features = ["macros", "time", "parking_lot"] }
 tokio-util = { version = "0.7.4", features = ["compat"] }
 wait-timeout = "0.2"
-substrate-rpc-client = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+substrate-rpc-client = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
 
 [build-dependencies]
 clap = { version = "4.0.9", optional = true }
 clap_complete = { version = "4.0.2", optional = true }
 node-inspect = { version = "0.2.0", optional = true, path = "../inspect" }
-frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
-substrate-build-script-utils = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
-substrate-frame-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
-try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
-sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network", optional = true }
-pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "dev/xx-network" }
+frame-benchmarking-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
+substrate-build-script-utils = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
+substrate-frame-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
+try-runtime-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
+sc-cli = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", optional = true }
+pallet-balances = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6" }
 
 [features]
 default = ["cli", "xxnetwork"]
