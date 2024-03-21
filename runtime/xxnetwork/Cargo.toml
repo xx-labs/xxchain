@@ -88,6 +88,8 @@ pallet-recovery = { git = "https://github.com/xx-labs/substrate", branch = "xx-n
 pallet-uniques = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
 pallet-preimage = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
 pallet-child-bounties = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
+pallet-nfts = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
+pallet-nfts-runtime-api = { git = "https://github.com/xx-labs/substrate", branch = "xx-network-v0.2.6", default-features = false }
 
 # chainbridge
 chainbridge = { path = "../../chainbridge", default-features = false }
@@ -182,6 +184,8 @@ std = [
 	"pallet-uniques/std",
 	"pallet-preimage/std",
 	"pallet-child-bounties/std",
+	"pallet-nfts/std",
+	"pallet-nfts-runtime-api/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
@@ -217,6 +221,7 @@ runtime-benchmarks = [
 	"pallet-uniques/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-vesting/runtime-benchmarks",
+	"pallet-nfts/runtime-benchmarks",
 	"claims/runtime-benchmarks",
 	"swap/runtime-benchmarks",
 	"xx-cmix/runtime-benchmarks",
@@ -262,6 +267,7 @@ try-runtime = [
 	"pallet-utility/try-runtime",
 	"pallet-uniques/try-runtime",
 	"pallet-vesting/try-runtime",
+	"pallet-nfts/try-runtime",
 	"chainbridge/try-runtime",
 	"claims/try-runtime",
 	"swap/try-runtime",

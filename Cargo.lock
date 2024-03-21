@@ -5227,6 +5227,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-nfts"
+version = "4.0.0-dev"
+source = "git+https://github.com/xx-labs/substrate?branch=xx-network-v0.2.6#7f2ac3c698373a7063d92d998032ca060c04f4dc"
+dependencies = [
+ "enumflags2",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-nfts-runtime-api"
+version = "4.0.0-dev"
+source = "git+https://github.com/xx-labs/substrate?branch=xx-network-v0.2.6#7f2ac3c698373a7063d92d998032ca060c04f4dc"
+dependencies = [
+ "frame-support",
+ "pallet-nfts",
+ "parity-scale-codec",
+ "sp-api",
+]
+
+[[package]]
 name = "pallet-offences"
 version = "4.0.0-dev"
 source = "git+https://github.com/xx-labs/substrate?branch=xx-network-v0.2.6#7f2ac3c698373a7063d92d998032ca060c04f4dc"
@@ -11245,6 +11274,8 @@ dependencies = [
  "pallet-im-online",
  "pallet-membership",
  "pallet-multisig",
+ "pallet-nfts",
+ "pallet-nfts-runtime-api",
  "pallet-offences",
  "pallet-offences-benchmarking",
  "pallet-preimage",
